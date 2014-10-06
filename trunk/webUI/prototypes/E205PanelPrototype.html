@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>retro-B5500 Emulator Operator Console</title>
+<!--
+/***********************************************************************
+* retro-205/205PanelPrototype.html
+************************************************************************
+* Copyright (c) 2014, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* Electrodata 205 Maintenance Panel prototype page.
+************************************************************************
+* 2014-10-04  P.Kimpel
+*   Original version, from thin air.
+***********************************************************************/
+-->
+<meta name="Author" content="Paul Kimpel">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+
+<style>
+DIV.neonLamp {
+    position:           absolute;
+    width:              16px;
+    height:             16px;
+    font-size:          4px;
+    border-radius:      12px;
+    border:             2px solid #999;
+    background-image:   radial-gradient(circle, #999, #333)}
+DIV.neonLit {
+    background-image:   radial-gradient(circle, #F93, #666)}
+</style>
+</head>
+
+<body style="background-color:#003; color:white; margin:0">
+
+<div style="position:absolute; left:20px; top:20px; width:368px; height:112px; background-color:#EEF; border-radius:12px">
+    <div style="left:14px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:14px; top:34px" class="neonLamp"></div>
+    <div style="left:14px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:14px; top:82px" class="neonLamp"></div>
+
+    <div style="left:46px; top:10px" class="neonLamp"></div>
+    <div style="left:46px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:46px; top:58px" class="neonLamp"></div>
+    <div style="left:46px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:78px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:78px; top:34px" class="neonLamp"></div>
+    <div style="left:78px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:78px; top:82px" class="neonLamp"></div>
+
+    <div style="left:110px; top:10px" class="neonLamp"></div>
+    <div style="left:110px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:110px; top:58px" class="neonLamp"></div>
+    <div style="left:110px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:142px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:142px; top:34px" class="neonLamp"></div>
+    <div style="left:142px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:142px; top:82px" class="neonLamp"></div>
+
+    <div style="left:174px; top:10px" class="neonLamp"></div>
+    <div style="left:174px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:174px; top:58px" class="neonLamp"></div>
+    <div style="left:174px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:206px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:206px; top:34px" class="neonLamp"></div>
+    <div style="left:206px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:206px; top:82px" class="neonLamp"></div>
+
+    <div style="left:238px; top:10px" class="neonLamp"></div>
+    <div style="left:238px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:238px; top:58px" class="neonLamp"></div>
+    <div style="left:238px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:270px; top:10px" class="neonLamp"></div>
+    <div style="left:270px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:270px; top:58px" class="neonLamp"></div>
+    <div style="left:270px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:302px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:302px; top:34px" class="neonLamp"></div>
+    <div style="left:302px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:302px; top:82px" class="neonLamp"></div>
+
+    <div style="left:334px; top:10px" class="neonLamp"></div>
+    <div style="left:334px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:334px; top:58px" class="neonLamp"></div>
+    <div style="left:334px; top:82px" class="neonLamp neonLit"></div>
+</div>
+
+<div style="position:absolute; left:404px; top:20px; width:368px; height:112px; background-color:#EEF; border-radius:12px">
+    <div style="left:14px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:14px; top:34px" class="neonLamp"></div>
+    <div style="left:14px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:14px; top:82px" class="neonLamp"></div>
+
+    <div style="left:46px; top:10px" class="neonLamp"></div>
+    <div style="left:46px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:46px; top:58px" class="neonLamp"></div>
+    <div style="left:46px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:78px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:78px; top:34px" class="neonLamp"></div>
+    <div style="left:78px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:78px; top:82px" class="neonLamp"></div>
+
+    <div style="left:110px; top:10px" class="neonLamp"></div>
+    <div style="left:110px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:110px; top:58px" class="neonLamp"></div>
+    <div style="left:110px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:142px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:142px; top:34px" class="neonLamp"></div>
+    <div style="left:142px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:142px; top:82px" class="neonLamp"></div>
+
+    <div style="left:174px; top:10px" class="neonLamp"></div>
+    <div style="left:174px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:174px; top:58px" class="neonLamp"></div>
+    <div style="left:174px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:206px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:206px; top:34px" class="neonLamp"></div>
+    <div style="left:206px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:206px; top:82px" class="neonLamp"></div>
+
+    <div style="left:238px; top:10px" class="neonLamp"></div>
+    <div style="left:238px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:238px; top:58px" class="neonLamp"></div>
+    <div style="left:238px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:270px; top:10px" class="neonLamp"></div>
+    <div style="left:270px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:270px; top:58px" class="neonLamp"></div>
+    <div style="left:270px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:302px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:302px; top:34px" class="neonLamp"></div>
+    <div style="left:302px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:302px; top:82px" class="neonLamp"></div>
+
+    <div style="left:334px; top:10px" class="neonLamp"></div>
+    <div style="left:334px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:334px; top:58px" class="neonLamp"></div>
+    <div style="left:334px; top:82px" class="neonLamp neonLit"></div>
+</div>
+
+<div style="position:absolute; left:20px; top:140px; width:368px; height:112px; background-color:#EEF; border-radius:12px">
+    <div style="left:14px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:14px; top:34px" class="neonLamp"></div>
+    <div style="left:14px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:14px; top:82px" class="neonLamp"></div>
+
+    <div style="left:46px; top:10px" class="neonLamp"></div>
+    <div style="left:46px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:46px; top:58px" class="neonLamp"></div>
+    <div style="left:46px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:78px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:78px; top:34px" class="neonLamp"></div>
+    <div style="left:78px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:78px; top:82px" class="neonLamp"></div>
+
+    <div style="left:110px; top:10px" class="neonLamp"></div>
+    <div style="left:110px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:110px; top:58px" class="neonLamp"></div>
+    <div style="left:110px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:142px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:142px; top:34px" class="neonLamp"></div>
+    <div style="left:142px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:142px; top:82px" class="neonLamp"></div>
+
+    <div style="left:174px; top:10px" class="neonLamp"></div>
+    <div style="left:174px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:174px; top:58px" class="neonLamp"></div>
+    <div style="left:174px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:206px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:206px; top:34px" class="neonLamp"></div>
+    <div style="left:206px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:206px; top:82px" class="neonLamp"></div>
+
+    <div style="left:238px; top:10px" class="neonLamp"></div>
+    <div style="left:238px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:238px; top:58px" class="neonLamp"></div>
+    <div style="left:238px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:270px; top:10px" class="neonLamp"></div>
+    <div style="left:270px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:270px; top:58px" class="neonLamp"></div>
+    <div style="left:270px; top:82px" class="neonLamp neonLit"></div>
+
+    <div style="left:302px; top:10px" class="neonLamp neonLit"></div>
+    <div style="left:302px; top:34px" class="neonLamp"></div>
+    <div style="left:302px; top:58px" class="neonLamp neonLit"></div>
+    <div style="left:302px; top:82px" class="neonLamp"></div>
+
+    <div style="left:334px; top:10px" class="neonLamp"></div>
+    <div style="left:334px; top:34px" class="neonLamp neonLit"></div>
+    <div style="left:334px; top:58px" class="neonLamp"></div>
+    <div style="left:334px; top:82px" class="neonLamp neonLit"></div>
+</div>
+
+<img src="../Images/ToggleDown.png" style="position:absolute; top:300px; left:100px; width:20px">
+<img src="../Images/ToggleUp.png"   style="position:absolute; top:300px; left:150px; width:20px">
+
+</body>
+</html>

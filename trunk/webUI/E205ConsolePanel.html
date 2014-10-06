@@ -1,0 +1,209 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>retro-205 Console Control Panel</title>
+<!--
+/***********************************************************************
+* retro-205/E205ConsolePanel.html
+************************************************************************
+* Copyright (c) 2014, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* Electrodata 205 Console Control Panel page.
+************************************************************************
+* 2014-10-04  P.Kimpel
+*   Original version, from retro-b5500 B5500ProcessorPanel.html prototype.
+***********************************************************************/
+-->
+<meta name="Author" content="Paul Kimpel">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link id=defaultStyleSheet rel=stylesheet type="text/css" href="E205Panel.css">
+
+<script src="./E205PanelUtil.js"></script>      <!-- must be first -->
+
+<script>
+window.onload = function() {
+    var body = window.document.body;
+    var displayRefreshPeriod = 50;      // milliseconds
+    var e;
+    var intervalToken = 0;
+    var regA = new PanelRegister(44,  3, 2, 4, "A REGISTER");
+    var regR = new PanelRegister(40, 15, 2, 4, "R REGISTER");
+    var regD = new PanelRegister(44,  3, 7, 4, "D REGISTER");
+    var regB = new PanelRegister(16, 15, 7, 4, "B REGISTER");
+    var regC = new PanelRegister(40, 20, 7, 4, "C REGISTER");
+
+    function setLamp(id, value, lampClass, litClass) {
+        var bit = value % 2;
+        var e = document.getElementById(id);
+
+        e.className = (bit ? lampClass + " " + litClass : lampClass);
+        return (value-bit)/2;
+    }
+
+    function updateDisplay() {
+        var lampMask = Math.floor(Math.random()*1024);
+
+        regA.update(Math.random()*0x100000000000);
+        regR.update(Math.random()*0x10000000000);
+        regD.update(Math.random()*0x100000000000);
+        regB.update(Math.random()*0x10000);
+        regC.update(Math.random()*0x10000000000);
+
+        lampMask = setLamp("IdleLamp", lampMask, "redLamp", "redLit");
+        lampMask = setLamp("FCSALamp", lampMask, "orangeLamp", "orangeLit");
+        lampMask = setLamp("ControlLamp", lampMask, "orangeLamp", "orangeLit");
+        lampMask = setLamp("BKPTLamp", lampMask, "orangeLamp", "orangeLit");
+        lampMask = setLamp("OverflowLamp", lampMask, "redLamp", "redLit");
+        lampMask = setLamp("ExecuteLamp", lampMask, "whiteLamp", "whiteLit");
+        lampMask = setLamp("FetchLamp", lampMask, "whiteLamp", "whiteLit");
+        lampMask = setLamp("NotReadyLamp", lampMask, "redLamp", "redLit");
+        lampMask = setLamp("ContinuousLamp", lampMask, "greenLamp", "greenLit");
+    }
+
+    function stepBtn_Click(ev) {
+        if (intervalToken) {
+            clearInterval(intervalToken);
+            intervalToken = 0;
+        }
+        updateDisplay();
+    }
+
+    function stopBtn_Click(ev) {
+        if (intervalToken) {
+            clearInterval(intervalToken);
+            intervalToken = 0;
+        }
+    }
+
+    function contBtn_Click(ev) {
+        if (!intervalToken) {
+            intervalToken = setInterval(updateDisplay, displayRefreshPeriod);
+        }
+        updateDisplay();
+    }
+
+    function flipSwitch(ev) {
+        var img = ev.target;
+        var src = img.src;
+
+        if (src.indexOf("Down") > 0) {
+            img.src = src.replace("Down", "Up");
+        } else if (src.indexOf("Up") > 0) {
+            img.src = src.replace("Up", "Down");
+        }
+    }
+
+
+    // Start of window.onload
+    body.appendChild(regA.element);
+    body.appendChild(regR.element);
+    body.appendChild(regD.element);
+    body.appendChild(regB.element);
+    body.appendChild(regC.element);
+
+    e = document.getElementById("LogoPanel");
+    e.style.left = (26*PanelRegister.hSpacing-PanelRegister.hOffset).toString() + "px";
+    e.style.top = (2*PanelRegister.vSpacing-PanelRegister.vOffset).toString() + "px";
+    e.style.width = (3*PanelRegister.hSpacing + 2*PanelRegister.hOffset + PanelRegister.lampDiameter).toString() + "px";
+    e.style.height = (3*PanelRegister.vSpacing + 2*PanelRegister.vOffset + PanelRegister.lampDiameter).toString() + "px";
+
+    document.getElementById("StepBtn").addEventListener("click", stepBtn_Click);
+    document.getElementById("StopBtn").addEventListener("click", stopBtn_Click);
+    document.getElementById("ContBtn").addEventListener("click", contBtn_Click);
+    document.getElementById("POSuppressSwitch").addEventListener("click", flipSwitch);
+    document.getElementById("SkipSwitch").addEventListener("click", flipSwitch);
+    document.getElementById("AudibleAlarmSwitch").addEventListener("click", flipSwitch);
+    //intervalToken = setInterval(updateDisplay, displayRefreshPeriod);
+};
+</script>
+</head>
+
+<body class="panelBody">
+
+<div id=LogoPanel class="panelRegister">
+    <div id=LogoText1>CONTROL CONSOLE</div>
+    <div id=LogoText2>ELECTRODATA</div>
+    <div id=LogoText3>CORPORATION</div>
+    <div id=LogoText4>PASADENA</div>
+    <div id=LogoText5>CALIFORNIA</div>
+</div>
+
+<div class=caption style="top:330px; left:28px; width:64px">OUTPUT</div>
+<div id=OutputKnob class="blackKnob1" style="top:350px; left:28px"><&nbsp;</div>
+<div class=caption style="top:355px; left:100px">TAPE</div>
+<div class=caption style="top:377px; left:100px">OFF</div>
+<div class=caption style="top:400px; left:100px">PAGE</div>
+
+<div class=caption style="top:330px; left:130px; width:80px">P.O. SUPPRESS</div>
+<img id=POSuppressSwitch src="./resources/ToggleDown.png" style="position:absolute; top:370px; left:160px; width:20px">
+<div class=caption style="top:360px; left:160px; width:20px">ON</div>
+<div class=caption style="top:410px; left:160px; width:20px">OFF</div>
+
+<div class=caption style="top:330px; left:210px; width:20px">SKIP</div>
+<img id=SkipSwitch src="./resources/ToggleDown.png" style="position:absolute; top:370px; left:210px; width:20px">
+<div class=caption style="top:360px; left:210px; width:20px">ON</div>
+<div class=caption style="top:410px; left:210px; width:20px">OFF</div>
+
+<div class=caption style="top:330px; left:262px; width:32px">CLEAR</div>
+<div id=ClearBtn class="redButton1" style="top:374px; left:262px">&nbsp;</div>
+
+<div class=panelCaption style="top:336px; left:338px; width:126px">
+    <span class=panelSpan>COMPUTER STOP</span>
+</div>
+<div id=IdleLamp class="redLamp"    style="top:350px; left:326px"></div>
+<div class=caption style="top:380px; left:326px; width:24px">IDLE</div>
+<img id=AudibleAlarmSwitch src="./resources/ToggleDown.png" style="position:absolute; top:420px; left:328px; width:20px">
+<div class=caption style="top:410px; left:328px; width:20px">ON</div>
+<div class=caption style="top:460px; left:298px; width:80px">OFF<br>AUDIBLE ALARM</div>
+
+<div id=FCSALamp class="orangeLamp" style="top:350px; left:368px"></div>
+<div class=caption style="top:380px; left:368px; width:24px">FC/SA</div>
+<div id=ControlLamp class="orangeLamp" style="top:350px; left:410px"></div>
+<div class=caption style="top:380px; left:400px; width:44px">CONTROL</div>
+<div id=BKPTLamp class="orangeLamp" style="top:350px; left:452px"></div>
+<div class=caption style="top:380px; left:452px; width:24px">BKPT</div>
+
+<div class=caption style="top:330px; left:506px; width:64px">BREAKPOINT</div>
+<div class=caption style="top:345px; left:495px">OFF</div>
+<div class=caption style="top:345px; left:525px">4</div>
+<div class=caption style="top:345px; left:545px">2</div>
+<div class=caption style="top:345px; left:570px">1</div>
+<div id=BreakpointKnob class="blackKnob1" style="top:360px; left:506px"><&nbsp;</div>
+
+<div class=caption style="top:330px; left:594px; width:48px">OVERFLOW</div>
+<div id=OverflowLamp class="redLamp"    style="top:350px; left:606px"></div>
+<div class="blackButton1" style="top:416px; left:602px">&nbsp;</div>
+<div id=ResetBtn class=caption style="top:458px; left:602px; width:32px">RESET</div>
+
+<div class=caption style="top:330px; left:668px; width:66px">TIMING TOGGLE</div>
+<div id=ExecuteLamp class="whiteLamp"  style="top:350px; left:668px"></div>
+<div class=caption style="top:380px; left:660px; width:40px">EXECUTE</div>
+<div id=FetchLamp class="whiteLamp"  style="top:350px; left:710px"></div>
+<div class=caption style="top:380px; left:710px; width:24px">FETCH</div>
+
+<div class=panelCaption style="top:336px; left:784px; width:84px">
+    <span class=panelSpan>OPERATION</span>
+</div>
+<div id=NotReadyLamp class="redLamp"    style="top:350px; left:772px"></div>
+<div class=caption style="top:380px; left:760px; width:48px">NOT READY</div>
+<div id=StepBtn class="redButton1" style="top:416px; left:768px">&nbsp;</div>
+<div class=caption style="top:458px; left:768px; width:32px">STEP</div>
+<div id=ContinuousLamp class="greenLamp"  style="top:350px; left:856px"></div>
+<div class=caption style="top:380px; left:844px; width:48px">CONTINUOUS</div>
+
+<div id=StopBtn class="blackButton1" style="top:416px; left:810px">&nbsp;</div>
+<div class=caption style="top:458px; left:810px; width:32px">STOP</div>
+<div id=ContBtn class="blackButton1" style="top:416px; left:852px">&nbsp;</div>
+<div class=caption style="top:458px; left:852px; width:32px">CONT</div>
+
+<div class=caption style="top:330px; left:950px; width:64px">INPUT</div>
+<div id=InputKnob class="blackKnob1" style="top:360px; left:950px"><&nbsp;</div>
+<div class=caption style="top:370px; left:910px">MECH.<br>READER</div>
+<div class=caption style="top:390px; left:910px">OPTICAL<br>READER</div>
+<div class=caption style="top:410px; left:910px">KEYBOARD</div>
+
+</body>
+</html>
