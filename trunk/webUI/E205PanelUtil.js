@@ -1,11 +1,12 @@
- /***********************************************************************
-* retro-205/emulator 205Panel.js
+/***********************************************************************
+* retro-205/emulator D205Panel.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
-* Licensed under the MIT License, see http://www.opensource.org/licenses/mit-license.php
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* JavaScript object definition for the 205 Maintenance & Control Panel
-* utility constructors.
+* JavaScript object definition for the Electrodata/Burroughs Datatron 205
+* Maintenance & Control Panel utility constructors.
 ************************************************************************
 * 2014-10-04  P.Kimpel
 *   Original version, from retro-b5500 B5500DDPanel.js.
@@ -32,31 +33,31 @@ function NeonLamp(x, y) {
 
 NeonLamp.captionClass = "neonLampCaption";
 NeonLamp.lampClass = "neonLamp";
-NeonLamp.litClass = "neonLit";
+NeonLamp.litClass = "neonLamp neonLit";
 
 /**************************************/
-NeonLamp.prototype.set = function(state) {
+NeonLamp.prototype.set = function set(state) {
     /* Changes the visible state of the lamp according to the low-order
     bit of "state". */
     var newState = state & 1;
 
     if (this.state ^ newState) {         // the state has changed
-        this.element.className = (newState ? NeonLamp.lampClass + " " + NeonLamp.litClass : NeonLamp.lampClass);
+        this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
         this.state = newState;
     }
-}
+};
 
 /**************************************/
-NeonLamp.prototype.flip = function() {
+NeonLamp.prototype.flip = function flip() {
     /* Complements the visible state of the lamp */
     var newState = this.state ^ 1;
 
-    this.element.className = (newState ? NeonLamp.lampClass + " " + NeonLamp.litClass : NeonLamp.lampClass);
+    this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
     this.state = newState;
-}
+};
 
 /**************************************/
-NeonLamp.prototype.setCaption = function(caption) {
+NeonLamp.prototype.setCaption = function setCaption(caption) {
     /* Establishes an optional caption for a single lamp */
     var e = this.captionDiv;
 
@@ -68,7 +69,7 @@ NeonLamp.prototype.setCaption = function(caption) {
         e.appendChild(document.createTextNode(caption));
         this.element.appendChild(e);
     }
-}
+};
 
 
 /***********************************************************************
@@ -140,67 +141,60 @@ PanelRegister.lampDiameter = 20;        // lamp outer diameter, pixels
 PanelRegister.panelClass = "panelRegister";
 PanelRegister.captionClass = "panelRegCaption";
 PanelRegister.captionSpanClass = "panelRegSpan";
+PanelRegister.boxCaptionClass = "boxCaption";
 
 /**************************************/
-PanelRegister.prototype.xCoord = function(col) {
-    /* Returns the horizontal lamp coordinate in "px" format */
+PanelRegister.prototype.xCoord = function xCoord(col) {
+    /* Returns the horizontal lamp coordinate in pixels */
 
-    return String((col-1)*PanelRegister.hSpacing + PanelRegister.hOffset) + "px";
-}
-
-/**************************************/
-PanelRegister.prototype.yCoord = function(row) {
-    /* Returns the vertical lamp coordinate in "px" format */
-
-    return String((row-1)*PanelRegister.vSpacing + PanelRegister.vOffset) + "px";
-}
+    return ((col-1)*PanelRegister.hSpacing + PanelRegister.hOffset);
+};
 
 /**************************************/
-PanelRegister.prototype.YYupdate = function(value) {
-    /* Update the register lamps from the value of the parameter */
-    var bitNr = 0;
-    var low = (this.lastValue % 0x1000000) ^ (value % 0x1000000);
-    var high = (Math.floor(this.lastValue / 0x1000000) % 0x1000000) ^ (Math.floor(value / 0x1000000) % 0x1000000);
+PanelRegister.prototype.yCoord = function yCoord(row) {
+    /* Returns the vertical lamp coordinate in pixels */
 
-    while (low) {
-        bitNr++;
-        if (low & 1) {
-            this.lamps[bitNr].flip();
-        }
-        low >>>= 1;
+    return ((row-1)*PanelRegister.vSpacing + PanelRegister.vOffset);
+};
+
+/**************************************/
+PanelRegister.prototype.drawBox = function drawBox(col, lamps, rows, leftStyle, rightStyle) {
+    var box = document.createElement("div");
+    var rightBias = (rightStyle ? 1 : 0);
+
+    box.style.position = "absolute";
+    box.style.left = (this.xCoord(col) - (PanelRegister.hSpacing-PanelRegister.lampDiameter)/2).toString() + "px";
+    box.style.width = (PanelRegister.hSpacing*lamps - rightBias).toString() + "px";
+    box.style.top = this.yCoord(1).toString() + "px";
+    box.style.height = (this.yCoord(rows) - this.yCoord(1) + PanelRegister.lampDiameter).toString() + "px";
+    box.style.borderLeft = leftStyle;
+    box.style.borderRight = rightStyle;
+    box.appendChild(document.createTextNode("\xA0"));
+    this.element.appendChild(box);
+    return box;
+};
+
+/**************************************/
+PanelRegister.prototype.setBoxCaption = function setBoxCaption(box, caption) {
+    /* Establishes an optional caption for a single lamp */
+    var e = box.captionDiv;
+
+    if (e) {
+        e.textContent = caption;
+    } else {
+        box.captionDiv = e = document.createElement("div");
+        e.className = PanelRegister.boxCaptionClass;
+        e.appendChild(document.createTextNode(caption));
+        box.appendChild(e);
     }
-    bitNr = 23;
-    while (high) {
-        bitNr++;
-        if (high & 1) {
-            this.lamps[bitNr].flip();
-        }
-        high >>>= 1;
-    }
-    this.lastValue = value;
-}
-
-/**************************************/
-PanelRegister.prototype.XXupdate = function(value) {
-    /* Update the register lamps from the value of the parameter */
-    var bitNr = 0;
-    var bit;
-    var mask = value % 0x1000000000000;
-
-    while (mask) {
-        bitNr++;
-        bit = mask % 2;
-        this.lamps[bitNr].set(bit);
-        mask = (mask-bit)/2;
-    }
-}
+};
 
 /**************************************/
 PanelRegister.prototype.update = function(value) {
     /* Update the register lamps from the value of the parameter */
     var bitNr = 0;
     var bit;
-    var mask = Math.floor(Math.abs(value)) % 0x1000000000000;
+    var mask = Math.floor(Math.abs(value)) % 0x100000000000;
 
     while (bitNr < this.bits) {
         bit = mask % 2;
@@ -208,4 +202,4 @@ PanelRegister.prototype.update = function(value) {
         mask = (mask-bit)/2;
         bitNr++;
     }
-}
+};
