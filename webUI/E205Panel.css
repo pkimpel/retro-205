@@ -1,10 +1,11 @@
 /***********************************************************************
-* retro-205/emulator 205Panel.css
+* retro-205/emulator D205Panel.css
 ************************************************************************
 * Copyright (c) 2014, and Paul Kimpel.
-* Licensed under the MIT License, see http://www.opensource.org/licenses/mit-license.php
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* 205 emulator control panel common style sheet.
+* Electrodata/Burroughs Datatron 205 emulator control panel common style sheet.
 ************************************************************************
 * 2014-10-04  P.Kimpel
 *   Original version, from retro-b5500 B5500DistributionAndDisplay.css
@@ -39,7 +40,7 @@ HTML {
 
 BODY.panelBody {
     position:           relative;
-    font-family:        DejaVuSansWeb, sans-serif;  
+    font-family:        DejaVuSansWeb, sans-serif;
     font-size:          8pt;
     background-color:   #123;
     color:              white;
@@ -69,7 +70,7 @@ PRE.topOfForm {
 INPUT[type=text] {
     font-family:        DejaVuSansMonoBookWeb, monospace;
     font-size:          8pt}
-    
+
 DIV.caption {
     position:           absolute;
     z-index:            +1;
@@ -91,10 +92,10 @@ DIV.neonLit {
     background-image:   radial-gradient(circle, #F93, #999)}
 DIV.neonLampCaption {
     position:           absolute;
-    width:              16px;
-    top:                14px;
+    width:              20px;
+    top:                -12px;
     left:               -3px;
-    font-size:          6px;
+    font-size:          8px;
     text-align:         center}
 
 DIV.whiteLamp {
@@ -103,7 +104,7 @@ DIV.whiteLamp {
     height:             24px;
     font-size:          4px;
     border-radius:      16px;
-    background-image:   radial-gradient(circle, #999, #666)}
+    background-image:   radial-gradient(circle, #999, #333)}
 DIV.whiteLit {
     background-image:   radial-gradient(circle, #FFF, #999)}
 
@@ -113,7 +114,7 @@ DIV.redLamp {
     height:             24px;
     font-size:          4px;
     border-radius:      16px;
-    background-image:   radial-gradient(circle, #900, #600)}
+    background-image:   radial-gradient(circle, #900, #300)}
 DIV.redLit {
     background-image:   radial-gradient(circle, #F00, #900)}
 
@@ -123,7 +124,7 @@ DIV.orangeLamp {
     height:             24px;
     font-size:          4px;
     border-radius:      16px;
-    background-image:   radial-gradient(circle, #960, #630)}
+    background-image:   radial-gradient(circle, #960, #330)}
 DIV.orangeLit {
     background-image:   radial-gradient(circle, #F93, #960)}
 
@@ -141,7 +142,7 @@ DIV.panelRegister {
     position:           absolute;
     overflow:           hidden;
     color:              black;
-    background-color:   #CDE;  
+    background-color:   #CDE;
     border-radius:      12px;
     font-size:          6px}
 
@@ -155,9 +156,17 @@ DIV.panelCaption {
     border-right:       1px solid white;
     border-top:         1px solid white}
 
+DIV.boxCaption {
+    position:           absolute;
+    width:              100%;
+    top:                -12px;
+    left:               -3px;
+    font-size:          8px;
+    text-align:         center}
+
 SPAN.panelSpan {
     position:           relative;
-    top:                -12px;
+    top:                -6px;
     font-size:          5pt;
     font-weight:        bold;
     padding-left:       2px;
@@ -169,19 +178,19 @@ DIV.panelRegCaption {
     font-weight:        normal;
     text-align:         center;
     height:             5px;
-    left:               25%;
-    right:              25%;
+    left:               calc(50% - 60px);
+    width:              120px;
     bottom:             0;
     border-top:         1px solid black}
 
 SPAN.panelRegSpan {
     position:           relative;
-    top:                -9px;
+    top:                -7px;
     font-size:          7pt;
     padding-left:       2px;
     padding-right:      2px;
     background-color:   #CDE}
-    
+
 DIV.redButton1 {
     position:           absolute;
     width:              14px;
@@ -207,10 +216,10 @@ DIV.blackKnob1 {
     background-color:   black;
     border-radius:      32px;
     border:             16px solid #CCC}
-    
+
 #LogoText1 {
     position:           absolute;
-    font-size:          9pt;
+    font-size:          8pt;
     top:                30%;
     width:              100%;
     text-align:         center}
@@ -237,6 +246,237 @@ DIV.blackKnob1 {
     top:                75%;
     right:              10%}
 
+#OutputKnob {
+    top:                350px;
+    left:               28px}
+#OutputKnobCaption {
+    top:                330px;
+    left:               28px;
+    width:              64px}
+#OutputKnobTape {
+    top:                355px;
+    left:               100px}
+#OutputKnobOff {
+    top:                377px;
+    left:               100px}
+#OutputKnobPage {
+    top:                400px;
+    left:               100px}
+
+#POSuppressSwitch {
+    position:           absolute;
+    top:                370px;
+    left:               160px;
+    width:              20px}
+#POSuppressCaption {
+    top:                330px;
+    left:               130px;
+    width:              80px}
+#POSuppressOn {
+    top:                360px;
+    left:               160px;
+    width:              20px}
+#POSuppressOff {
+    top:                410px;
+    left:               160px;
+    width:              20px}
+
+#SkipSwitch {
+    position:           absolute;
+    top:                370px;
+    left:               210px;
+    width:              20px}
+#SkipSwitchCaption {
+    top:                330px;
+    left:               210px;
+    width:              20px}
+#SkipSwitchOn {
+    top:                360px;
+    left:               210px;
+    width:              20px}
+#SkipSwitchOff {
+    top:                410px;
+    left:               210px;
+    width:              20px}
+
+#ClearBtn {
+    top:                374px;
+    left:               262px}
+#ClearBtnCaption {
+    top:                330px;
+    left:               262px;
+    width:              32px}
+
+#ComputerStopCaption {
+    top:                332px;
+    left:               338px;
+    width:              126px}
+
+#IdleLamp {
+    top:                350px;
+    left:               326px}
+#IdleLampCaption {
+    top:                380px;
+    left:               326px;
+    width:              24px}
+
+#AudibleAlarmSwitch {
+    position:           absolute;
+    top:                420px;
+    left:               328px;
+    width:              20px}
+#AudibleAlarmOn {
+    top:                410px;
+    left:               328px;
+    width:              20px}
+#AudibleAlarmOff {
+    top:                460px;
+    left:               298px;
+    width:              80px}
+
+#FCSALamp {
+    top:                350px;
+    left:               368px}
+#FCSALampCaption {
+    top:                380px;
+    left:               368px;
+    width:              24px}
+
+#ControlLamp {
+    top:                350px;
+    left:               410px}
+#ControlLampCaption {
+    top:                380px;
+    left:               400px;
+    width:              44px}
+
+#BKPTLamp {
+    top:                350px;
+    left:               452px}
+#BKPTLampCaption {
+    top:                380px;
+    left:               452px;
+    width:              24px}
+
+#BreakpointKnob {
+    top:                360px;
+    left:               506px}
+#BreakpointKnobCaption {
+    top:                330px;
+    left:               506px;
+    width:              64px}
+#BreakpointKnobOff {
+    top:                345px;
+    left:               495px}
+#BreakpointKnob4 {
+    top:                345px;
+    left:               525px}
+#BreakpointKnob2 {
+    top:                345px;
+    left:               545px}
+#BreakpointKnob1 {
+    top:                345px;
+    left:               570px}
+
+#OverflowLamp {
+    top:                350px;
+    left:               606px}
+#OverflowLampCaption {
+    top:                330px;
+    left:               594px;
+    width:              48px}
+
+#ResetBtn {
+    top:                416px;
+    left:               602px}
+#ResetBtnCaption {
+    top:                458px;
+    left:               602px;
+    width:              32px}
+
+#TimingToggleCaption {
+    top:                330px;
+    left:               668px;
+    width:              66px}
+
+#ExecuteLamp {
+    top:                350px;
+    left:               668px}
+#ExecuteLampCaption {
+    top:                380px;
+    left:               660px;
+    width:              40px}
+
+#FetchLamp {
+    top:                350px;
+    left:               710px}
+#FetchLampCaption {
+    top:                380px;
+    left:               710px;
+    width:              24px}
+
+#OperationCaption {
+    top:                332px;
+    left:               784px;
+    width:              84px}
+
+#NotReadyLamp {
+    top:                350px;
+    left:               772px}
+#NotReadyLampCaption {
+    top:                380px;
+    left:               760px;
+    width:              48px}
+
+#StepBtn {
+    top:                416px;
+    left:               768px}
+#StepBtnCaption {
+    top:                458px;
+    left:               768px;
+    width:              32px}
+
+#ContinuousLamp {
+    top:                350px;
+    left:               856px}
+#ContinuousLampCaption {
+    top:                380px;
+    left:               844px;
+    width:              48px}
+
+#StopBtn {
+    top:                416px;
+    left:               810px}
+#StopBtnCaption {
+    top:                458px;
+    left:               810px;
+    width:              32px}
+
+#ContBtn {
+    top:                416px;
+    left:               852px}
+#ContBtnCaption {
+    top:                458px;
+    left:               852px;
+    width:              32px}
+
+#InputKnob {
+    top:                360px;
+    left:               950px}
+#InputKnobCaption {
+    top:                330px;
+    left:               950px;
+    width:              64px}
+#InputKnobReader {
+    top:                370px;
+    left:               910px}
+#InputKnobOpticalReader {
+    top:                390px;
+    left:               910px}
+#InputKnobKeyboard {
+    top:                410px;
+    left:               910px}
+
 .annunciator {
     visibility:         hidden;
     white-space:        nowrap;
@@ -258,4 +498,3 @@ DIV.blackKnob1 {
 .number {
     font-family:        DejaVuSansMonoBookWeb, monospace;
     text-align:         right}
-
