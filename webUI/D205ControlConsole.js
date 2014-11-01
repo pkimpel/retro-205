@@ -136,15 +136,14 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     var x;
 
     this.doc = this.window.document;
-    body = this.doc.body;
+    body = this.$$("PanelSurface");
 
-    this.regA = new PanelRegister(44,  3, 2, 4, "A REGISTER");
-    this.regB = new PanelRegister(16, 15, 7, 4, "B REGISTER");
-    this.regC = new PanelRegister(40, 20, 7, 4, "C REGISTER");
-    this.regD = new PanelRegister(44,  3, 7, 4, "D REGISTER");
-    this.regR = new PanelRegister(40, 15, 2, 4, "R REGISTER");
+    this.regA = new PanelRegister(this.$$("ARegPanel"), 44, 4, "A REGISTER");
+    this.regB = new PanelRegister(this.$$("BRegPanel"), 16, 4, "B REGISTER");
+    this.regC = new PanelRegister(this.$$("CRegPanel"), 40, 4, "C REGISTER");
+    this.regD = new PanelRegister(this.$$("DRegPanel"), 44, 4, "D REGISTER");
+    this.regR = new PanelRegister(this.$$("RRegPanel"), 40, 4, "R REGISTER");
 
-    // Start of window.onload
     body.appendChild(this.regA.element);
     this.regA.drawBox(1, 1, 4, "", "1px solid black");
     this.regA.drawBox(6, 2, 4, "1px dashed black", "1px dashed black");
@@ -180,14 +179,8 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
         this.regR.lamps[43-x*4].setCaption("R-"+x);
     }
 
-    e = this.$$("LogoPanel");
-    e.style.left = (26*PanelRegister.hSpacing-PanelRegister.hOffset).toString() + "px";
-    e.style.top = (2*PanelRegister.vSpacing-PanelRegister.vOffset).toString() + "px";
-    e.style.width = (3*PanelRegister.hSpacing + 2*PanelRegister.hOffset + PanelRegister.lampDiameter).toString() + "px";
-    e.style.height = (3*PanelRegister.vSpacing + 2*PanelRegister.vOffset + PanelRegister.lampDiameter).toString() + "px";
-
-    this.window.addEventListener("beforeunload",
-            D205ControlConsole.prototype.beforeUnload, false);
+    //this.window.addEventListener("beforeunload",
+    //        D205ControlConsole.prototype.beforeUnload, false);
     this.$$("StepBtn").addEventListener("click",
             D205Util.bindMethod(this, D205ControlConsole.prototype.stepBtn_Click), false);
     this.$$("StopBtn").addEventListener("click",

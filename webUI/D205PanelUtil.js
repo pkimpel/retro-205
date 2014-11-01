@@ -75,35 +75,24 @@ NeonLamp.prototype.setCaption = function setCaption(caption) {
 /***********************************************************************
 *  Panel Register                                                      *
 ***********************************************************************/
-function PanelRegister(bits, x, y, rows, caption) {
+function PanelRegister(element, bits, rows, caption) {
     /* Constructor for the register objects used within panels:
+        element:the DOM element (usually a <div>) within which the register will be built
         bits:   number of bits in register
-        x:      horizontal coordinate of upper-left corner lamp [hSpacing increments]
-        y:      vertical coordinate of upper-left corner lamp [vSpacing increments]
         rows:   number of rows used to display the bit lamps
+        caption:optional caption displayed at the bottom of the register
     */
     var cols = Math.floor((bits+rows-1)/rows);
-    var height = (rows-1)*PanelRegister.vSpacing + PanelRegister.vOffset*2 + PanelRegister.lampDiameter;
-    var width = (cols-1)*PanelRegister.hSpacing + PanelRegister.hOffset*2 + PanelRegister.lampDiameter;
     var b;
-    var cx = x*PanelRegister.hSpacing - PanelRegister.hOffset;
-    var cy = y*PanelRegister.vSpacing - PanelRegister.vOffset;
+    var cx;
+    var cy;
     var lamp;
 
+    this.element = element;             // containing element for the panel
     this.bits = bits;                   // number of bits in the register
-    this.left = cx;                     // horizontal offset relative to container
-    this.top = cy;                      // vertical offset relative to container
     this.caption = caption || "";       // panel caption
     this.lastValue = 0;                 // prior register value
     this.lamps = new Array(bits);       // bit lamps
-
-    // visible DOM element
-    this.element = document.createElement("div");
-    this.element.className = PanelRegister.panelClass;
-    this.element.style.left = cx.toString() + "px";
-    this.element.style.top = cy.toString() + "px";
-    this.element.style.width = width.toString() + "px";
-    this.element.style.height = height.toString() + "px";
 
     cx = cols*PanelRegister.hSpacing + PanelRegister.hOffset;
     for (b=0; b<bits; b++) {
@@ -120,7 +109,6 @@ function PanelRegister(bits, x, y, rows, caption) {
 
     this.captionDiv = document.createElement("div");
     this.captionDiv.className = PanelRegister.captionClass;
-    //this.captionDiv.style.top = String(-PanelRegister.vOffset) + "px";
     if (caption) {
         lamp = document.createElement("span");
         lamp.className = PanelRegister.captionSpanClass;
@@ -128,7 +116,6 @@ function PanelRegister(bits, x, y, rows, caption) {
         this.captionDiv.appendChild(lamp);
     }
     this.element.appendChild(this.captionDiv);
-
 }
 
 /**************************************/
@@ -155,6 +142,20 @@ PanelRegister.prototype.yCoord = function yCoord(row) {
     /* Returns the vertical lamp coordinate in pixels */
 
     return ((row-1)*PanelRegister.vSpacing + PanelRegister.vOffset);
+};
+
+/**************************************/
+PanelRegister.prototype.panelWidth = function panelWidth(cols) {
+    /* Returns the width of a register panel in pixels */
+
+    return (cols-1)*PanelRegister.hSpacing + PanelRegister.hOffset*2 + PanelRegister.lampDiameter;
+};
+
+/**************************************/
+PanelRegister.prototype.panelHeight = function panelHeight(rows) {
+    /* Returns the height of a register panel in pixels */
+
+    return (rows-1)*PanelRegister.vSpacing + PanelRegister.vOffset*2 + PanelRegister.lampDiameter;
 };
 
 /**************************************/
