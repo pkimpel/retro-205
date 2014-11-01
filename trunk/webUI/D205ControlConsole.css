@@ -227,6 +227,11 @@ DIV.blackKnob1 {
     border:             4px solid #999;
     border-radius:      32px}
 
+#LogoPanel {
+    left:               818;
+    top:                44;
+    width:              144;
+    height:             128}
 #LogoText1 {
     position:           absolute;
     font-size:          8pt;
@@ -255,6 +260,36 @@ DIV.blackKnob1 {
     font-size:          5pt;
     top:                75%;
     right:              10%}
+    
+#ARegPanel {
+    left:               82;
+    top:                44;
+    width:              368;
+    height:             128}
+    
+#BRegPanel {
+    left:               466;
+    top:                184;
+    width:              144;
+    height:             128}
+    
+#CRegPanel {
+    left:               626;
+    top:                184;
+    width:              336;
+    height:             128}
+    
+#DRegPanel {
+    left:               82;
+    top:                184;
+    width:              368;
+    height:             128}
+    
+#RRegPanel {
+    left:               466;
+    top:                44;
+    width:              336;
+    height:             128}
 
 #OutputKnob {
     top:                350px;
