@@ -1,237 +1,28 @@
 /***********************************************************************
-* retro-205/emulator D205Panel.css
+* retro-205/emulator D205ControlConsole.css
 ************************************************************************
 * Copyright (c) 2014, and Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 emulator control panel common style sheet.
+* Electrodata/Burroughs Datatron 205 emulator Control Console style sheet.
 ************************************************************************
 * 2014-10-04  P.Kimpel
 *   Original version, from retro-b5500 B5500DistributionAndDisplay.css
 ***********************************************************************/
 
-@font-face {
-    font-family: "DejaVuSansMonoBookWeb";
-    src: url("./resources/DejaVuSansMono-webfont.ttf") format("truetype"),
-         url("./resources/DejaVuSansMono-webfont.woff") format("woff");
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "DejaVuSansWeb";
-    src: url("./resources/DejaVuSans-webfont.ttf") format("truetype"),
-         url("./resources/DejaVuSans-webfont.woff") format("woff");
-    font-weight: normal;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: "DejaVuSansWeb";
-    src: url("./resources/DejaVuSans-Bold-webfont.ttf") format("truetype"),
-         url("./resources/DejaVuSans-Bold-webfont.woff") format("woff");
-    font-weight: bold;
-    font-style: normal;
-}
-
-HTML {
-    height:             100%}
-
-BODY.panelBody {
-    position:           relative;
-    font-family:        DejaVuSansWeb, sans-serif;
-    font-size:          8pt;
-    background-color:   white;
-    color:              black;
-    margin:             0;
-    padding:            0}
-
-IFRAME.paper {
-    font-family:        DejaVuSansMonoBookWeb, monospace;
-    font-size:          8pt;
-    line-height:        120%;
-    color:              black;
-    background-color:   white}
-
-PRE {
-    font-family:        DejaVuSansMonoBookWeb, monospace}
-PRE.paper {
-    margin-top:         0;
-    margin-bottom:      0;
-    font-size:          8pt;
-    line-height:        120%}
-PRE.topOfForm {
-    page-break-before:  always;
-    margin-top:         1px;
-    padding-top:        1px;
-    border-top:         1px dashed black}
-
-INPUT[type=text] {
-    font-family:        DejaVuSansMonoBookWeb, monospace;
-    font-size:          8pt}
-
-DIV.caption {
-    position:           absolute;
-    z-index:            +1;
-    font-size:          5pt;
-    font-weight:        bold;
-    line-height:        100%;
-    text-align:         center}
-
-DIV.neonLamp {
-    position:           absolute;
-    z-index:            +1;
-    width:              16px;
-    height:             16px;
-    font-size:          4px;
-    border-radius:      12px;
-    border:             2px solid #999;
-    background-image:   radial-gradient(circle, #999, #333)}
-DIV.neonLit {
-    background-image:   radial-gradient(circle, #F93, #999)}
-DIV.neonLampCaption {
-    position:           absolute;
-    width:              20px;
-    top:                -12px;
-    left:               -3px;
-    font-size:          8px;
-    text-align:         center}
-
-DIV.whiteLamp {
-    position:           absolute;
-    width:              24px;
-    height:             24px;
-    font-size:          4px;
-    border-radius:      16px;
-    background-image:   radial-gradient(circle, #999, #333)}
-DIV.whiteLit {
-    background-image:   radial-gradient(circle, #FFF, #999)}
-
-DIV.redLamp {
-    position:           absolute;
-    width:              24px;
-    height:             24px;
-    font-size:          4px;
-    border-radius:      16px;
-    background-image:   radial-gradient(circle, #900, #300)}
-DIV.redLit {
-    background-image:   radial-gradient(circle, #F00, #900)}
-
-DIV.orangeLamp {
-    position:           absolute;
-    width:              24px;
-    height:             24px;
-    font-size:          4px;
-    border-radius:      16px;
-    background-image:   radial-gradient(circle, #960, #330)}
-DIV.orangeLit {
-    background-image:   radial-gradient(circle, #F93, #960)}
-
-DIV.greenLamp {
-    position:           absolute;
-    width:              24px;
-    height:             24px;
-    font-size:          4px;
-    border-radius:      16px;
-    background-image:   radial-gradient(circle, #090, #030)}
-DIV.greenLit {
-    background-image:   radial-gradient(circle, #0F0, #090)}
-
-DIV.panelRegister {
-    position:           absolute;
-    overflow:           hidden;
-    color:              black;
-    background-color:   #CDE;
-    border-radius:      12px;
-    font-size:          6px}
-
-DIV.panelCaption {
-    position:           absolute;
-    z-index:            +1;
-    text-align:         center;
-    height:             5px;
-    bottom:             0;
-    border-left:        1px solid white;
-    border-right:       1px solid white;
-    border-top:         1px solid white}
-
-DIV.boxCaption {
-    position:           absolute;
-    width:              100%;
-    top:                -12px;
-    left:               -3px;
-    font-size:          8px;
-    text-align:         center}
-
-SPAN.panelSpan {
-    position:           relative;
-    top:                -6px;
-    font-size:          5pt;
-    font-weight:        bold;
-    padding-left:       2px;
-    padding-right:      2px;
-    background-color:   #123}
-
-DIV.panelRegCaption {
-    position:           absolute;
-    font-weight:        normal;
-    text-align:         center;
-    height:             5px;
-    left:               calc(50% - 60px);
-    width:              120px;
-    bottom:             0;
-    border-top:         1px solid black}
-
-SPAN.panelRegSpan {
-    position:           relative;
-    top:                -7px;
-    font-size:          7pt;
-    padding-left:       2px;
-    padding-right:      2px;
-    background-color:   #CDE}
-
-DIV.redButton1 {
-    position:           absolute;
-    width:              14px;
-    height:             14px;
-    font-size:          4px;
-    background-color:   red;
-    border-radius:      24px;
-    border:             10px solid #CCC}
-DIV.blackButton1 {
-    position:           absolute;
-    width:              14px;
-    height:             14px;
-    font-size:          4px;
-    background-color:   black;
-    border-radius:      24px;
-    border:             10px solid #CCC}
-
-DIV.blackKnob1 {
-    position:           absolute;
-    width:              32px;
-    height:             32px;
-    font-size:          4px;
-    background-color:   black;
-    border-radius:      32px;
-    border:             16px solid #CCC}
-
 #PanelSurface {
-    position:           relative;
     height:             500px;
     width:              1040px;
     margin:             8px;
-    background-color:   #123;
-    color:              white;
     border:             4px solid #999;
     border-radius:      32px}
 
 #LogoPanel {
-    left:               818;
-    top:                44;
-    width:              144;
-    height:             128}
+    left:               818px;
+    top:                44px;
+    width:              144px;
+    height:             128px}
 #LogoText1 {
     position:           absolute;
     font-size:          8pt;
@@ -262,34 +53,34 @@ DIV.blackKnob1 {
     right:              10%}
     
 #ARegPanel {
-    left:               82;
-    top:                44;
-    width:              368;
-    height:             128}
+    left:               82px;
+    top:                44px;
+    width:              368px;
+    height:             128px}
     
 #BRegPanel {
-    left:               466;
-    top:                184;
-    width:              144;
-    height:             128}
+    left:               466px;
+    top:                184px;
+    width:              144px;
+    height:             128px}
     
 #CRegPanel {
-    left:               626;
-    top:                184;
-    width:              336;
-    height:             128}
+    left:               626px;
+    top:                184px;
+    width:              336px;
+    height:             128px}
     
 #DRegPanel {
-    left:               82;
-    top:                184;
-    width:              368;
-    height:             128}
+    left:               82px;
+    top:                184px;
+    width:              368px;
+    height:             128px}
     
 #RRegPanel {
-    left:               466;
-    top:                44;
-    width:              336;
-    height:             128}
+    left:               466px;
+    top:                44px;
+    width:              336px;
+    height:             128px}
 
 #OutputKnob {
     top:                350px;
@@ -310,39 +101,39 @@ DIV.blackKnob1 {
 
 #POSuppressSwitch {
     position:           absolute;
-    top:                370px;
-    left:               160px;
-    width:              20px}
+    top:                368px;
+    left:               158px;
+    width:              24px}
 #POSuppressCaption {
     top:                330px;
     left:               130px;
     width:              80px}
 #POSuppressOn {
     top:                360px;
-    left:               160px;
-    width:              20px}
+    left:               158px;
+    width:              24px}
 #POSuppressOff {
-    top:                410px;
-    left:               160px;
-    width:              20px}
+    top:                398px;
+    left:               158px;
+    width:              24px}
 
 #SkipSwitch {
     position:           absolute;
-    top:                370px;
-    left:               210px;
-    width:              20px}
+    top:                368px;
+    left:               208px;
+    width:              24px}
 #SkipSwitchCaption {
     top:                330px;
-    left:               210px;
-    width:              20px}
+    left:               208px;
+    width:              24px}
 #SkipSwitchOn {
     top:                360px;
-    left:               210px;
-    width:              20px}
+    left:               208px;
+    width:              24px}
 #SkipSwitchOff {
-    top:                410px;
-    left:               210px;
-    width:              20px}
+    top:                398px;
+    left:               208px;
+    width:              24px}
 
 #ClearBtn {
     top:                374px;
@@ -367,16 +158,17 @@ DIV.blackKnob1 {
 
 #AudibleAlarmSwitch {
     position:           absolute;
-    top:                420px;
-    left:               328px;
-    width:              20px}
+    top:                418px;
+    left:               326px;
+    width:              24px}
 #AudibleAlarmOn {
     top:                410px;
-    left:               328px;
-    width:              20px}
+    left:               326px;
+    width:              24px}
 #AudibleAlarmOff {
-    top:                460px;
+    top:                448px;
     left:               298px;
+    line-height:        130%;
     width:              80px}
 
 #FCSALamp {
@@ -521,25 +313,3 @@ DIV.blackKnob1 {
 #InputKnobKeyboard {
     top:                410px;
     left:               910px}
-
-.annunciator {
-    visibility:         hidden;
-    white-space:        nowrap;
-    font-family:        DejaVuSansWeb, sans-serif;
-    font-size:          7pt;
-    line-height:        100%}
-.annunciatorLit {
-    visibility:         visible}
-
-.bold {
-    font-weight:        bold}
-.center {
-    text-align:         center}
-.rj {
-    text-align:         right}
-.data {
-    font-family:        DejaVuSansMonoBookWeb, monospace;
-    text-align:         left}
-.number {
-    font-family:        DejaVuSansMonoBookWeb, monospace;
-    text-align:         right}

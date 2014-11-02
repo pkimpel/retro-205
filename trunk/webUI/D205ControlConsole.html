@@ -19,18 +19,19 @@
 <meta name="Author" content="Paul Kimpel">
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css">
+<link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
 <link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205ControlConsole.css">
 </head>
 
-<body class="panelBody">
-<div id=PanelSurface>
-    <div id=ARegPanel class="panelRegister"></div>
-    <div id=BRegPanel class="panelRegister"></div>
-    <div id=CRegPanel class="panelRegister"></div>
-    <div id=DRegPanel class="panelRegister"></div>
-    <div id=RRegPanel class="panelRegister"></div>
+<body class=panelBody>
+<div id=PanelSurface class=panelSurface>
+    <div id=ARegPanel class=panelRegister></div>
+    <div id=BRegPanel class=panelRegister></div>
+    <div id=CRegPanel class=panelRegister></div>
+    <div id=DRegPanel class=panelRegister></div>
+    <div id=RRegPanel class=panelRegister></div>
 
-    <div id=LogoPanel class="panelRegister">
+    <div id=LogoPanel class=panelRegister>
         <div id=LogoText1>CONTROL CONSOLE</div>
         <div id=LogoText2>ELECTRODATA</div>
         <div id=LogoText3>CORPORATION</div>
@@ -38,7 +39,7 @@
         <div id=LogoText5>CALIFORNIA</div>
     </div>
 
-    <div id=OutputKnob class="blackKnob1"><&nbsp;</div>
+    <div id=OutputKnob class=blackKnob1><&nbsp;</div>
     <div id=OutputKnobCaption class=caption>OUTPUT</div>
     <div id=OutputKnobTape class=caption>TAPE</div>
     <div id=OutputKnobOff class=caption>OFF</div>
@@ -54,61 +55,61 @@
     <div id=SkipSwitchOn class=caption>ON</div>
     <div id=SkipSwitchOff class=caption>OFF</div>
 
-    <div id=ClearBtn class="redButton1">&nbsp;</div>
+    <div id=ClearBtn class=redButton1>&nbsp;</div>
     <div id=ClearBtnCaption class=caption>CLEAR</div>
 
     <div id=ComputerStopCaption class=panelCaption>
         <span class=panelSpan>COMPUTER STOP</span>
     </div>
 
-    <div id=IdleLamp class="redLamp"></div>
+    <div id=IdleLamp class=redLamp></div>
     <div id=IdleLampCaption class=caption>IDLE</div>
     <img id=AudibleAlarmSwitch src="./resources/ToggleDown.png">
     <div id=AudibleAlarmOn class=caption>ON</div>
     <div id=AudibleAlarmOff class=caption>OFF<br>AUDIBLE ALARM</div>
 
-    <div id=FCSALamp class="orangeLamp"></div>
+    <div id=FCSALamp class=orangeLamp></div>
     <div id=FCSALampCaption class=caption>FC/SA</div>
-    <div id=ControlLamp class="orangeLamp"></div>
+    <div id=ControlLamp class=orangeLamp></div>
     <div id=ControlLampCaption class=caption>CONTROL</div>
-    <div id=BKPTLamp class="orangeLamp"></div>
+    <div id=BKPTLamp class=orangeLamp></div>
     <div id=BKPTLampCaption class=caption>BKPT</div>
 
-    <div id=BreakpointKnob class="blackKnob1"><&nbsp;</div>
+    <div id=BreakpointKnob class=blackKnob1><&nbsp;</div>
     <div id=BreakpointKnobCaption class=caption>BREAKPOINT</div>
     <div id=BreakpointKnobOff class=caption>OFF</div>
     <div id=BreakpointKnob4 class=caption>4</div>
     <div id=BreakpointKnob2 class=caption>2</div>
     <div id=BreakpointKnob1 class=caption>1</div>
 
-    <div id=OverflowLamp class="redLamp"></div>
+    <div id=OverflowLamp class=redLamp></div>
     <div id=OverflowLampCaption class=caption>OVERFLOW</div>
-    <div id=ResetBtn class="blackButton1">&nbsp;</div>
+    <div id=ResetBtn class=blackButton1>&nbsp;</div>
     <div id=ResetBtnCaption class=caption>RESET</div>
 
     <div id=TimingToggleCaption class=caption>TIMING TOGGLE</div>
-    <div id=ExecuteLamp class="whiteLamp"></div>
+    <div id=ExecuteLamp class=whiteLamp></div>
     <div id=ExecuteLampCaption class=caption>EXECUTE</div>
-    <div id=FetchLamp class="whiteLamp"></div>
+    <div id=FetchLamp class=whiteLamp></div>
     <div id=FetchLampCaption class=caption>FETCH</div>
 
     <div id=OperationCaption class=panelCaption>
         <span class=panelSpan>OPERATION</span>
     </div>
 
-    <div id=NotReadyLamp class="redLamp"></div>
+    <div id=NotReadyLamp class=redLamp></div>
     <div id=NotReadyLampCaption class=caption>NOT READY</div>
-    <div id=StepBtn class="redButton1">&nbsp;</div>
+    <div id=StepBtn class=blackButton1>&nbsp;</div>
     <div id=StepBtnCaption class=caption>STEP</div>
-    <div id=ContinuousLamp class="greenLamp"></div>
+    <div id=ContinuousLamp class=greenLamp></div>
     <div id=ContinuousLampCaption class=caption>CONTINUOUS</div>
 
-    <div id=StopBtn class="blackButton1">&nbsp;</div>
+    <div id=StopBtn class=redButton1>&nbsp;</div>
     <div id=StopBtnCaption class=caption>STOP</div>
-    <div id=ContBtn class="blackButton1">&nbsp;</div>
+    <div id=ContBtn class=blackButton1>&nbsp;</div>
     <div id=ContBtnCaption class=caption>CONT</div>
 
-    <div id=InputKnob class="blackKnob1"><&nbsp;</div>
+    <div id=InputKnob class=blackKnob1><&nbsp;</div>
     <div id=InputKnobCaption class=caption>INPUT</div>
     <div id=InputKnobReader class=caption>MECH.<br>READER</div>
     <div id=InputKnobOpticalReader class=caption>OPTICAL<br>READER</div>
