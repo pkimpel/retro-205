@@ -1,7 +1,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>retro-205 Console Control Panel</title>
+<title>retro-205 Emulator</title>
 <!--
 /***********************************************************************
 * retro-205/D205.html
@@ -19,17 +19,17 @@
 <meta name="Author" content="Paul Kimpel">
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css">
-<!--
 <link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
--->
 
 <script src="./D205PanelUtil.js"></script>      <!-- must be first -->
 <script src="./D205Util.js"></script>
+<script src="./D205SupervisoryPanel.js"></script>
 <script src="./D205ControlConsole.js"></script>
 
 <script>
 window.onload = function() {
     var control = new D205ControlConsole();
+    var supervisory = new D205SupervisoryPanel();
 
     // Start of window.onload
 };
@@ -37,6 +37,5 @@ window.onload = function() {
 </head>
 
 <body>
-
 </body>
 </html>

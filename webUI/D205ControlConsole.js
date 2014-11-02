@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/D205ConsolePanel.js
+* retro-205/D205ControlConsole.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -138,13 +138,8 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     this.doc = this.window.document;
     body = this.$$("PanelSurface");
 
+    // A Register
     this.regA = new PanelRegister(this.$$("ARegPanel"), 44, 4, "A REGISTER");
-    this.regB = new PanelRegister(this.$$("BRegPanel"), 16, 4, "B REGISTER");
-    this.regC = new PanelRegister(this.$$("CRegPanel"), 40, 4, "C REGISTER");
-    this.regD = new PanelRegister(this.$$("DRegPanel"), 44, 4, "D REGISTER");
-    this.regR = new PanelRegister(this.$$("RRegPanel"), 40, 4, "R REGISTER");
-
-    body.appendChild(this.regA.element);
     this.regA.drawBox(1, 1, 4, "", "1px solid black");
     this.regA.drawBox(6, 2, 4, "1px dashed black", "1px dashed black");
     this.regA.lamps[43].setCaption("A-SG");
@@ -152,12 +147,14 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
         this.regA.lamps[43-x*4].setCaption("A-"+x);
     }
 
-    body.appendChild(this.regB.element);
+    // B Register
+    this.regB = new PanelRegister(this.$$("BRegPanel"), 16, 4, "B REGISTER");
     for (x=1; x<=4; x++) {
         this.regB.lamps[19-x*4].setCaption("B-"+x);
     }
 
-    body.appendChild(this.regC.element);
+    // C Register
+    this.regC = new PanelRegister(this.$$("CRegPanel"), 40, 4, "C REGISTER");
     box = this.regC.drawBox(1, 2, 4, "", "");
     this.regC.setBoxCaption(box, "ORDER");
     box = this.regC.drawBox(3, 4, 4, "1px solid black", "1px solid black");
@@ -165,7 +162,8 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     box = this.regC.drawBox(7, 4, 4, "", "");
     this.regC.setBoxCaption(box, "CONTROL ADDRESS");
 
-    body.appendChild(this.regD.element);
+    // D Register
+    this.regD = new PanelRegister(this.$$("DRegPanel"), 44, 4, "D REGISTER");
     this.regD.drawBox(1, 1, 4, "", "1px solid black");
     this.regD.drawBox(6, 2, 4, "1px dashed black", "1px dashed black");
     this.regD.lamps[43].setCaption("D-SG");
@@ -173,11 +171,14 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
         this.regD.lamps[43-x*4].setCaption("D-"+x);
     }
 
-    body.appendChild(this.regR.element);
+    // R Register
+    this.regR = new PanelRegister(this.$$("RRegPanel"), 40, 4, "R REGISTER");
     this.regR.drawBox(1, 4, 4, "", "1px dashed black");
     for (x=1; x<=10; x++) {
         this.regR.lamps[43-x*4].setCaption("R-"+x);
     }
+
+    // Events
 
     //this.window.addEventListener("beforeunload",
     //        D205ControlConsole.prototype.beforeUnload, false);

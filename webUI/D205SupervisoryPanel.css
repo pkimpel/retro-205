@@ -1,0 +1,563 @@
+/***********************************************************************
+* retro-205/emulator D205upervisoryPanel.css
+************************************************************************
+* Copyright (c) 2014, and Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* Electrodata/Burroughs Datatron 205 emulator Control Console style sheet.
+************************************************************************
+* 2014-11-01  P.Kimpel
+*   Original version, from D205ControlConsole.css
+***********************************************************************/
+
+DIV.panelRegCaption {           /* Overrides class in D205Common.css */
+    border-top:         none}
+    
+#ElectroDataLogo {
+    width:              1180px}
+    
+#PanelSurface {
+    height:             500px;
+    width:              1180px}
+    
+#ControlDiv {
+    left:               832px;
+    top:                12px;
+    width:              336px;
+    height:             128px}
+    
+#AdderDiv {
+    left:               438px;
+    top:                152px;
+    width:              336px;
+    height:             128px}
+    
+#ARegPanel {
+    left:               12px;
+    top:                12px;
+    width:              368px;
+    height:             128px}
+    
+#BRegPanel {
+    left:               0;
+    top:                0;
+    width:              144px;
+    height:             128px}
+    
+#CRegPanel {
+    left:               832px;
+    top:                152px;
+    width:              336px;
+    height:             128px}
+    
+#DRegPanel {
+    left:               12px;
+    top:                152px;
+    width:              368px;
+    height:             128px}
+    
+#RRegPanel {
+    left:               438px;
+    top:                12px;
+    width:              336px;
+    height:             128px}
+    
+#CardaTronPanel {
+    left:               160px;
+    top:                0;
+    width:              32px;
+    height:             128px}
+    
+#CarryPanel {
+    left:               224px;
+    top:                0;
+    width:              80px;
+    height:             128px}
+    
+#AdderPanel {
+    left:               288px;
+    top:                0;
+    width:              60px;
+    height:             128px}
+    
+#ClearARegBtn {
+    left:               400px;
+    top:                24px}
+#ClearARegCaption {
+    line-height:        130%;
+    left:               380px;
+    top:                50px;
+    width:              58px}
+#ClearRRegBtn {
+    left:               400px;
+    top:                80px}
+#ClearRRegCaption {
+    line-height:        130%;
+    left:               380px;
+    top:                106px;
+    width:              58px}
+#ClearDRegBtn {
+    left:               400px;
+    top:                164px}
+#ClearDRegCaption {
+    line-height:        130%;
+    left:               380px;
+    top:                190px;
+    width:              58px}
+#ClearBRegBtn {
+    left:               400px;
+    top:                220px}
+#ClearBRegCaption {
+    line-height:        130%;
+    left:               380px;
+    top:                246px;
+    width:              58px}
+#ClearControlBtn {
+    left:               794px;
+    top:                24px}
+#ClearControlCaption {
+    line-height:        130%;
+    left:               774px;
+    top:                50px;
+    width:              58px}
+#ClearCRegBtn {
+    left:               794px;
+    top:                164px}
+#ClearCRegCaption {
+    line-height:        130%;
+    left:               774px;
+    top:                190px;
+    width:              58px}
+
+
+#TestSystemCaption {
+    left:               36px;
+    top:                296px;
+    width:              282px}
+    
+#CounterCaption {
+    left:               16px;
+    top:                304px;
+    width:              40px}
+#T8Lamp {
+    left:               24px;
+    top:                322px}
+#T8LampCaption {
+    left:               24px;
+    top:                348px;
+    width:              24px}
+#T4Lamp {
+    left:               24px;
+    top:                358px}
+#T4LampCaption {
+    left:               24px;
+    top:                384px;
+    width:              24px}
+#T2Lamp {
+    left:               24px;
+    top:                394px}
+#T2LampCaption {
+    left:               24px;
+    top:                420px;
+    width:              24px}
+#T1Lamp {
+    left:               24px;
+    top:                430px}
+#T1LampCaption {
+    left:               24px;
+    top:                456px;
+    width:              24px}
+    
+#PulseSourceSwitch {
+    position:           absolute;
+    left:               88px;
+    top:                330px;
+    width:              24px}
+#PulseSourceCaption {
+    left:               70px;
+    top:                304px;
+    width:              60px}
+#PulseSourceOn {
+    left:               88px;
+    top:                322px;
+    width:              24px}
+#PulseSourceOff {
+    left:               88px;
+    top:                360px;
+    width:              24px}
+    
+#WordContSwitch {
+    position:           absolute;
+    left:               168px;
+    top:                330px;
+    width:              24px}
+#WordContOn {
+    left:               150px;
+    top:                322px;
+    width:              60px}
+#WordContOff {
+    left:               150px;
+    top:                360px;
+    width:              60px}
+    
+#LFAdjKnob {
+    position:           absolute;
+    left:               246px;
+    top:                334px;
+    width:              38px;
+    height:             12px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    border-top-right-radius: 50%;
+    border-bottom-right-radius: 50%;
+    background-color:   black;
+    transform:          rotate(-15deg);
+    border:             1px solid silver}
+#LFAdjInc {
+    left:               246px;
+    top:                304px;
+    width:              40px}
+#LFAdjArrow {
+    font-size:          9pt;
+    left:               246px;
+    top:                318px;
+    width:              40px}
+#LFAdjCaption {
+    left:               246px;
+    top:                360px;
+    width:              40px}
+    
+#SinglePulseBtn {
+    left:               306px;
+    top:                330px}
+#SinglePulseCaption {
+    left:               292px;
+    top:                360px;
+    width:              60px}
+    
+#SingleWordBtn {
+    left:               253px;
+    top:                378px}
+#SingleWordLamp {
+    left:               306px;
+    top:                378px}
+#SingleWordCaption {
+    left:               253px;
+    top:                408px;
+    width:              78px}
+    
+#ZeroBtn {
+    left:               88px;
+    top:                426px}
+#ZeroCaption {
+    left:               88px;
+    top:                456px;
+    width:              24px}
+
+#FrequencyKnob {
+    left:               148px;
+    top:                406px}
+#FreqExtCaption {
+    left:               124px;
+    top:                414px;
+    text-align:         right}
+#FreqSinglePulseCaption {
+    left:               100px;
+    top:                398px;
+    text-align:         right}
+#FreqLFCaption {
+    left:               148px;
+    top:                390px;
+    width:              64px}
+#Freq70Caption {
+    left:               208px;
+    top:                398px}
+#Freq140Caption {
+    left:               220px;
+    top:                414px}
+    
+#ExtOscSocket {
+    position:           absolute;
+    left:               253px;
+    top:                426px;
+    width:              8px;
+    height:             8px;
+    font-size:          4px;
+    background-color:   #666;
+    border-radius:      50%;
+    border:             8px solid silver}
+#ExtOscCaption {
+    left:               245px;
+    top:                456px;
+    width:              40px}
+    
+#TestClearBtn {
+    left:               306px;
+    top:                426px}
+#TestClearCaption {
+    left:               306px;
+    top:                456px;
+    width:              24px}
+    
+    
+#PowerOnBtn {
+    left:               380px;
+    top:                330px}
+#PowerOnCaption {
+    left:               380px;
+    top:                360px;
+    width:              24px}
+#PowerLamp {
+    left:               380px;
+    top:                378px}
+#PowerOffBtn {
+    left:               380px;
+    top:                426px}
+#PowerOffCaption {
+    left:               380px;
+    top:                456px;
+    width:              24px}
+    
+
+#ComputerStopCaption {
+    left:               478px;
+    top:                296px;
+    width:              160px}
+
+#OverflowLamp {
+    left:               466px;
+    top:                330px}
+#OverflowLampCaption {
+    left:               454px;
+    top:                360px;
+    width:              40px}
+#ResetOverflowBtn {
+    left:               461px;
+    top:                416px}
+#ResetOverFlowCaption {
+    left:               461px;
+    top:                456px;
+    width:              34px}
+
+#SectorLamp {
+    left:               506px;
+    top:                330px}
+#SectorLampCaption {
+    left:               497px;
+    top:                360px;
+    width:              40px}
+#ResetSectorBtn {
+    left:               501px;
+    top:                416px}
+#ResetSectorCaption {
+    left:               501px;
+    top:                456px;
+    width:              34px}
+
+#ControlLamp {
+    left:               546px;
+    top:                330px}
+#ControlLampCaption {
+    left:               537px;
+    top:                360px;
+    width:              40px}
+#ResetControlBtn {
+    left:               541px;
+    top:                416px}
+#ResetControlCaption {
+    left:               541px;
+    top:                456px;
+    width:              34px}
+
+#FCLamp {
+    left:               586px;
+    top:                330px}
+#FCLampCaption {
+    left:               586px;
+    top:                360px;
+    width:              24px}
+
+#IdleLamp {
+    left:               626px;
+    top:                330px}
+#IdleLampCaption {
+    left:               626px;
+    top:                360px;
+    width:              24px}
+
+#AudibleAlarmSwitch {
+    position:           absolute;
+    left:               626px;
+    top:                420px;
+    width:              24px}
+#AudibleAlarmOn {
+    left:               626px;
+    top:                408px;
+    width:              24px}
+#AudibleAlarmOff {
+    left:               608px;
+    top:                456px;
+    line-height:        130%;
+    width:              60px}
+
+#ClearBtn {
+    left:               710px;
+    top:                374px}
+#ClearBtnCaption {
+    left:               710px;
+    top:                296px;
+    width:              32px}
+
+#LockNormalSwitch {
+    position:           absolute;
+    left:               808px;
+    top:                378px;
+    width:              24px}
+#LockNormalOn {
+    left:               808px;
+    top:                370px;
+    width:              24px}
+#LockNormalOff {
+    left:               802px;
+    top:                408px;
+    width:              36px}
+
+#TimingToggleCaption {
+    left:               844px;
+    top:                296px;
+    width:              64px}
+
+#ExecuteLamp {
+    left:               844px;
+    top:                330px}
+#ExecuteLampCaption {
+    left:               840px;
+    top:                360px;
+    width:              32px}
+#ExecuteBtn {
+    left:               840px;
+    top:                416px}
+
+#FetchLamp {
+    left:               884px;
+    top:                330px}
+#FetchLampCaption {
+    left:               880px;
+    top:                360px;
+    width:              32px}
+#FetchBtn {
+    left:               880px;
+    top:                416px}
+    
+#OperationCaption {
+    left:               950px;
+    top:                296px;
+    width:              88}
+
+#ContinuousStepSwitch {
+    position:           absolute;
+    left:               950px;
+    top:                378px;
+    width:              24px}
+#ContinuousStepOn {
+    left:               932px;
+    top:                370px;
+    width:              60px}
+#ContinuousStepOff {
+    left:               932px;
+    top:                408px;
+    width:              60px}
+    
+#StartBtn {
+    left:               1014px;
+    top:                378px}
+#StartCaption {
+    left:               1014px;
+    top:                408px;
+    width:              24px}
+
+#MemoryControlCaption {
+    left:               1068px;
+    top:                296px;
+    width:              84px}
+    
+#MAINLamp {
+    left:               1068px;
+    top:                322px}
+#MAINLampCaption {
+    left:               1068px;
+    top:                348px;
+    width:              24px}
+#RWMLamp {
+    left:               1068px;
+    top:                358px}
+#RWMLampCaption {
+    left:               1068px;
+    top:                384px;
+    width:              24px}
+#RWLLamp {
+    left:               1068px;
+    top:                394px}
+#RWLLampCaption {
+    left:               1068px;
+    top:                420px;
+    width:              24px}
+#WDBLLamp {
+    left:               1068px;
+    top:                430px}
+#WDBLLampCaption {
+    left:               1068px;
+    top:                456px;
+    width:              24px}
+    
+#ACTLamp {
+    left:               1100px;
+    top:                322px}
+#ACTLampCaption {
+    left:               1100px;
+    top:                348px;
+    width:              24px}
+#ACCESSLamp {
+    left:               1100px;
+    top:                358px}
+#ACCESSLampCaption {
+    left:               1100px;
+    top:                384px;
+    width:              24px}
+#LMLamp {
+    left:               1100px;
+    top:                394px}
+#LMLampCaption {
+    left:               1100px;
+    top:                420px;
+    width:              24px}
+    
+#L7Lamp {
+    left:               1132px;
+    top:                322px}
+#L7LampCaption {
+    left:               1132px;
+    top:                348px;
+    width:              24px}
+#L6Lamp {
+    left:               1132px;
+    top:                358px}
+#L6LampCaption {
+    left:               1132px;
+    top:                384px;
+    width:              24px}
+#L5Lamp {
+    left:               1132px;
+    top:                394px}
+#L5LampCaption {
+    left:               1132px;
+    top:                420px;
+    width:              24px}
+#L4Lamp {
+    left:               1132px;
+    top:                430px}
+#L4LampCaption {
+    left:               1132px;
+    top:                456px;
+    width:              24px}

@@ -20,7 +20,8 @@ function NeonLamp(x, y) {
     coordinates of the lamp within its containing element */
 
     this.state = 0;                     // current lamp state, 0=off
-    this.captionDiv = null;             // optional caption element
+    this.topCaptionDiv = null;          // optional top caption element
+    this.bottomCaptionDiv = null;       // optional bottom caption element
 
     // visible DOM element
     this.element = document.createElement("div");
@@ -31,7 +32,8 @@ function NeonLamp(x, y) {
 
 /**************************************/
 
-NeonLamp.captionClass = "neonLampCaption";
+NeonLamp.topCaptionClass = "neonLampTopCaption";
+NeonLamp.bottomCaptionClass = "neonLampBottomCaption";
 NeonLamp.lampClass = "neonLamp";
 NeonLamp.litClass = "neonLamp neonLit";
 
@@ -57,18 +59,26 @@ NeonLamp.prototype.flip = function flip() {
 };
 
 /**************************************/
-NeonLamp.prototype.setCaption = function setCaption(caption) {
-    /* Establishes an optional caption for a single lamp */
-    var e = this.captionDiv;
+NeonLamp.prototype.setCaption = function setCaption(caption, atBottom) {
+    /* Establishes an optional caption at the top of a single lamp.
+    Returns the caption element */
+    var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
 
     if (e) {
         e.textContent = caption;
     } else {
-        this.captionDiv = e = document.createElement("div");
-        e.className = NeonLamp.captionClass;
+        e = document.createElement("div");
+        if (atBottom) {
+            this.bottomCaptionDiv = e;
+            e.className = NeonLamp.bottomCaptionClass;
+        } else {
+            this.topCaptionDiv = e;
+            e.className = NeonLamp.topCaptionClass;
+        }
         e.appendChild(document.createTextNode(caption));
         this.element.appendChild(e);
     }
+    return e;
 };
 
 
@@ -160,6 +170,9 @@ PanelRegister.prototype.panelHeight = function panelHeight(rows) {
 
 /**************************************/
 PanelRegister.prototype.drawBox = function drawBox(col, lamps, rows, leftStyle, rightStyle) {
+    /* Creates a box centered around a specified group of lamps in a register.
+    leftStyle and rightStyle specify the left and right borders of the box using
+    standard CSS border syntax. Returns the box element */
     var box = document.createElement("div");
     var rightBias = (rightStyle ? 1 : 0);
 
@@ -177,7 +190,8 @@ PanelRegister.prototype.drawBox = function drawBox(col, lamps, rows, leftStyle, 
 
 /**************************************/
 PanelRegister.prototype.setBoxCaption = function setBoxCaption(box, caption) {
-    /* Establishes an optional caption for a single lamp */
+    /* Establishes an optional caption for register lamp box.
+    Returns the caption element */
     var e = box.captionDiv;
 
     if (e) {
@@ -188,6 +202,7 @@ PanelRegister.prototype.setBoxCaption = function setBoxCaption(box, caption) {
         e.appendChild(document.createTextNode(caption));
         box.appendChild(e);
     }
+    return e;
 };
 
 /**************************************/
