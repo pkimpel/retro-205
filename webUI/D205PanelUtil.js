@@ -133,7 +133,7 @@ function PanelRegister(element, bits, rows, caption) {
 PanelRegister.hSpacing = 32;            // horizontal lamp spacing, pixels
 PanelRegister.hOffset = 14;             // horizontal lamp offset within container
 PanelRegister.vSpacing = 28;            // vertical lamp spacing, pixels
-PanelRegister.vOffset = 12;             // vertical lamp offset within container
+PanelRegister.vOffset = 14;             // vertical lamp offset within container
 PanelRegister.lampDiameter = 20;        // lamp outer diameter, pixels
 PanelRegister.panelClass = "panelRegister";
 PanelRegister.captionClass = "panelRegCaption";
@@ -206,7 +206,7 @@ PanelRegister.prototype.setBoxCaption = function setBoxCaption(box, caption) {
 };
 
 /**************************************/
-PanelRegister.prototype.update = function(value) {
+PanelRegister.prototype.update = function update(value) {
     /* Update the register lamps from the value of the parameter */
     var bitNr = 0;
     var bit;

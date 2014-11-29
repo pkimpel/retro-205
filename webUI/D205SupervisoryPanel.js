@@ -230,6 +230,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     box = this.control.drawBox(8, 1, 4, "", "1px dashed black");
     box = this.control.drawBox(9, 1, 3, "", "1px dashed black");
     box.style.borderBottom = "1px dashed black";
+    box.style.height = (this.control.yCoord(4) - this.control.yCoord(1) - 1).toString() + "px";
 
     this.control.lamps[ 3].setCaption("SHIFT CTR");
     this.control.lamps[ 3].setCaption("8", true);
@@ -239,8 +240,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
 
     this.control.lamps[ 7].setCaption("MAG. TAPE");
     this.control.lamps[ 7].setCaption("3P", true);
-    this.control.lamps[ 6].setCaption("IBV4", true);
-    this.control.lamps[ 5].setCaption("IBV5", true);
+    this.control.lamps[ 6].setCaption("1BV4", true);
+    this.control.lamps[ 5].setCaption("1BV5", true);
     this.control.lamps[ 4].setCaption("10", true);
 
     this.control.lamps[11].setCaption("SHIFT CONTROL");
@@ -274,11 +275,11 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
 
     this.control.lamps[31].setCaption("ARITHMETIC CONTROL");
     this.control.lamps[31].setCaption("COMPL", true);
-    this.control.lamps[30].setCaption("+A, +B", true);
+    this.control.lamps[30].setCaption("+A/+B", true);
     this.control.lamps[29].setCaption("CLEAR", true);
-    this.control.lamps[28].setCaption("*, \u00F7", true);       // division sign
+    this.control.lamps[28].setCaption("\u00D7, \u00F7", true);       // division sign
 
-    this.control.lamps[35].setCaption("B>A, IN", true);
+    this.control.lamps[35].setCaption("B\u2192A, IN", true);
     this.control.lamps[34].setCaption("ADDER", true);
     this.control.lamps[33].setCaption("DP CTR", true);
     this.control.lamps[32].setCaption("\u0394 B, \u00F7", true); // delta, division signs

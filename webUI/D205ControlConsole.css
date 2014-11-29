@@ -20,9 +20,9 @@
 
 #LogoPanel {
     left:               818px;
-    top:                44px;
+    top:                40px;
     width:              144px;
-    height:             128px}
+    height:             132px}
 #LogoText1 {
     position:           absolute;
     font-size:          8pt;
@@ -54,33 +54,33 @@
     
 #ARegPanel {
     left:               82px;
-    top:                44px;
+    top:                40px;
     width:              368px;
-    height:             128px}
+    height:             132px}
     
 #BRegPanel {
     left:               466px;
     top:                184px;
     width:              144px;
-    height:             128px}
+    height:             132px}
     
 #CRegPanel {
     left:               626px;
     top:                184px;
     width:              336px;
-    height:             128px}
+    height:             132px}
     
 #DRegPanel {
     left:               82px;
     top:                184px;
     width:              368px;
-    height:             128px}
+    height:             132px}
     
 #RRegPanel {
     left:               466px;
-    top:                44px;
+    top:                40px;
     width:              336px;
-    height:             128px}
+    height:             132px}
 
 #OutputKnob {
     top:                350px;
