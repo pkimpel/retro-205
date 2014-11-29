@@ -25,120 +25,120 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               832px;
     top:                12px;
     width:              336px;
-    height:             128px}
+    height:             132px}
     
 #AdderDiv {
     left:               438px;
-    top:                152px;
+    top:                156px;
     width:              336px;
-    height:             128px}
+    height:             132px}
     
 #ARegPanel {
     left:               12px;
     top:                12px;
     width:              368px;
-    height:             128px}
+    height:             132px}
     
 #BRegPanel {
     left:               0;
     top:                0;
     width:              144px;
-    height:             128px}
+    height:             132px}
     
 #CRegPanel {
     left:               832px;
-    top:                152px;
+    top:                156px;
     width:              336px;
-    height:             128px}
+    height:             132px}
     
 #DRegPanel {
     left:               12px;
-    top:                152px;
+    top:                156px;
     width:              368px;
-    height:             128px}
+    height:             132px}
     
 #RRegPanel {
     left:               438px;
     top:                12px;
     width:              336px;
-    height:             128px}
+    height:             132px}
     
 #CardaTronPanel {
     left:               160px;
     top:                0;
     width:              32px;
-    height:             128px}
+    height:             132px}
     
 #CarryPanel {
     left:               224px;
     top:                0;
     width:              80px;
-    height:             128px}
+    height:             132px}
     
 #AdderPanel {
     left:               288px;
     top:                0;
     width:              60px;
-    height:             128px}
+    height:             132px}
     
 #ClearARegBtn {
     left:               400px;
-    top:                24px}
+    top:                26px}
 #ClearARegCaption {
     line-height:        130%;
     left:               380px;
-    top:                50px;
+    top:                52px;
     width:              58px}
 #ClearRRegBtn {
     left:               400px;
-    top:                80px}
+    top:                82px}
 #ClearRRegCaption {
     line-height:        130%;
     left:               380px;
-    top:                106px;
+    top:                108px;
     width:              58px}
 #ClearDRegBtn {
     left:               400px;
-    top:                164px}
+    top:                170px}
 #ClearDRegCaption {
     line-height:        130%;
     left:               380px;
-    top:                190px;
+    top:                196px;
     width:              58px}
 #ClearBRegBtn {
     left:               400px;
-    top:                220px}
+    top:                226px}
 #ClearBRegCaption {
     line-height:        130%;
     left:               380px;
-    top:                246px;
+    top:                252px;
     width:              58px}
 #ClearControlBtn {
     left:               794px;
-    top:                24px}
+    top:                26px}
 #ClearControlCaption {
     line-height:        130%;
     left:               774px;
-    top:                50px;
+    top:                52px;
     width:              58px}
 #ClearCRegBtn {
     left:               794px;
-    top:                164px}
+    top:                170px}
 #ClearCRegCaption {
     line-height:        130%;
     left:               774px;
-    top:                190px;
+    top:                196px;
     width:              58px}
 
 
 #TestSystemCaption {
     left:               36px;
-    top:                296px;
+    top:                300px;
     width:              282px}
     
 #CounterCaption {
     left:               16px;
-    top:                304px;
+    top:                308px;
     width:              40px}
 #T8Lamp {
     left:               24px;
@@ -176,7 +176,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     width:              24px}
 #PulseSourceCaption {
     left:               70px;
-    top:                304px;
+    top:                308px;
     width:              60px}
 #PulseSourceOn {
     left:               88px;
@@ -216,7 +216,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     border:             1px solid silver}
 #LFAdjInc {
     left:               246px;
-    top:                304px;
+    top:                308px;
     width:              40px}
 #LFAdjArrow {
     font-size:          9pt;
@@ -322,7 +322,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 
 #ComputerStopCaption {
     left:               478px;
-    top:                296px;
+    top:                300px;
     width:              160px}
 
 #OverflowLamp {
@@ -406,7 +406,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     top:                374px}
 #ClearBtnCaption {
     left:               710px;
-    top:                296px;
+    top:                300px;
     width:              32px}
 
 #LockNormalSwitch {
@@ -425,7 +425,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 
 #TimingToggleCaption {
     left:               844px;
-    top:                296px;
+    top:                300px;
     width:              64px}
 
 #ExecuteLamp {
@@ -452,7 +452,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     
 #OperationCaption {
     left:               950px;
-    top:                296px;
+    top:                300px;
     width:              88}
 
 #ContinuousStepSwitch {
@@ -479,7 +479,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 
 #MemoryControlCaption {
     left:               1068px;
-    top:                296px;
+    top:                300px;
     width:              84px}
     
 #MAINLamp {

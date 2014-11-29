@@ -93,16 +93,16 @@ DIV.neonLit {
 DIV.neonLampTopCaption {
     position:           absolute;
     width:              32px;
-    top:                -12px;
-    left:               -9px;
+    top:                -13px;
+    left:               -8px;
     line-height:        100%;        
     font-size:          6px;
     text-align:         center}
 DIV.neonLampBottomCaption {
     position:           absolute;
     width:              32px;
-    bottom:             -11px;
-    left:               -9px;
+    bottom:             -10px;
+    left:               -8px;
     font-size:          6px;
     text-align:         center}
 
@@ -170,7 +170,7 @@ DIV.panelCaption {
     z-index:            +1;
     text-align:         center;
     height:             5px;
-    bottom:             0;
+    bottom:             1;
     border-left:        1px solid white;
     border-right:       1px solid white;
     border-top:         1px solid white}
