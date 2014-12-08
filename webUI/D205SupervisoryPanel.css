@@ -211,7 +211,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     border-bottom-left-radius: 4px;
     border-top-right-radius: 50%;
     border-bottom-right-radius: 50%;
-    background-color:   black;
+    background-image:   radial-gradient(circle, #000, #666);
     transform:          rotate(-15deg);
     border:             1px solid silver}
 #LFAdjInc {

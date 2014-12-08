@@ -13,11 +13,11 @@
 ***********************************************************************/
 
 /***********************************************************************
-*  Panel Lamp                                                          *
+*  Panel Neon Lamp                                                     *
 ***********************************************************************/
-function NeonLamp(x, y) {
-    /* Constructor for the lamp objects used within panels. x & y are the
-    coordinates of the lamp within its containing element */
+function NeonLamp(element, x, y, id) {
+    /* Constructor for the neon lamp objects used within panels. x & y are the
+    coordinates of the lamp within its containing element; id is the DOM id */
 
     this.state = 0;                     // current lamp state, 0=off
     this.topCaptionDiv = null;          // optional top caption element
@@ -25,9 +25,18 @@ function NeonLamp(x, y) {
 
     // visible DOM element
     this.element = document.createElement("div");
+    this.element.id = id;
     this.element.className = NeonLamp.lampClass;
-    this.element.style.left = x.toString() + "px";
-    this.element.style.top = y.toString() + "px";
+    if (x !== null) {
+        this.element.style.left = x.toString() + "px";
+    }
+    if (y !== null) {
+        this.element.style.top = y.toString() + "px";
+    }
+
+    if (element) {
+        element.appendChild(this.element);
+    }
 }
 
 /**************************************/
@@ -83,9 +92,89 @@ NeonLamp.prototype.setCaption = function setCaption(caption, atBottom) {
 
 
 /***********************************************************************
+*  Panel Colored Lamp                                                  *
+***********************************************************************/
+function ColoredLamp(element, x, y, id, offClass, onClass) {
+    /* Constructor for the colored lamp objects used within panels. x & y are
+    the coordinates of the lamp within its containing element; id is the DOM id */
+
+    this.state = 0;                     // current lamp state, 0=off
+    this.topCaptionDiv = null;          // optional top caption element
+    this.bottomCaptionDiv = null;       // optional bottom caption element
+    this.lampClass = offClass;          // css styling for an "off" lamp
+    this.litClass =                     // css styling for an "on" lamp
+                offClass + " " + onClass;
+
+    // visible DOM element
+    this.element = document.createElement("div");
+    this.element.id = id;
+    this.element.className = offClass;
+    if (x !== null) {
+        this.element.style.left = x.toString() + "px";
+    }
+    if (y !== null) {
+        this.element.style.top = y.toString() + "px";
+    }
+
+    if (element) {
+        element.appendChild(this.element);
+    }
+}
+
+/**************************************/
+
+ColoredLamp.topCaptionClass = "coloredLampTopCaption";
+ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
+
+/**************************************/
+ColoredLamp.prototype.set = function set(state) {
+    /* Changes the visible state of the lamp according to the low-order
+    bit of "state". */
+    var newState = state & 1;
+
+    if (this.state ^ newState) {         // the state has changed
+        this.element.className = (newState ? this.litClass : this.lampClass);
+        this.state = newState;
+    }
+};
+
+/**************************************/
+ColoredLamp.prototype.flip = function flip() {
+    /* Complements the visible state of the lamp */
+    var newState = this.state ^ 1;
+
+    this.element.className = (newState ? this.litClass : this.lampClass);
+    this.state = newState;
+};
+
+/**************************************/
+ColoredLamp.prototype.setCaption = function setCaption(caption, atBottom) {
+    /* Establishes an optional caption at the top of a single lamp.
+    Returns the caption element */
+    var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
+
+    if (e) {
+        e.textContent = caption;
+    } else {
+        e = document.createElement("div");
+        if (atBottom) {
+            this.bottomCaptionDiv = e;
+            e.className = ColoredLamp.bottomCaptionClass;
+        } else {
+            this.topCaptionDiv = e;
+            e.className = ColoredLamp.topCaptionClass;
+        }
+        e.appendChild(document.createTextNode(caption));
+        this.element.appendChild(e);
+    }
+    return e;
+};
+
+
+/***********************************************************************
 *  Panel Register                                                      *
 ***********************************************************************/
-function PanelRegister(element, bits, rows, caption) {
+function PanelRegister(element, bits, rows, idPrefix, caption) {
     /* Constructor for the register objects used within panels:
         element:the DOM element (usually a <div>) within which the register will be built
         bits:   number of bits in register
@@ -112,9 +201,7 @@ function PanelRegister(element, bits, rows, caption) {
         } else {
             cy -= PanelRegister.vSpacing;
         }
-        lamp = new NeonLamp(cx, cy);
-        this.lamps[b] = lamp;
-        this.element.appendChild(lamp.element);
+        this.lamps[b] = lamp = new NeonLamp(element, cx, cy, idPrefix + b.toString());
     }
 
     this.captionDiv = document.createElement("div");

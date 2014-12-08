@@ -23,13 +23,17 @@
 
 <script src="./D205PanelUtil.js"></script>      <!-- must be first -->
 <script src="./D205Util.js"></script>
+
+<script src="../emulator/D205Processor.js"></script>
+
 <script src="./D205SupervisoryPanel.js"></script>
 <script src="./D205ControlConsole.js"></script>
 
 <script>
 window.onload = function() {
-    var control = new D205ControlConsole();
-    var supervisory = new D205SupervisoryPanel();
+    var p = new D205Processor();
+    var supervisory = new D205SupervisoryPanel(p);
+    //var control = new D205ControlConsole(p);
 
     // Start of window.onload
 };

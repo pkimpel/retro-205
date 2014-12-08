@@ -13,13 +13,16 @@
 "use strict";
 
 /**************************************/
-function D205SupervisoryPanel() {
+function D205SupervisoryPanel(p) {
     /* Constructor for the SupervisoryPanel object */
     var h = 800; // was originally 524;
     var w = 1180;
     var mnemonic = "SupervisoryPanel";
 
+    this.p = p;                         // D205Processor object
     this.timer = 0;                     // setCallback() token
+    this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
+    this.boundClear_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.clear_Click);
 
     this.clear();
 
@@ -46,7 +49,7 @@ D205SupervisoryPanel.prototype.$$ = function $$(e) {
 
 /**************************************/
 D205SupervisoryPanel.prototype.clear = function clear() {
-    /* Initializes (and if necessary, creates) the printer unit state */
+    /* Initializes (and if necessary, creates) the panel state */
 
 };
 
@@ -61,16 +64,15 @@ D205SupervisoryPanel.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.setLamp = function setLamp(id, value, lampClass, litClass) {
+D205SupervisoryPanel.prototype.setLampFromMask = function setLampFromMask(lamp, value) {
     var bit = value % 2;
-    var e = this.$$(id);
 
-    e.className = (bit ? lampClass + " " + litClass : lampClass);
+    lamp.set(bit);
     return (value-bit)/2;
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.updateDisplay = function updateDisplay() {
+D205SupervisoryPanel.prototype.randomDisplay = function randomDisplay() {
     var lampMask = Math.floor(Math.random()*1024);
 
     this.regA.update(Math.random()*Math.random()*0x100000000000);
@@ -78,16 +80,294 @@ D205SupervisoryPanel.prototype.updateDisplay = function updateDisplay() {
     this.regC.update(Math.random()*Math.random()*0x10000000000);
     this.regD.update(Math.random()*Math.random()*0x100000000000);
     this.regR.update(Math.random()*Math.random()*0x10000000000);
+    this.control.update(Math.random()*Math.random()*0x10000000000);
 
-    lampMask = this.setLamp("IdleLamp", lampMask, "redLamp", "redLit");
-    lampMask = this.setLamp("FCSALamp", lampMask, "orangeLamp", "orangeLit");
-    lampMask = this.setLamp("ControlLamp", lampMask, "orangeLamp", "orangeLit");
-    lampMask = this.setLamp("BKPTLamp", lampMask, "orangeLamp", "orangeLit");
-    lampMask = this.setLamp("OverflowLamp", lampMask, "redLamp", "redLit");
-    lampMask = this.setLamp("ExecuteLamp", lampMask, "whiteLamp", "whiteLit");
-    lampMask = this.setLamp("FetchLamp", lampMask, "whiteLamp", "whiteLit");
-    lampMask = this.setLamp("NotReadyLamp", lampMask, "redLamp", "redLit");
-    lampMask = this.setLamp("ContinuousLamp", lampMask, "greenLamp", "greenLit");
+    lampMask = this.setLampFromMask(this.idleLamp, lampMask);
+    lampMask = this.setLampFromMask(this.fcsaLamp, lampMask);
+    lampMask = this.setLampFromMask(this.controlLamp, lampMask);
+    lampMask = this.setLampFromMask(this.bkptLamp, lampMask);
+    lampMask = this.setLampFromMask(this.overflowLamp, lampMask);
+    lampMask = this.setLampFromMask(this.executeLamp, lampMask);
+    lampMask = this.setLampFromMask(this.fetchLamp, lampMask);
+    lampMask = this.setLampFromMask(this.notReadyLamp, lampMask);
+    lampMask = this.setLampFromMask(this.continuousLamp, lampMask);
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.updateControlReg = function updateControlReg() {
+    /* Builds a bit mask for the control toggles as if it were a uniform register
+    and then updates the display from that mask */
+    var p = this.p;                     // local copy of processor object
+
+    this.control.update(
+        ((((((((((((((((((((((((((((p.SPECIAL*2 +
+                p.togBTOAIN)*2 +
+                p.togADDER)*2 +
+                p.togDPCTR)*2 +
+                p.togDELTABDIV)*2 +
+                p.togCOMPL)*2 +
+                p.togPLUSAB)*2 +
+                p.togCLEAR)*2 +
+                p.togMULDIV)*2 +
+                p.togSIGN)*2 +
+                p.togCOUNT)*2 +
+                p.togDIVALARM)*2 +
+                p.togSTEP)*2 +
+                p.togSTART)*2 +
+                p.togTF)*2 +
+                p.togTC1)*2 +
+                p.togTC2)*2 +
+                p.togOK)*2 +
+                p.togPO1)*2 +
+                p.togPO2)*2 +
+                p.togDELAY)*2 +
+                p.togT0)*2 +
+                p.togBKPT)*2 +
+                p.togZCT)*2 +
+                p.togASYNC)*16 +
+                p.SHIFTCONTROL)*2 +
+                p.togMT3P)*2 +
+                p.togMT1BV4)*2 +
+                p.togMT1BV5)*32 +
+                p.SHIFT
+    );
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
+    var p = this.p;                     // local copy of Processor object
+
+    this.regA.update(p.A);
+    this.regB.update(p.B);
+    this.regC.update(p.C);
+    this.regD.update(p.D);
+    this.regR.update(p.R);
+    this.updateControlReg();
+
+    this.regAdder.update(p.ADDER);
+    this.regCarry.update(p.CT);
+
+    this.cardaTronTWA.set(p.togTWA);
+    this.cardaTronBIO.set(p.togBIO);
+
+    this.overflowLamp.set(p.stopOverflow);
+    this.sectorLamp.set(p.stopSector);
+    this.fcLamp.set(p.stopForbidden);
+    this.controlLamp.set(p.stopControl);
+    this.idleLamp.set(p.stopIdle);
+
+    this.executeLamp.set(1-p.togTiming);
+    this.fetchLamp.set(p.togTiming);
+
+    this.mainLamp.set(p.memMAIN);
+    this.rwmLamp.set(p.memRWM);
+    this.rwlLamp.set(p.memRWL);
+    this.wdblLamp.set(p.memWDBL);
+    this.actLamp.set(p.memACT);
+    this.accessLamp.set(p.memACCESS);
+    this.lmLamp.set(p.memLM);
+    this.l4Lamp.set(p.memL4);
+    this.l5Lamp.set(p.memL5);
+    this.l6Lamp.set(p.memL6);
+    this.l7Lamp.set(p.memL7);
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
+    /* Handles the click event within panels. Determines which lamp element was
+    clicked, flips the state of the corresponding toggle in the Processor, and
+    refreshes the lamp element */
+    var bit;                            // bit number extracted from the id
+    var id = ev.target.id;              // id of the element clicked
+    var ix = id.indexOf("_");           // offset of the "_" delimiter in the id
+    var p = this.p;                     // local copy of processor object
+    var reg;                            // register prefix from id
+
+    if (ix < 0) {
+        reg = id;
+        bit = 0;
+    } else if (ix > 0) {
+        reg = id.substring(0, ix);
+        bit = parseInt(id.substring(ix+1));
+        if (isNaN(bit)) {
+            bit = 0;
+        }
+    }
+
+    switch (reg) {
+    case "A":
+        p.A = p.bitFlip(p.A, bit);
+        this.regA.update(p.A);
+        break;
+    case "B":
+        p.B = p.bitFlip(p.B, bit);
+        this.regB.update(p.B);
+        break;
+    case "C":
+        p.C = p.bitFlip(p.C, bit);
+        this.regC.update(p.C);
+        break;
+    case "D":
+        p.D = p.bitFlip(p.D, bit);
+        this.regD.update(p.D);
+        break;
+    case "R":
+        p.R = p.bitFlip(p.R, bit);
+        this.regR.update(p.R);
+        break;
+    case "ADD":
+        p.ADDER = p.bitFlip(p.ADDER, bit);
+        this.regAdder.update(p.ADDER);
+        break;
+    case "CT":
+        p.CT = p.bitFlip(p.CT, bit);
+        this.regCarry.update(p.CT);
+        break;
+    case "TWA":
+        p.togTWA ^= 1;
+        this.cardaTronTWA.set(p.togTWA);
+        break;
+    case "BIO":
+        p.togBIO ^= 1;
+        this.cardaTronBIO.set(p.togBIO);
+        break;
+    case "CTL":
+        switch (bit) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+        case 4:
+            p.SHIFT = p.bitFlip(p.SHIFT, bit);
+            break;
+        case 5:
+            p.togMT1BV5 ^= 1;
+            break;
+        case 6:
+            p.togMT1BV4 ^= 1;
+            break;
+        case 7:
+            p.togMT3P ^= 1;
+            break;
+        case 8:
+        case 9:
+        case 10:
+        case 11:
+            p.SHIFTCONTROL = p.bitFlip(p.SHIFTCONTROL, bit-8);
+            break;
+        case 12:
+            p.togASYNC ^= 1;
+            break;
+        case 13:
+            p.togZCT ^= 1;
+            break;
+        case 14:
+            p.togBKPT ^= 1;
+            break;
+        case 15:
+            p.togT0 ^= 1;
+            break;
+        case 16:
+            p.togDELAY ^= 1;
+            break;
+        case 17:
+            p.togPO2 ^= 1;
+            break;
+        case 18:
+            p.togPO1 ^= 1;
+            break;
+        case 19:
+            p.togOK ^= 1;
+            break;
+        case 20:
+            p.togTC2 ^= 1;
+            break;
+        case 21:
+            p.togTC1 ^= 1;
+            break;
+        case 22:
+            p.togTF ^= 1;
+            break;
+        case 23:
+            p.togSTART ^= 1;
+            break;
+        case 24:
+            p.togSTEP ^= 1;
+            break;
+        case 25:
+            p.togDIVALARM ^= 1;
+            break;
+        case 26:
+            p.togCOUNT ^= 1;
+            break;
+        case 27:
+            p.togSIGN ^= 1;
+            break;
+        case 28:
+            p.togMULDIV ^= 1;
+            break;
+        case 29:
+            p.togCLEAR ^= 1;
+            break;
+        case 30:
+            p.togPLUSAB ^= 1;
+            break;
+        case 31:
+            p.togCOMPL ^= 1;
+            break;
+        case 32:
+            p.togDELTABDIV ^= 1;
+            break;
+        case 33:
+            p.togDPCTR ^= 1;
+            break;
+        case 34:
+            p.togADDER ^= 1;
+            break;
+        case 35:
+            p.togBTOAIN ^= 1;
+            break;
+        case 36:
+        case 37:
+        case 38:
+        case 39:
+            p.SPECIAL = p.bitFlip(p.SPECIAL, bit-36);
+            break;
+        } // switch bit
+
+        this.updateControlReg();
+        break;
+    } // switch reg
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
+    /* Event handler for the various clear buttons on the panel */
+
+    switch (ev.target.id) {
+    case "ClearBtn":
+        this.p.clear();
+        break;
+    case "ClearARegBtn":
+        this.p.A = 0;
+        break;
+    case "ClearBRegBtn":
+        this.p.B = 0;
+        break;
+    case "ClearCRegBtn":
+        this.p.C = 0;
+        break;
+    case "ClearDRegBtn":
+        this.p.D = 0;
+        break;
+    case "ClearRRegBtn":
+        this.p.R = 0;
+        break;
+    case "ClearControlBtn":
+        this.p.clearControl();
+        break;
+    }
+    this.updatePanel();
 };
 
 /**************************************/
@@ -96,7 +376,7 @@ D205SupervisoryPanel.prototype.stepBtn_Click = function stepBtn_Click(ev) {
         clearInterval(this.timer);
         this.timer = 0;
     }
-    this.updateDisplay();
+    this.randomDisplay();
 };
 
 /**************************************/
@@ -110,9 +390,9 @@ D205SupervisoryPanel.prototype.stopBtn_Click = function stopBtn_Click(ev) {
 /**************************************/
 D205SupervisoryPanel.prototype.contBtn_Click = function contBtn_Click(ev) {
     if (!this.timer) {
-        this.timer = setInterval(D205Util.bindMethod(this, this.updateDisplay), D205SupervisoryPanel.displayRefreshPeriod);
+        this.timer = setInterval(D205Util.bindMethod(this, this.randomDisplay), D205SupervisoryPanel.displayRefreshPeriod);
     }
-    this.updateDisplay();
+    this.randomDisplay();
 };
 
 /**************************************/
@@ -145,7 +425,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     controlDiv = this.$$("ControlDiv");
 
     // A Register
-    this.regA = new PanelRegister(this.$$("ARegPanel"), 44, 4, "A REGISTER");
+    this.regA = new PanelRegister(this.$$("ARegPanel"), 44, 4, "A_", "A REGISTER");
     this.regA.drawBox(1, 1, 4, "", "1px solid black");
     this.regA.drawBox(6, 2, 4, "1px dashed black", "1px dashed black");
     this.regA.lamps[43].setCaption("A-SG");
@@ -156,7 +436,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     // Adder Panel //
 
     // B Register
-    this.regB = new PanelRegister(this.$$("BRegPanel"), 16, 4, "B REGISTER");
+    this.regB = new PanelRegister(this.$$("BRegPanel"), 16, 4, "B_", "B REGISTER");
     for (x=1; x<=4; x++) {
         this.regB.lamps[19-x*4].setCaption("B-"+x);
     }
@@ -164,16 +444,14 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     // CardaTron Control
     cx = 5*PanelRegister.hSpacing + PanelRegister.hOffset;
     cy = PanelRegister.vOffset;
-    this.cardaTronTWA = new NeonLamp(cx, cy);
+    this.cardaTronTWA = new NeonLamp(adderDiv, cx, cy, "TWA");
     this.cardaTronTWA.setCaption("CARDATRON CONTROL");
     this.cardaTronTWA.setCaption("TWA", true);
-    adderDiv.appendChild(this.cardaTronTWA.element);
-    this.cardaTronBIO = new NeonLamp(cx, cy+PanelRegister.vSpacing);
+    this.cardaTronBIO = new NeonLamp(adderDiv, cx, cy+PanelRegister.vSpacing, "BIO");
     this.cardaTronBIO.setCaption("BIO", true);
-    adderDiv.appendChild(this.cardaTronBIO.element);
 
     // Carry Control
-    this.regCarry = new PanelRegister(this.$$("CarryPanel"), 5, 5, null);
+    this.regCarry = new PanelRegister(this.$$("CarryPanel"), 5, 5, "CT_", null);
     this.regCarry.lamps[4].setCaption("CARRY");
     cx = 1;
     for (x=0; x<5; ++x) {
@@ -187,7 +465,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.regCarry.lamps[0].element.style.top = cy.toString() + "px";
 
     // Adder Control
-    this.regAdder = new PanelRegister(this.$$("AdderPanel"), 4, 4, null);
+    this.regAdder = new PanelRegister(this.$$("AdderPanel"), 4, 4, "ADD_", null);
     this.regAdder.lamps[3].setCaption("ADDER COL");
     cx = 1;
     for (x=0; x<4; ++x) {
@@ -196,7 +474,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     }
 
     // C Register
-    this.regC = new PanelRegister(this.$$("CRegPanel"), 40, 4, "C REGISTER");
+    this.regC = new PanelRegister(this.$$("CRegPanel"), 40, 4, "C_", "C REGISTER");
     box = this.regC.drawBox(1, 2, 4, "", "");
     this.regC.setBoxCaption(box, "ORDER");
     box = this.regC.drawBox(3, 4, 4, "1px solid black", "1px solid black");
@@ -205,7 +483,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.regC.setBoxCaption(box, "CONTROL ADDRESS");
 
     // D Register
-    this.regD = new PanelRegister(this.$$("DRegPanel"), 44, 4, "D REGISTER");
+    this.regD = new PanelRegister(this.$$("DRegPanel"), 44, 4, "D_", "D REGISTER");
     this.regD.drawBox(1, 1, 4, "", "1px solid black");
     this.regD.drawBox(6, 2, 4, "1px dashed black", "1px dashed black");
     this.regD.lamps[43].setCaption("D-SG");
@@ -214,14 +492,14 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     }
 
     // R Register
-    this.regR = new PanelRegister(this.$$("RRegPanel"), 40, 4, "R REGISTER");
+    this.regR = new PanelRegister(this.$$("RRegPanel"), 40, 4, "R_", "R REGISTER");
     this.regR.drawBox(1, 4, 4, "", "1px dashed black");
     for (x=1; x<=10; x++) {
         this.regR.lamps[43-x*4].setCaption("R-"+x);
     }
 
     // Control Toggles Panel
-    this.control = new PanelRegister(controlDiv, 40, 4, "CONTROL");
+    this.control = new PanelRegister(controlDiv, 40, 4, "CTL_", "CONTROL");
     box = this.control.drawBox(1, 1, 4, "", "1px dashed black");
     box = this.control.drawBox(2, 3, 4, "", "1px dashed black");
     box = this.control.drawBox(5, 1, 4, "", "1px dashed black");
@@ -251,7 +529,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.control.lamps[ 8].setCaption("4", true);
 
     this.control.lamps[15].setCaption("CENTRAL CONTROL");
-    this.control.lamps[15].setCaption("TO", true);
+    this.control.lamps[15].setCaption("T0", true);
     this.control.lamps[14].setCaption("BKPT", true);
     this.control.lamps[13].setCaption("ZCT", true);
     this.control.lamps[12].setCaption("ASYNC", true);
@@ -288,24 +566,49 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.control.lamps[39].setCaption("8", true);
     this.control.lamps[38].setCaption("4", true);
     this.control.lamps[37].setCaption("2", true);
-    this.control.lamps[36].setCaption("1", true);       // division sign
+    this.control.lamps[36].setCaption("1", true);
 
+    // Colored Lamps
 
-    /*****
-    cx = cols*PanelRegister.hSpacing + PanelRegister.hOffset;
-    for (b=0; b<bits; b++) {
-        if (b%rows == 0) {
-            cy = (rows-1)*PanelRegister.vSpacing + PanelRegister.vOffset;
-            cx -= PanelRegister.hSpacing;
-        } else {
-            cy -= PanelRegister.vSpacing;
-        }
-        lamp = new NeonLamp(cx, cy);
-        this.lamps[b] = lamp;
-        this.element.appendChild(lamp.element);
-    *****/
+    this.t8Lamp = new ColoredLamp(body, null, null, "T8Lamp", "whiteLamp", "whiteLit");
+    this.t4Lamp = new ColoredLamp(body, null, null, "T4Lamp", "whiteLamp", "whiteLit");
+    this.t2Lamp = new ColoredLamp(body, null, null, "T2Lamp", "whiteLamp", "whiteLit");
+    this.t1Lamp = new ColoredLamp(body, null, null, "T1Lamp", "whiteLamp", "whiteLit");
+    this.singleWordLamp = new ColoredLamp(body, null, null, "SingleWordLamp", "whiteLamp", "whiteLit");
+
+    this.powerLamp = new ColoredLamp(body, null, null, "PowerLamp", "greenLamp", "greenLit");
+
+    this.overflowLamp = new ColoredLamp(body, null, null, "OverflowLamp", "redLamp", "redLit");
+
+    this.sectorLamp = new ColoredLamp(body, null, null, "SectorLamp", "whiteLamp", "whiteLit");
+    this.controlLamp = new ColoredLamp(body, null, null, "ControlLamp", "orangeLamp", "orangeLit");
+    this.fcLamp = new ColoredLamp(body, null, null, "FCLamp", "whiteLamp", "whiteLit");
+    this.idleLamp = new ColoredLamp(body, null, null, "IdleLamp", "redLamp", "redLit");
+
+    this.executeLamp = new ColoredLamp(body, null, null, "ExecuteLamp", "whiteLamp", "whiteLit");
+    this.fetchLamp = new ColoredLamp(body, null, null, "FetchLamp", "whiteLamp", "whiteLit");
+
+    this.mainLamp = new ColoredLamp(body, null, null, "MAINLamp", "whiteLamp", "whiteLit");
+    this.rwmLamp = new ColoredLamp(body, null, null, "RWMLamp", "whiteLamp", "whiteLit");
+    this.rwlLamp = new ColoredLamp(body, null, null, "RWLLamp", "whiteLamp", "whiteLit");
+    this.wdblLamp = new ColoredLamp(body, null, null, "WDBLLamp", "whiteLamp", "whiteLit");
+    this.actLamp = new ColoredLamp(body, null, null, "ACTLamp", "whiteLamp", "whiteLit");
+    this.accessLamp = new ColoredLamp(body, null, null, "ACCESSLamp", "whiteLamp", "whiteLit");
+    this.lmLamp = new ColoredLamp(body, null, null, "LMLamp", "whiteLamp", "whiteLit");
+    this.l7Lamp = new ColoredLamp(body, null, null, "L7Lamp", "whiteLamp", "whiteLit");
+    this.l6Lamp = new ColoredLamp(body, null, null, "L6Lamp", "whiteLamp", "whiteLit");
+    this.l5Lamp = new ColoredLamp(body, null, null, "L5Lamp", "whiteLamp", "whiteLit");
+    this.l4Lamp = new ColoredLamp(body, null, null, "L4Lamp", "whiteLamp", "whiteLit");
 
     // Events
+
+    this.$$("ClearBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ClearARegBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ClearBRegBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ClearCRegBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ClearDRegBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ClearRRegBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ClearControlBtn").addEventListener("click", this.boundClear_Click);
 
     //this.window.addEventListener("beforeunload",
     //        D205SupervisoryPanel.prototype.beforeUnload, false);
@@ -313,14 +616,34 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerOnBtn_Click), false);
     //this.$$("PowerOffBtn").addEventListener("click",
     //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerOffBtn_Click), false);
-    //this.$$("StartBtn").addEventListener("click",
+
+    this.$$("StartBtn").addEventListener("click",
     //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click), false);
+            // temp to demonstrate the adder functionality...
+            D205Util.bindMethod(this, function(ev) {
+                this.p.stopOverflow = 0;
+                this.p.stopForbidden = 0;
+                this.p.A = this.p.serialAdd(this.p.A, this.p.D);
+                this.p.D = 0;
+                this.updatePanel();
+    }));
     this.$$("LockNormalSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
     this.$$("ContinuousStepSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
     this.$$("AudibleAlarmSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
+
+    this.$$("ARegPanel").addEventListener("click", this.boundLamp_Click);
+    this.$$("BRegPanel").addEventListener("click", this.boundLamp_Click);
+    this.$$("CRegPanel").addEventListener("click", this.boundLamp_Click);
+    this.$$("DRegPanel").addEventListener("click", this.boundLamp_Click);
+    this.$$("RRegPanel").addEventListener("click", this.boundLamp_Click);
+    controlDiv.addEventListener("click", this.boundLamp_Click);
+    this.$$("AdderPanel").addEventListener("click", this.boundLamp_Click);
+    this.$$("CarryPanel").addEventListener("click", this.boundLamp_Click);
+    this.$$("TWA").addEventListener("click", this.boundLamp_Click);
+    this.$$("BIO").addEventListener("click", this.boundLamp_Click);
 };
 
 /**************************************/

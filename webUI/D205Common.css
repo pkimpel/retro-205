@@ -90,6 +90,7 @@ DIV.neonLamp {
     background-image:   radial-gradient(circle, #999, #333)}
 DIV.neonLit {
     background-image:   radial-gradient(circle, #F93 15%, #999)}
+    
 DIV.neonLampTopCaption {
     position:           absolute;
     width:              32px;
@@ -145,6 +146,24 @@ DIV.greenLamp {
     background-image:   radial-gradient(circle, #090, #030)}
 DIV.greenLit {
     background-image:   radial-gradient(circle, #0F0 15%, #090)}
+    
+DIV.coloredLampTopCaption {
+    position:           absolute;
+    width:              64px;
+    top:                -13px;
+    left:               -20px;
+    line-height:        100%;
+    font-size:          5pt;
+    font-weight:        bold;
+    text-align:         center}
+DIV.coloredLampBottomCaption {
+    position:           absolute;
+    width:              64px;
+    bottom:             -15px;
+    left:               -20px;
+    font-size:          5pt;
+    font-weight:        bold;
+    text-align:         center}
     
 DIV.panelSurface {
     position:           relative;
@@ -216,7 +235,7 @@ DIV.redButton1 {
     width:              14px;
     height:             14px;
     font-size:          4px;
-    background-color:   #C00;
+    background-image:   radial-gradient(circle, #C00, #F00);
     border-radius:      50%;
     border:             10px solid #CCC}
 DIV.redButton2 {
@@ -224,7 +243,7 @@ DIV.redButton2 {
     width:              8px;
     height:             8px;
     font-size:          4px;
-    background-color:   #C00;
+    background-image:   radial-gradient(circle, #C00, #F00);
     border-radius:      50%;
     border:             6px solid #CCC}
 DIV.redButton3 {
@@ -232,7 +251,7 @@ DIV.redButton3 {
     width:              20px;
     height:             20px;
     font-size:          4px;
-    background-color:   #C00;
+    background-image:   radial-gradient(circle, #C00, #F00);
     border-radius:      50%;
     border:             2px solid #CCC}
 DIV.blackButton1 {
@@ -240,7 +259,7 @@ DIV.blackButton1 {
     width:              14px;
     height:             14px;
     font-size:          4px;
-    background-color:   black;
+    background-image:   radial-gradient(circle, #000, #333);
     border-radius:      50%;
     border:             10px solid #CCC}
 DIV.blackButton3 {
@@ -248,7 +267,7 @@ DIV.blackButton3 {
     width:              20px;
     height:             20px;
     font-size:          4px;
-    background-color:   black;
+    background-image:   radial-gradient(circle, #000, #333);
     border-radius:      50%;
     border:             2px solid #CCC}
 
@@ -257,7 +276,7 @@ DIV.blackKnob1 {
     width:              32px;
     height:             32px;
     font-size:          4px;
-    background-color:   black;
+    background-image:   radial-gradient(circle, #000, #333);
     border-radius:      50%;
     border:             16px solid #CCC}
 
