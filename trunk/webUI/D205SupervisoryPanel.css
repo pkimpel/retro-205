@@ -455,16 +455,16 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     top:                300px;
     width:              88}
 
-#ContinuousStepSwitch {
+#StepContinuousSwitch {
     position:           absolute;
     left:               950px;
     top:                378px;
     width:              24px}
-#ContinuousStepOn {
+#StepContinuousOn {
     left:               932px;
     top:                370px;
     width:              60px}
-#ContinuousStepOff {
+#StepContinuousOff {
     left:               932px;
     top:                408px;
     width:              60px}
