@@ -20,11 +20,11 @@ function D205SupervisoryPanel(p) {
     var mnemonic = "SupervisoryPanel";
 
     this.p = p;                         // D205Processor object
-    this.timer = 0;                     // setCallback() token
+    this.intervalTimer = 0;             // setInterval() token
     this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
     this.boundClear_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.clear_Click);
-
-    this.clear();
+    this.boundStartBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click);
+    this.boundUpdatePanel = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.updatePanel);
 
     this.window = window.open("", mnemonic);
     if (this.window) {
@@ -48,12 +48,6 @@ D205SupervisoryPanel.prototype.$$ = function $$(e) {
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.clear = function clear() {
-    /* Initializes (and if necessary, creates) the panel state */
-
-};
-
-/**************************************/
 D205SupervisoryPanel.prototype.beforeUnload = function beforeUnload(ev) {
     var msg = "Closing this window will make the device unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
@@ -72,28 +66,6 @@ D205SupervisoryPanel.prototype.setLampFromMask = function setLampFromMask(lamp, 
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.randomDisplay = function randomDisplay() {
-    var lampMask = Math.floor(Math.random()*1024);
-
-    this.regA.update(Math.random()*Math.random()*0x100000000000);
-    this.regB.update(Math.random()*0x10000);
-    this.regC.update(Math.random()*Math.random()*0x10000000000);
-    this.regD.update(Math.random()*Math.random()*0x100000000000);
-    this.regR.update(Math.random()*Math.random()*0x10000000000);
-    this.control.update(Math.random()*Math.random()*0x10000000000);
-
-    lampMask = this.setLampFromMask(this.idleLamp, lampMask);
-    lampMask = this.setLampFromMask(this.fcsaLamp, lampMask);
-    lampMask = this.setLampFromMask(this.controlLamp, lampMask);
-    lampMask = this.setLampFromMask(this.bkptLamp, lampMask);
-    lampMask = this.setLampFromMask(this.overflowLamp, lampMask);
-    lampMask = this.setLampFromMask(this.executeLamp, lampMask);
-    lampMask = this.setLampFromMask(this.fetchLamp, lampMask);
-    lampMask = this.setLampFromMask(this.notReadyLamp, lampMask);
-    lampMask = this.setLampFromMask(this.continuousLamp, lampMask);
-};
-
-/**************************************/
 D205SupervisoryPanel.prototype.updateControlReg = function updateControlReg() {
     /* Builds a bit mask for the control toggles as if it were a uniform register
     and then updates the display from that mask */
@@ -106,7 +78,7 @@ D205SupervisoryPanel.prototype.updateControlReg = function updateControlReg() {
                 p.togDPCTR)*2 +
                 p.togDELTABDIV)*2 +
                 p.togCOMPL)*2 +
-                p.togPLUSAB)*2 +
+                p.togADDAB)*2 +
                 p.togCLEAR)*2 +
                 p.togMULDIV)*2 +
                 p.togSIGN)*2 +
@@ -163,13 +135,20 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.rwmLamp.set(p.memRWM);
     this.rwlLamp.set(p.memRWL);
     this.wdblLamp.set(p.memWDBL);
-    this.actLamp.set(p.memACT);
+    this.actLamp.set(p.memACTION);
     this.accessLamp.set(p.memACCESS);
     this.lmLamp.set(p.memLM);
     this.l4Lamp.set(p.memL4);
     this.l5Lamp.set(p.memL5);
     this.l6Lamp.set(p.memL6);
     this.l7Lamp.set(p.memL7);
+
+    if (this.p.CST) {                   // processor has stopped, so...
+        if (this.intervalTimer) {       // if the display auto-update is running
+            clearInterval(this.intervalTimer); // kill it
+            this.intervalTimer = 0;
+        }
+    }
 };
 
 /**************************************/
@@ -342,7 +321,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
 
 /**************************************/
 D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
-    /* Event handler for the various clear buttons on the panel */
+    /* Event handler for the various clear/reset buttons on the panel */
 
     switch (ev.target.id) {
     case "ClearBtn":
@@ -366,33 +345,33 @@ D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
     case "ClearControlBtn":
         this.p.clearControl();
         break;
+    case "ResetOverflowBtn":
+        this.p.stopOverflow = 0;
+        break;
+    case "ResetSectorBtn":
+        this.p.stopSector = 0;
+        break;
+    case "ResetControlBtn":
+        this.p.stopControl = 0;
+        break;
+    case "ExecuteBtn":
+        this.p.togTiming = 0;
+        break;
+    case "FetchBtn":
+        this.p.togTiming = 1;
+        break;
     }
     this.updatePanel();
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.stepBtn_Click = function stepBtn_Click(ev) {
-    if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = 0;
-    }
-    this.randomDisplay();
-};
+D205SupervisoryPanel.prototype.startBtn_Click = function startBtn_Click(ev) {
+    /* Handler for the START button: begins execution for the current cycle */
 
-/**************************************/
-D205SupervisoryPanel.prototype.stopBtn_Click = function stopBtn_Click(ev) {
-    if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = 0;
+    this.p.start();
+    if (!this.intervalTimer) {
+        this.intervalTimer = setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
     }
-};
-
-/**************************************/
-D205SupervisoryPanel.prototype.contBtn_Click = function contBtn_Click(ev) {
-    if (!this.timer) {
-        this.timer = setInterval(D205Util.bindMethod(this, this.randomDisplay), D205SupervisoryPanel.displayRefreshPeriod);
-    }
-    this.randomDisplay();
 };
 
 /**************************************/
@@ -609,6 +588,11 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("ClearDRegBtn").addEventListener("click", this.boundClear_Click);
     this.$$("ClearRRegBtn").addEventListener("click", this.boundClear_Click);
     this.$$("ClearControlBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ResetOverflowBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ResetSectorBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ResetControlBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("ExecuteBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("FetchBtn").addEventListener("click", this.boundClear_Click);
 
     //this.window.addEventListener("beforeunload",
     //        D205SupervisoryPanel.prototype.beforeUnload, false);
@@ -617,8 +601,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     //this.$$("PowerOffBtn").addEventListener("click",
     //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerOffBtn_Click), false);
 
-    this.$$("StartBtn").addEventListener("click",
-    //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click), false);
+    this.$$("StartBtn").addEventListener("click", this.boundStartBtn_Click, false);
+            /***********
             // temp to demonstrate the adder functionality...
             D205Util.bindMethod(this, function(ev) {
                 this.p.stopOverflow = 0;
@@ -626,10 +610,11 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
                 this.p.A = this.p.serialAdd(this.p.A, this.p.D);
                 this.p.D = 0;
                 this.updatePanel();
-    }));
+            }));
+            **********/
     this.$$("LockNormalSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
-    this.$$("ContinuousStepSwitch").addEventListener("click",
+    this.$$("StepContinuousSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
     this.$$("AudibleAlarmSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
@@ -650,8 +635,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
 D205SupervisoryPanel.prototype.shutDown = function shutDown() {
     /* Shuts down the device */
 
-    if (this.timer) {
-        clearInterval(this.timer);
+    if (this.intervalTimer) {
+        clearInterval(this.intervalTimer);
     }
     this.window.removeEventListener("beforeunload", D205SupervisoryPanel.prototype.beforeUnload, false);
     this.window.close();
