@@ -1,0 +1,53 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Black Knob &lt;canvas&rt; test</title>
+<script>
+window.addEventListener("load", function(ev) {
+    var dc = document.getElementById("Knob1").getContext("2d");
+    var degrees = Math.PI/180;
+    var fullCircle = 360*degrees;
+    var silverSkirt;
+
+    dc.translate(32, 32);
+
+    silverSkirt = dc.createRadialGradient(0, 0, 32, 0, 0, 16);
+    silverSkirt.addColorStop(0.5, "#FFF");
+    silverSkirt.addColorStop(1, "#CCC");
+
+    dc.fillStyle = "#246";
+    dc.fillRect(-32, -32, 64, 64);
+
+    dc.beginPath();
+    dc.arc(0, 0, 32, 0, fullCircle, false);
+    dc.fillStyle = silverSkirt;
+    dc.fill();
+
+    dc.beginPath();
+    dc.arc(0, 0, 16, 0, fullCircle, false);
+    dc.fillStyle = "#000";
+    dc.fill();
+
+    dc.beginPath();
+    dc.arc(0, 0, 12, 0, fullCircle, false);
+    dc.fillStyle = "#333";
+    dc.fill();
+
+    dc.save();
+    dc.rotate(-45*degrees);
+    dc.beginPath();
+    dc.fillRect(-1, -32, 2, 16);
+    dc.fillStyle = "#000";
+    dc.fill();
+    dc.restore();
+});
+</script>
+</head>
+
+<body style:"position:relative">
+
+<canvas id=Knob1 width=64 height=64 style="position:absolute; width:64px; height:64px; left:148px; top:406px; border:1px dotted gray">
+</canvas>
+
+</body>
+</html>

@@ -49,7 +49,7 @@ NeonLamp.litClass = "neonLamp neonLit";
 /**************************************/
 NeonLamp.prototype.set = function set(state) {
     /* Changes the visible state of the lamp according to the low-order
-    bit of "state". */
+    bit of "state" */
     var newState = state & 1;
 
     if (this.state ^ newState) {         // the state has changed
@@ -69,7 +69,7 @@ NeonLamp.prototype.flip = function flip() {
 
 /**************************************/
 NeonLamp.prototype.setCaption = function setCaption(caption, atBottom) {
-    /* Establishes an optional caption at the top of a single lamp.
+    /* Establishes an optional caption at the top or bottom of a single lamp.
     Returns the caption element */
     var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
 
@@ -129,7 +129,7 @@ ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
 /**************************************/
 ColoredLamp.prototype.set = function set(state) {
     /* Changes the visible state of the lamp according to the low-order
-    bit of "state". */
+    bit of "state" */
     var newState = state & 1;
 
     if (this.state ^ newState) {         // the state has changed
@@ -149,7 +149,7 @@ ColoredLamp.prototype.flip = function flip() {
 
 /**************************************/
 ColoredLamp.prototype.setCaption = function setCaption(caption, atBottom) {
-    /* Establishes an optional caption at the top of a single lamp.
+    /* Establishes an optional caption at the top or bottom of a single lamp.
     Returns the caption element */
     var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
 
@@ -163,6 +163,220 @@ ColoredLamp.prototype.setCaption = function setCaption(caption, atBottom) {
         } else {
             this.topCaptionDiv = e;
             e.className = ColoredLamp.topCaptionClass;
+        }
+        e.appendChild(document.createTextNode(caption));
+        this.element.appendChild(e);
+    }
+    return e;
+};
+
+
+/***********************************************************************
+*  Panel Toggle Switch                                                 *
+***********************************************************************/
+function ToggleSwitch(element, x, y, id, offImage, onImage) {
+    /* Constructor for the toggle switch objects used within panels. x & y are
+    the coordinates of the switch within its containing element; id is the DOM id */
+
+    this.state = 0;                     // current switch state, 0=off
+    this.topCaptionDiv = null;          // optional top caption element
+    this.bottomCaptionDiv = null;       // optional bottom caption element
+    this.offImage = offImage;           // image used for the off state
+    this.onImage = onImage;             // image used for the on state
+
+    // visible DOM element
+    this.element = document.createElement("img");
+    this.element.id = id;
+    this.element.src = offImage;
+    if (x !== null) {
+        this.element.style.left = x.toString() + "px";
+    }
+    if (y !== null) {
+        this.element.style.top = y.toString() + "px";
+    }
+
+    if (element) {
+        element.appendChild(this.element);
+    }
+}
+
+/**************************************/
+
+ToggleSwitch.topCaptionClass = "toggleSwitchTopCaption";
+ToggleSwitch.bottomCaptionClass = "toggleSwitchBottomCaption";
+
+/**************************************/
+ToggleSwitch.prototype.set = function set(state) {
+    /* Changes the visible state of the switch according to the low-order
+    bit of "state" */
+    var newState = state & 1;
+
+    if (this.state ^ newState) {         // the state has changed
+        this.element.src = (newState ? this.onImage : this.offImage);
+        this.state = newState;
+    }
+};
+
+/**************************************/
+ToggleSwitch.prototype.flip = function flip() {
+    /* Complements the visible state of the switch */
+    var newState = this.state ^ 1;
+
+    this.element.src = (newState ? this.onImage : this.offImage);
+    this.state = newState;
+};
+
+/**************************************/
+ToggleSwitch.prototype.setCaption = function setCaption(caption, atBottom) {
+    /* Establishes an optional caption at the or bottom of a single switch.
+    Returns the caption element */
+    var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
+
+    if (e) {
+        e.textContent = caption;
+    } else {
+        e = document.createElement("div");
+        if (atBottom) {
+            this.bottomCaptionDiv = e;
+            e.className = ToggleSwitch.bottomCaptionClass;
+        } else {
+            this.topCaptionDiv = e;
+            e.className = ToggleSwitch.topCaptionClass;
+        }
+        e.appendChild(document.createTextNode(caption));
+        this.element.appendChild(e);
+    }
+    return e;
+};
+
+
+/***********************************************************************
+*  Black Control Knob                                                  *
+***********************************************************************/
+function BlackControlKnob(element, x, y, id, initial, positions) {
+    /* Constructor for the black control knob objects used within panels. x & y are
+    the coordinates of the knob within its containing element; id is the DOM id;
+    initial is the 0-relative index indicating the default position of the switch;
+    positions is an array indicating the angular position (in degrees, where 0
+    is straight up) of each of the knob's positions */
+
+    this.position = 0;                  // current knob position
+    this.topCaptionDiv = null;          // optional top caption element
+    this.bottomCaptionDiv = null;       // optional bottom caption element
+    this.positions = positions;         // array of knob position angles
+
+    // visible DOM element
+    this.element = document.createElement("canvas");
+    this.element.id = id;
+    this.element.width = BlackControlKnob.size;
+    this.element.height = BlackControlKnob.size;
+    this.element.className = BlackControlKnob.className;
+    if (x !== null) {
+        this.element.style.left = x.toString() + "px";
+    }
+    if (y !== null) {
+        this.element.style.top = y.toString() + "px";
+    }
+
+    if (element) {
+        element.appendChild(this.element);
+    }
+
+    this.set(initial);                  // set to its initial position
+}
+
+/**************************************/
+
+BlackControlKnob.topCaptionClass = "blackControlKnobTopCaption";
+BlackControlKnob.bottomCaptionClass = "blackControlKnobBottomCaption";
+BlackControlKnob.className = "blackControlKnob1";
+BlackControlKnob.size = 64;             // width/height in pixels
+
+/**************************************/
+BlackControlKnob.prototype.set = function set(position) {
+    /* Changes the visible state of the knob according to the position index */
+    var dc = this.element.getContext("2d");
+    var degrees = Math.PI/180;
+    var fullCircle = 360*degrees;
+    var halfSize = Math.floor(BlackControlKnob.size/2);
+    var quarterSize = Math.floor(BlackControlKnob.size/4);
+    var silverSkirt;
+
+    if (position < 0) {
+        this.position = 0;
+    } else if (position < this.positions.length) {
+        this.position = position;
+    } else {
+        this.position = this.positions.length-1;
+    }
+
+    dc.save();
+    dc.translate(halfSize+0.5, halfSize+0.5);   // move origin to the center
+
+    dc.fillStyle = "#246";                      // fill in the panel background (aids antialiasing)
+    dc.fillRect(-halfSize, -halfSize, BlackControlKnob.size, BlackControlKnob.size);
+
+    silverSkirt = dc.createRadialGradient(0, 0, halfSize, 0, 0, quarterSize);
+    silverSkirt.addColorStop(0.5, "#FFF");
+    silverSkirt.addColorStop(1, "#CCC");
+
+    dc.beginPath();                             // draw the outer skirt of the knob
+    dc.arc(0, 0, halfSize-1, 0, fullCircle, false);
+    dc.fillStyle = silverSkirt;
+    dc.fill();
+
+    dc.beginPath();                             // draw the central knob
+    dc.arc(0, 0, quarterSize, 0, fullCircle, false);
+    dc.fillStyle = "#000";
+    dc.fill();
+
+    dc.beginPath();                             // draw the inset on top of the knob
+    dc.arc(0, 0, quarterSize-4, 0, fullCircle, false);
+    dc.fillStyle = "#333";
+    dc.fill();
+
+    dc.save();                                  // draw the knob indicator
+    dc.rotate(this.positions[this.position]*degrees);
+    dc.beginPath();
+    dc.moveTo(0, -halfSize);
+    dc.lineTo(-quarterSize/4, -halfSize+quarterSize/2);
+    dc.lineTo(quarterSize/4, -halfSize+quarterSize/2);
+    dc.closePath();
+    dc.fillStyle = "#000";
+    dc.fill();
+    dc.restore();                               // undo the rotation
+    dc.restore();                               // undo the translation
+};
+
+/**************************************/
+BlackControlKnob.prototype.step = function step() {
+    /* Steps the knob to its next position. If it is at the last position, steps it
+    to the first position */
+    var position = this.position+1;
+
+    if (position < this.positions.length) {
+        this.set(position);
+    } else {
+        this.set(0);
+    }
+};
+
+/**************************************/
+BlackControlKnob.prototype.setCaption = function setCaption(caption, atBottom) {
+    /* Establishes an optional caption at the or bottom of a single switch.
+    Returns the caption element */
+    var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
+
+    if (e) {
+        e.textContent = caption;
+    } else {
+        e = document.createElement("div");
+        if (atBottom) {
+            this.bottomCaptionDiv = e;
+            e.className = blackControlKnob.bottomCaptionClass;
+        } else {
+            this.topCaptionDiv = e;
+            e.className = blackControlKnob.topCaptionClass;
         }
         e.appendChild(document.createTextNode(caption));
         this.element.appendChild(e);

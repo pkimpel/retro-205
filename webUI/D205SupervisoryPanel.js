@@ -22,7 +22,9 @@ function D205SupervisoryPanel(p) {
     this.p = p;                         // D205Processor object
     this.intervalTimer = 0;             // setInterval() token
     this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
+    this.boundPowerBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerBtn_Click);
     this.boundClear_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.clear_Click);
+    this.boundFlipSwitch = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch);
     this.boundStartBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.updatePanel);
 
@@ -40,7 +42,9 @@ function D205SupervisoryPanel(p) {
 }
 
 /**************************************/
-D205SupervisoryPanel.displayRefreshPeriod = 50;   // milliseconds
+D205SupervisoryPanel.displayRefreshPeriod = 33;   // milliseconds
+D205SupervisoryPanel.offSwitch = "./resources/ToggleDown.png";
+D205SupervisoryPanel.onSwitch = "./resources/ToggleUp.png";
 
 /**************************************/
 D205SupervisoryPanel.prototype.$$ = function $$(e) {
@@ -55,14 +59,6 @@ D205SupervisoryPanel.prototype.beforeUnload = function beforeUnload(ev) {
     ev.preventDefault();
     ev.returnValue = msg;
     return msg;
-};
-
-/**************************************/
-D205SupervisoryPanel.prototype.setLampFromMask = function setLampFromMask(lamp, value) {
-    var bit = value % 2;
-
-    lamp.set(bit);
-    return (value-bit)/2;
 };
 
 /**************************************/
@@ -126,10 +122,10 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.sectorLamp.set(p.stopSector);
     this.fcLamp.set(p.stopForbidden);
     this.controlLamp.set(p.stopControl);
-    this.idleLamp.set(p.stopIdle);
+    this.idleLamp.set(p.stopIdle && p.poweredOn);
 
-    this.executeLamp.set(1-p.togTiming);
-    this.fetchLamp.set(p.togTiming);
+    this.executeLamp.set(1-p.togTiming && p.poweredOn);
+    this.fetchLamp.set(p.togTiming && p.poweredOn);
 
     this.mainLamp.set(p.memMAIN);
     this.rwmLamp.set(p.memRWM);
@@ -143,7 +139,7 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.l6Lamp.set(p.memL6);
     this.l7Lamp.set(p.memL7);
 
-    if (this.p.CST) {                   // processor has stopped, so...
+    if (this.p.togCST) {                // processor has stopped, so...
         if (this.intervalTimer) {       // if the display auto-update is running
             clearInterval(this.intervalTimer); // kill it
             this.intervalTimer = 0;
@@ -162,216 +158,253 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
     var p = this.p;                     // local copy of processor object
     var reg;                            // register prefix from id
 
-    if (ix < 0) {
-        reg = id;
-        bit = 0;
-    } else if (ix > 0) {
-        reg = id.substring(0, ix);
-        bit = parseInt(id.substring(ix+1));
-        if (isNaN(bit)) {
+    if (p.poweredOn) {
+        if (ix < 0) {
+            reg = id;
             bit = 0;
+        } else if (ix > 0) {
+            reg = id.substring(0, ix);
+            bit = parseInt(id.substring(ix+1));
+            if (isNaN(bit)) {
+                bit = 0;
+            }
         }
+
+        switch (reg) {
+        case "A":
+            p.A = p.bitFlip(p.A, bit);
+            this.regA.update(p.A);
+            break;
+        case "B":
+            p.B = p.bitFlip(p.B, bit);
+            this.regB.update(p.B);
+            break;
+        case "C":
+            p.C = p.bitFlip(p.C, bit);
+            this.regC.update(p.C);
+            break;
+        case "D":
+            p.D = p.bitFlip(p.D, bit);
+            this.regD.update(p.D);
+            break;
+        case "R":
+            p.R = p.bitFlip(p.R, bit);
+            this.regR.update(p.R);
+            break;
+        case "ADD":
+            p.ADDER = p.bitFlip(p.ADDER, bit);
+            this.regAdder.update(p.ADDER);
+            break;
+        case "CT":
+            p.CT = p.bitFlip(p.CT, bit);
+            this.regCarry.update(p.CT);
+            break;
+        case "TWA":
+            p.togTWA ^= 1;
+            this.cardaTronTWA.set(p.togTWA);
+            break;
+        case "BIO":
+            p.togBIO ^= 1;
+            this.cardaTronBIO.set(p.togBIO);
+            break;
+        case "CTL":
+            switch (bit) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+            case 4:
+                p.SHIFT = p.bitFlip(p.SHIFT, bit);
+                break;
+            case 5:
+                p.togMT1BV5 ^= 1;
+                break;
+            case 6:
+                p.togMT1BV4 ^= 1;
+                break;
+            case 7:
+                p.togMT3P ^= 1;
+                break;
+            case 8:
+            case 9:
+            case 10:
+            case 11:
+                p.SHIFTCONTROL = p.bitFlip(p.SHIFTCONTROL, bit-8);
+                break;
+            case 12:
+                p.togASYNC ^= 1;
+                break;
+            case 13:
+                p.togZCT ^= 1;
+                break;
+            case 14:
+                p.togBKPT ^= 1;
+                break;
+            case 15:
+                p.togT0 ^= 1;
+                break;
+            case 16:
+                p.togDELAY ^= 1;
+                break;
+            case 17:
+                p.togPO2 ^= 1;
+                break;
+            case 18:
+                p.togPO1 ^= 1;
+                break;
+            case 19:
+                p.togOK ^= 1;
+                break;
+            case 20:
+                p.togTC2 ^= 1;
+                break;
+            case 21:
+                p.togTC1 ^= 1;
+                break;
+            case 22:
+                p.togTF ^= 1;
+                break;
+            case 23:
+                p.togSTART ^= 1;
+                break;
+            case 24:
+                p.togSTEP ^= 1;
+                break;
+            case 25:
+                p.togDIVALARM ^= 1;
+                break;
+            case 26:
+                p.togCOUNT ^= 1;
+                break;
+            case 27:
+                p.togSIGN ^= 1;
+                break;
+            case 28:
+                p.togMULDIV ^= 1;
+                break;
+            case 29:
+                p.togCLEAR ^= 1;
+                break;
+            case 30:
+                p.togPLUSAB ^= 1;
+                break;
+            case 31:
+                p.togCOMPL ^= 1;
+                break;
+            case 32:
+                p.togDELTABDIV ^= 1;
+                break;
+            case 33:
+                p.togDPCTR ^= 1;
+                break;
+            case 34:
+                p.togADDER ^= 1;
+                break;
+            case 35:
+                p.togBTOAIN ^= 1;
+                break;
+            case 36:
+            case 37:
+            case 38:
+            case 39:
+                p.SPECIAL = p.bitFlip(p.SPECIAL, bit-36);
+                break;
+            } // switch bit
+
+            this.updateControlReg();
+            break;
+        } // switch reg
     }
 
-    switch (reg) {
-    case "A":
-        p.A = p.bitFlip(p.A, bit);
-        this.regA.update(p.A);
-        break;
-    case "B":
-        p.B = p.bitFlip(p.B, bit);
-        this.regB.update(p.B);
-        break;
-    case "C":
-        p.C = p.bitFlip(p.C, bit);
-        this.regC.update(p.C);
-        break;
-    case "D":
-        p.D = p.bitFlip(p.D, bit);
-        this.regD.update(p.D);
-        break;
-    case "R":
-        p.R = p.bitFlip(p.R, bit);
-        this.regR.update(p.R);
-        break;
-    case "ADD":
-        p.ADDER = p.bitFlip(p.ADDER, bit);
-        this.regAdder.update(p.ADDER);
-        break;
-    case "CT":
-        p.CT = p.bitFlip(p.CT, bit);
-        this.regCarry.update(p.CT);
-        break;
-    case "TWA":
-        p.togTWA ^= 1;
-        this.cardaTronTWA.set(p.togTWA);
-        break;
-    case "BIO":
-        p.togBIO ^= 1;
-        this.cardaTronBIO.set(p.togBIO);
-        break;
-    case "CTL":
-        switch (bit) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-        case 4:
-            p.SHIFT = p.bitFlip(p.SHIFT, bit);
-            break;
-        case 5:
-            p.togMT1BV5 ^= 1;
-            break;
-        case 6:
-            p.togMT1BV4 ^= 1;
-            break;
-        case 7:
-            p.togMT3P ^= 1;
-            break;
-        case 8:
-        case 9:
-        case 10:
-        case 11:
-            p.SHIFTCONTROL = p.bitFlip(p.SHIFTCONTROL, bit-8);
-            break;
-        case 12:
-            p.togASYNC ^= 1;
-            break;
-        case 13:
-            p.togZCT ^= 1;
-            break;
-        case 14:
-            p.togBKPT ^= 1;
-            break;
-        case 15:
-            p.togT0 ^= 1;
-            break;
-        case 16:
-            p.togDELAY ^= 1;
-            break;
-        case 17:
-            p.togPO2 ^= 1;
-            break;
-        case 18:
-            p.togPO1 ^= 1;
-            break;
-        case 19:
-            p.togOK ^= 1;
-            break;
-        case 20:
-            p.togTC2 ^= 1;
-            break;
-        case 21:
-            p.togTC1 ^= 1;
-            break;
-        case 22:
-            p.togTF ^= 1;
-            break;
-        case 23:
-            p.togSTART ^= 1;
-            break;
-        case 24:
-            p.togSTEP ^= 1;
-            break;
-        case 25:
-            p.togDIVALARM ^= 1;
-            break;
-        case 26:
-            p.togCOUNT ^= 1;
-            break;
-        case 27:
-            p.togSIGN ^= 1;
-            break;
-        case 28:
-            p.togMULDIV ^= 1;
-            break;
-        case 29:
-            p.togCLEAR ^= 1;
-            break;
-        case 30:
-            p.togPLUSAB ^= 1;
-            break;
-        case 31:
-            p.togCOMPL ^= 1;
-            break;
-        case 32:
-            p.togDELTABDIV ^= 1;
-            break;
-        case 33:
-            p.togDPCTR ^= 1;
-            break;
-        case 34:
-            p.togADDER ^= 1;
-            break;
-        case 35:
-            p.togBTOAIN ^= 1;
-            break;
-        case 36:
-        case 37:
-        case 38:
-        case 39:
-            p.SPECIAL = p.bitFlip(p.SPECIAL, bit-36);
-            break;
-        } // switch bit
-
-        this.updateControlReg();
-        break;
-    } // switch reg
+    ev.preventDefault();
+    return false;
 };
 
 /**************************************/
 D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
     /* Event handler for the various clear/reset buttons on the panel */
 
-    switch (ev.target.id) {
-    case "ClearBtn":
-        this.p.clear();
+    if (this.p.poweredOn) {
+        switch (ev.target.id) {
+        case "ClearBtn":
+            this.p.clear();
+            break;
+        case "ClearARegBtn":
+            this.p.A = 0;
+            break;
+        case "ClearBRegBtn":
+            this.p.B = 0;
+            break;
+        case "ClearCRegBtn":
+            this.p.C = 0;
+            break;
+        case "ClearDRegBtn":
+            this.p.D = 0;
+            break;
+        case "ClearRRegBtn":
+            this.p.R = 0;
+            break;
+        case "ClearControlBtn":
+            this.p.clearControl();
+            break;
+        case "ResetOverflowBtn":
+            this.p.stopOverflow = 0;
+            break;
+        case "ResetSectorBtn":
+            this.p.stopSector = 0;
+            break;
+        case "ResetControlBtn":
+            this.p.stopControl = 0;
+            break;
+        case "ExecuteBtn":
+            this.p.togTiming = 0;
+            break;
+        case "FetchBtn":
+            this.p.togTiming = 1;
+            break;
+        }
+        this.updatePanel();
+    }
+    ev.preventDefault();
+    return false;
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
+    /* Handler for the START button: begins execution for the current cycle */
+
+    switch(ev.target.id) {
+    case "PowerOnBtn":
+        if (!this.p.poweredOn) {
+            this.p.powerUp();
+            this.powerLamp.set(1);
+        }
         break;
-    case "ClearARegBtn":
-        this.p.A = 0;
-        break;
-    case "ClearBRegBtn":
-        this.p.B = 0;
-        break;
-    case "ClearCRegBtn":
-        this.p.C = 0;
-        break;
-    case "ClearDRegBtn":
-        this.p.D = 0;
-        break;
-    case "ClearRRegBtn":
-        this.p.R = 0;
-        break;
-    case "ClearControlBtn":
-        this.p.clearControl();
-        break;
-    case "ResetOverflowBtn":
-        this.p.stopOverflow = 0;
-        break;
-    case "ResetSectorBtn":
-        this.p.stopSector = 0;
-        break;
-    case "ResetControlBtn":
-        this.p.stopControl = 0;
-        break;
-    case "ExecuteBtn":
-        this.p.togTiming = 0;
-        break;
-    case "FetchBtn":
-        this.p.togTiming = 1;
+    case "PowerOffBtn":
+        if (this.p.poweredOn) {
+            this.p.powerDown();
+            this.powerLamp.set(0);
+        }
         break;
     }
     this.updatePanel();
+    ev.preventDefault();
+    return false;
 };
 
 /**************************************/
 D205SupervisoryPanel.prototype.startBtn_Click = function startBtn_Click(ev) {
     /* Handler for the START button: begins execution for the current cycle */
 
-    this.p.start();
-    if (!this.intervalTimer) {
-        this.intervalTimer = setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+    if (this.p.poweredOn && this.p.togCST) {
+        this.p.start();
+        this.updatePanel();
+        if (!this.intervalTimer) {
+            this.intervalTimer = setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+        }
     }
+    ev.preventDefault();
+    return false;
 };
 
 /**************************************/
@@ -379,11 +412,31 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
     var img = ev.target;
     var src = img.src;
 
-    if (src.indexOf("Down") > 0) {
-        img.src = src.replace("Down", "Up");
-    } else if (src.indexOf("Up") > 0) {
-        img.src = src.replace("Up", "Down");
+    switch (ev.target.id) {
+    case "AudibleAlarmSwitch":
+        this.audibleAlarmSwitch.flip();
+        this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state;
+        break;
+    case "LockNormalSwitch":
+        this.lockNormalSwitch.flip();
+        this.p.sswLockNormal = this.lockNormalSwitch.state;
+        break;
+    case "StepContinuousSwitch":
+        this.stepContinuousSwitch.flip();
+        this.p.sswStepContinuous = this.stepContinuousSwitch.state;
+        break;
+    case "PulseSourceSwitch":           // non-functional, just turn it back off
+        this.pulseSourceSwitch.flip();
+        setCallback(null, this.pulseSourceSwitch, 500, this.pulseSourceSwitch.set, 0);
+        break;
+    case "WordContSwitch":              // non-functional, just turn it back off
+        this.wordContSwitch.flip();
+        setCallback(null, this.wordContSwitch, 500, this.wordContSwitch.set, 0);
+        break;
     }
+    this.updatePanel();
+    ev.preventDefault();
+    return false;
 };
 
 /**************************************/
@@ -553,7 +606,10 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.t4Lamp = new ColoredLamp(body, null, null, "T4Lamp", "whiteLamp", "whiteLit");
     this.t2Lamp = new ColoredLamp(body, null, null, "T2Lamp", "whiteLamp", "whiteLit");
     this.t1Lamp = new ColoredLamp(body, null, null, "T1Lamp", "whiteLamp", "whiteLit");
+    this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
     this.singleWordLamp = new ColoredLamp(body, null, null, "SingleWordLamp", "whiteLamp", "whiteLit");
+    this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob", 0, [-60, -30, 0, 30, 60]);
 
     this.powerLamp = new ColoredLamp(body, null, null, "PowerLamp", "greenLamp", "greenLit");
 
@@ -563,6 +619,13 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.controlLamp = new ColoredLamp(body, null, null, "ControlLamp", "orangeLamp", "orangeLit");
     this.fcLamp = new ColoredLamp(body, null, null, "FCLamp", "whiteLamp", "whiteLit");
     this.idleLamp = new ColoredLamp(body, null, null, "IdleLamp", "redLamp", "redLit");
+
+    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm);
+    this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.lockNormalSwitch.set(this.p.sswLockNormal);
+    this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.stepContinuousSwitch.set(this.p.sswStepContinuous);
 
     this.executeLamp = new ColoredLamp(body, null, null, "ExecuteLamp", "whiteLamp", "whiteLit");
     this.fetchLamp = new ColoredLamp(body, null, null, "FetchLamp", "whiteLamp", "whiteLit");
@@ -593,31 +656,23 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("ResetControlBtn").addEventListener("click", this.boundClear_Click);
     this.$$("ExecuteBtn").addEventListener("click", this.boundClear_Click);
     this.$$("FetchBtn").addEventListener("click", this.boundClear_Click);
+    this.$$("PowerOnBtn").addEventListener("click", this.boundPowerBtn_Click);
+    this.$$("PowerOffBtn").addEventListener("click", this.boundPowerBtn_Click);
 
     //this.window.addEventListener("beforeunload",
-    //        D205SupervisoryPanel.prototype.beforeUnload, false);
-    //this.$$("PowerOnBtn").addEventListener("click",
-    //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerOnBtn_Click), false);
-    //this.$$("PowerOffBtn").addEventListener("click",
-    //        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerOffBtn_Click), false);
+    //        D205SupervisoryPanel.prototype.beforeUnload);
 
-    this.$$("StartBtn").addEventListener("click", this.boundStartBtn_Click, false);
-            /***********
-            // temp to demonstrate the adder functionality...
-            D205Util.bindMethod(this, function(ev) {
-                this.p.stopOverflow = 0;
-                this.p.stopForbidden = 0;
-                this.p.A = this.p.serialAdd(this.p.A, this.p.D);
-                this.p.D = 0;
-                this.updatePanel();
-            }));
-            **********/
-    this.$$("LockNormalSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
-    this.$$("StepContinuousSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
-    this.$$("AudibleAlarmSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch), false);
+    this.$$("FrequencyKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
+        this.frequencyKnob.step();
+    }));
+
+    this.$$("PulseSourceSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("WordContSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("AudibleAlarmSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("LockNormalSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("StepContinuousSwitch").addEventListener("click", this.boundFlipSwitch);
+
+    this.$$("StartBtn").addEventListener("click", this.boundStartBtn_Click);
 
     this.$$("ARegPanel").addEventListener("click", this.boundLamp_Click);
     this.$$("BRegPanel").addEventListener("click", this.boundLamp_Click);
@@ -629,6 +684,10 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("CarryPanel").addEventListener("click", this.boundLamp_Click);
     this.$$("TWA").addEventListener("click", this.boundLamp_Click);
     this.$$("BIO").addEventListener("click", this.boundLamp_Click);
+
+    //this.p.powerUp();                   // >>>>> TEMP DURING DEBUGGING <<<<<
+    //this.powerLamp.set(1);
+    //this.updatePanel();
 };
 
 /**************************************/
@@ -638,6 +697,6 @@ D205SupervisoryPanel.prototype.shutDown = function shutDown() {
     if (this.intervalTimer) {
         clearInterval(this.intervalTimer);
     }
-    this.window.removeEventListener("beforeunload", D205SupervisoryPanel.prototype.beforeUnload, false);
+    this.window.removeEventListener("beforeunload", D205SupervisoryPanel.prototype.beforeUnload);
     this.window.close();
 };
