@@ -178,6 +178,10 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
         this.regR.lamps[43-x*4].setCaption("R-"+x);
     }
 
+    this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob", 1, [90, 115, 60]);
+    this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob", 0, [-40, -15, 15, 40]);
+    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob", 0, [290, 260, 235]);
+
     // Colored Lamps
 
     this.idleLamp = new ColoredLamp(body, null, null, "IdleLamp", "redLamp", "redLit");
@@ -208,6 +212,16 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
             D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch), false);
     this.$$("AudibleAlarmSwitch").addEventListener("click",
             D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch), false);
+
+    this.$$("OutputKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
+        this.outputKnob.step();
+    }), false);
+    this.$$("BreakpointKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
+        this.breakpointKnob.step();
+    }), false);
+    this.$$("InputKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
+        this.inputKnob.step();
+    }), false);
 };
 
 /**************************************/

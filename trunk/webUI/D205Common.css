@@ -165,6 +165,42 @@ DIV.coloredLampBottomCaption {
     font-weight:        bold;
     text-align:         center}
     
+DIV.toggleSwitchTopCaption {
+    position:           absolute;
+    width:              64px;
+    top:                -13px;
+    left:               -20px;
+    line-height:        100%;
+    font-size:          5pt;
+    font-weight:        bold;
+    text-align:         center}
+DIV.toggleSwitchBottomCaption {
+    position:           absolute;
+    width:              64px;
+    bottom:             -15px;
+    left:               -20px;
+    font-size:          5pt;
+    font-weight:        bold;
+    text-align:         center}
+    
+DIV.blackControlKnobTopCaption {
+    position:           absolute;
+    width:              64px;
+    top:                -13px;
+    left:               -20px;
+    line-height:        100%;
+    font-size:          5pt;
+    font-weight:        bold;
+    text-align:         center}
+DIV.blackControlKnobBottomCaption {
+    position:           absolute;
+    width:              64px;
+    bottom:             -15px;
+    left:               -20px;
+    font-size:          5pt;
+    font-weight:        bold;
+    text-align:         center}
+    
 DIV.panelSurface {
     position:           relative;
     background-color:   #246;
@@ -271,14 +307,11 @@ DIV.blackButton3 {
     border-radius:      50%;
     border:             2px solid #CCC}
 
-DIV.blackKnob1 {
+CANVAS.blackControlKnob1 {
     position:           absolute;
-    width:              32px;
-    height:             32px;
-    font-size:          4px;
-    background-image:   radial-gradient(circle, #000, #333);
-    border-radius:      50%;
-    border:             16px solid #CCC}
+    width:              64px;
+    height:             64px;
+    font-size:          4px}
 
 .annunciator {
     visibility:         hidden;
