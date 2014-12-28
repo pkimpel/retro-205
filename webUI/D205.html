@@ -30,13 +30,16 @@
 <script src="./D205SupervisoryPanel.js"></script>
 <script src="./D205ControlConsole.js"></script>
 
+<script src="./D205ConsoleOutput.js"></script>
+
 <script>
 window.onload = function() {
-    var p = new D205Processor();
-    //var control = new D205ControlConsole(p);
-    var supervisory = new D205SupervisoryPanel(p);
+    var devices = {};                   // Hash of I/O devices for the Processor
+    var p = new D205Processor(devices);
 
-    // Start of window.onload
+    devices["ControlConsole"] = new D205ControlConsole(p);
+    devices["SupervisoryPanel"] = new D205SupervisoryPanel(p);
+    devices["ConsoleOut"] = new D205ConsoleOutput("ConsoleOut", p);
 };
 </script>
 </head>

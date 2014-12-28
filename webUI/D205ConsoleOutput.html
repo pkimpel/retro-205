@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Datatron 205 Emulator Console Output</title>
+<!--
+/***********************************************************************
+* retro-205/emulator D205ConsoleOutput.html
+************************************************************************
+* Copyright (c) 2014, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* Electrodata/Burroughs Datatron 205 Console Output object.
+************************************************************************
+* 2014-12-26  P.Kimpel
+*   Original version, from retro-B5500 B5500SPOUnit.html.
+***********************************************************************/
+-->
+<meta name="Author" content="Paul Kimpel">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
+<link id=spoStyleSheet rel=stylesheet type="text/css" href="D205ConsoleOutput.css">
+</head>
+
+<body id=ConsoleOutput class=deviceBody>
+
+<div id=ConsoleDiv>
+    <div id=FlexowriterPlaten>
+        <pre id=Paper class=paper title="Double-click to copy all text">&nbsp;</pre>
+        <div id=EndOfPaper>&nbsp;</div>
+    </div>
+
+  <div id=FormatControlsDiv>
+    <div id=ResetLamp class=whiteLamp>&nbsp;</div>
+    <div id=ResetBtnCaption class=caption>RESET</div>
+    <div id=ResetBtn class=blackButton1>&nbsp;</div>
+
+    <img id=ZeroSuppressSwitch src="./resources/ToggleDown.png">
+    <div id=ZeroSuppressOn class=caption>ON</div>
+    <div id=ZeroSuppressOff class=caption>OFF</div>
+    <div id=ZeroSuppressCaption class=caption>ZERO SUPPRESS</div>
+    <select id=WordsKnob>
+        <option value= 1 selected>1
+        <option value= 2>2
+        <option value= 3>3
+        <option value= 4>4
+        <option value= 5>5
+        <option value= 6>6
+        <option value= 7>7
+        <option value= 8>8
+        <option value= 9>9
+        <option value=10>10
+        <option value=11>11
+        <option value=12>12
+        <option value=13>13
+        <option value=14>14
+        <option value=15>15
+        <option value=16>16
+        <option value=17>17
+        <option value=18>18
+        <option value=19>19
+        <option value=20>20
+    </select>
+    <div id=WordsKnobCaption class=caption>WORDS/LINE</div>
+
+    <img id=TabSpaceSwitch src="./resources/ToggleUp.png">
+    <div id=TabSpaceSpace class=caption>SPACE</div>
+    <div id=TabSpaceOff class=caption>OFF</div>
+    <div id=TabSpaceCaption class=caption>TAB.</div>
+    <select id=LinesKnob>
+        <option value= 1 selected>1
+        <option value= 2>2
+        <option value= 3>3
+        <option value= 4>4
+        <option value= 5>5
+        <option value= 6>6
+        <option value= 7>7
+        <option value= 8>8
+        <option value= 9>9
+        <option value=10>10
+        <option value=11>11
+        <option value=12>12
+        <option value=13>13
+        <option value=14>14
+        <option value=15>15
+        <option value=16>16
+        <option value=17>17
+        <option value=18>18
+        <option value=19>19
+        <option value=20>20
+    </select>
+    <div id=LinesKnobCaption class=caption>LINES/GROUP</div>
+
+    <div id=GroupingCountersBar>&nbsp;</div>
+    <img id=GroupingCountersSwitch src="./resources/ToggleMid.png">
+    <div id=GroupingTopLeftOn class=caption>ON</div>
+    <div id=GroupingMidLeftOff class=caption>OFF</div>
+    <div id=GroupingBottomLeftOff class=caption>OFF</div>
+    <div id=GroupingTopRightOn class=caption>ON</div>
+    <div id=GroupingMidRightOff class=caption>OFF</div>
+    <div id=GroupingBottomRightOn class=caption>ON</div>
+    <div id=GroupingCountersCaption class=caption>GROUPING&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;COUNTERS</div>
+    <select id=GroupsKnob>
+        <option value= 1 selected>1
+        <option value= 2>2
+        <option value= 3>3
+        <option value= 4>4
+        <option value= 5>5
+        <option value= 6>6
+        <option value= 7>7
+        <option value= 8>8
+        <option value= 9>9
+        <option value=10>10
+        <option value=11>11
+        <option value=12>12
+        <option value=13>13
+        <option value=14>14
+        <option value=15>15
+        <option value=16>16
+        <option value=17>17
+        <option value=18>18
+        <option value=19>19
+        <option value=20>20
+    </select>
+    <div id=GroupsKnobCaption class=caption>GROUPS/PAGE</div>
+
+    <img id=AutoStopSwitch src="./resources/ToggleDown.png">
+    <div id=AutoStopOn class=caption>ON</div>
+    <div id=AutoStopOff class=caption>OFF</div>
+    <div id=AutoStopCaption class=caption>AUTO STOP</div>
+
+    <img id=PowerSwitch src="./resources/ToggleUp.png">
+    <div id=PowerOn class=caption>ON</div>
+    <div id=PowerOff class=caption>OFF</div>
+    <div id=PowerCaption class=caption>POWER</div>
+  </div>
+
+  <img id=FlexowriterLogo src="./resources/Flexowriter-badge.png" alt="Friden Flexowriter logo">
+</div>
+
+</body>
+</html>

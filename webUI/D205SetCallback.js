@@ -25,14 +25,14 @@
 * sooner than requested, and that due to either other activity or browser
 * limitations the delay may be longer than requested, the timing behavior of
 * setCallback() may be divided into "categories." For each category, a separate
-* record is kept of the exponential-moving-average difference between the
-* requested delay and the actual delay. This difference is used to adjust the
+* record is kept of the exponential-moving-average deviation between the
+* requested delay and the actual delay. This deviation is used to adjust the
 * requested delay on subsequent calls in an attempt to smooth out the differences.
 * We are going for good average behavior here, and quick call-backs are better
 * than consistently too-long callbacks in this environment, so that I/Os can be
 * initiated and their finish detected in finer-grained time increments.
 *
-* The SetCallback mechanism defines two functions, which become members of the
+* The SetCallback mechanism defines three functions that become members of the
 * global (window) object:
 *
 *   token = setCallback(category, context, delay, fcn[, arg])
@@ -52,6 +52,18 @@
 *       Cancels a pending call-back event, if in fact it is still pending.
 *       The "token" parameter is a value returned from setCallback().
 *
+*   object = getCallbackState(optionMask)
+*
+*       This is a diagnostic function intended for use in monitoring the callback
+*       mechanism. It returns an object that, depending upon bits set in its mask
+*       parameter, contains copies of the nextTokenNr value, poolLength
+*       value, current delayDev hash, pendingCallbacks hash, and pool array:
+*           bit 0x01: delayDev hash
+*           bit 0x02: pendingCallbacks hash
+*           bit 0x04: pool array
+*       The nextTokenNr and poolLength values are always returned. If no mask
+*       is supplied, no additional items are returned.
+*
 * This implementation has been inspired by Domenic Denicola's shim for the
 * setImmediate() API at https://github.com/NobleJS/setImmediate, and
 * David Baron's setZeroTimeout() implemenmentation described in his blog
@@ -69,7 +81,7 @@
     /* Define a closure for the setCallback() mechanism */
     var delayAlpha = 0.99;              // exponential-moving-average decay factor
     var delayDev = {NUL: 0};            // hash of average delay time deviations by category
-    var minTimeout = 4;                 // minimum setTimeout() threshold, milliseconds
+    var minTimeout = 2;                 // minimum setTimeout() threshold, milliseconds
     var nextTokenNr = 1;                // next setCallback token return value
     var pendingCallbacks = {};          // hash of pending callbacks, indexed by token as a string
     var perf = global.performance;      // cached window.performance object
@@ -151,21 +163,21 @@
         thisCallback.startStamp = perf.now();
         thisCallback.category = categoryName;
         thisCallback.context = context || this;
-        thisCallback.delay = (delay < 0 ? 0 : delay);
+        thisCallback.delay = delay;
         thisCallback.fcn = fcn;
         thisCallback.arg = arg;
 
         pendingCallbacks[tokenName] = thisCallback;
 
         // Decide whether to do a time wait or just a yield.
+        delay -= (delayDev[categoryName] || 0); // bias by the current avg. deviation
         if (delay < minTimeout) {
             thisCallback.isTimeout = false;
-            global.postMessage(secretPrefix + tokenName, "*");
             thisCallback.cancelToken = 0;
+            global.postMessage(secretPrefix + tokenName, "*");
         } else {
             thisCallback.isTimeout = true;
-            thisCallback.cancelToken = global.setTimeout(activateCallback,
-                    delay - (delayDev[categoryName] || 0), token);
+            thisCallback.cancelToken = global.setTimeout(activateCallback, delay, token);
         }
 
         return token;
@@ -185,11 +197,16 @@
     }
 
     /**************************************/
-    function getCallbackState() {
-        /* Diagnostic function. Returns an object containing copies of the
-        nextCookieNr value, poolLength value, current delayDev hash,
-        pendingCallbacks hash, and pool array */
+    function getCallbackState(optionMask) {
+        /* Diagnostic function. Returns an object that, depending upon bits in
+        the option mask, contains copies of the nextTokenNr value, poolLength
+        value, current delayDev hash, pendingCallbacks hash, and pool array.
+            bit 0x01: delayDev hash
+            bit 0x02: pendingCallbacks hash
+            bit 0x04: pool array
+        If no mask is supplied, no additional items are returned */
         var e;
+        var mask = optionMask || 0;
         var state = {
             nextTokenNr: nextTokenNr,
             poolLength: poolLength,
@@ -197,14 +214,20 @@
             pendingCallbacks: {},
             pool: []};
 
-        for (e in delayDev) {
-            state.delayDev[e] = delayDev[e];
+        if (mask & 0x01) {
+            for (e in delayDev) {
+                state.delayDev[e] = delayDev[e];
+            }
         }
-        for (e in pendingCallbacks) {
-            state.pendingCallbacks[e] = pendingCallbacks[e];
+        if (mask & 0x02) {
+            for (e in pendingCallbacks) {
+                state.pendingCallbacks[e] = pendingCallbacks[e];
+            }
         }
-        for (e=0; e<poolLength; ++e) {
-            state.pool[e] = pool[e];
+        if (mask & 0x04) {
+            for (e=0; e<poolLength; ++e) {
+                state.pool[e] = pool[e];
+            }
         }
 
         return state;
@@ -226,6 +249,6 @@
         global.addEventListener("message", onMessage, false);
         attachee.setCallback = setCallback;
         attachee.clearCallback = clearCallback;
-        attachee.getCallbackState = getCallbackState
+        attachee.getCallbackState = getCallbackState;
     }
 }(typeof global === "object" && global ? global : this));

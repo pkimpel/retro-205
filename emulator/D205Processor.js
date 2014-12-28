@@ -43,6 +43,9 @@
 *       Sign digit: odd value indicates the B register is to be added to the
 *           operand address prior to execution.
 *
+* Processor timing is maintained internally in units of "word-times": 1/200-th
+* revolution of the memory drum, or about 84 µs at 3570rpm.
+*
 ************************************************************************
 * 2014-11-29  P.Kimpel
 *   Original version, from thin air and a little bit of retro-B5500 code.
@@ -50,12 +53,13 @@
 "use strict";
 
 /**************************************/
-function D205Processor() {
+function D205Processor(devices) {
     /* Constructor for the 205 Processor module object */
 
-    this.scheduler = 0;                 // Current setCallback token
-
-    this.clear();                       // Create and initialize the processor state
+    // Emulator control
+    this.poweredOn = 0;                 // System is powered on and initialized
+    this.devices = devices;             // Hash of I/O device objects
+    this.successor = null;              // Current delayed-action successor function
 
     // Memory
     this.memoryDrum = new ArrayBuffer(4080*8);                  // Drum: 4080 64-bit FP words
@@ -78,13 +82,14 @@ function D205Processor() {
     this.cswInput = 0;                  // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
     this.cswBreakpoint = 0;             // Breakpoint knob: 0=Off, 1, 2, 4
 
-    this.cctContinuous = 0;             // Console step(0) / continuous(1) toggle
-
-    // Emulator control
-    this.poweredOn = 0;                 // System is powered on and initialized
-    this.successor = null;              // Current delayed-action successor function
+    // Context-bound routines
+    this.boundExecuteComplete = D205Processor.bindMethod(this, D205Processor.prototype.executeComplete);
+    this.boundOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.outputSignDigit);
+    this.boundOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.outputNumberDigit);
+    this.boundIOFinished = D205Processor.bindMethod(this, D205Processor.prototype.ioFinished);
 
     // Processor throttling control
+    this.scheduler = 0;                 // Current setCallback token
     this.totalCycles = 0;               // Total cycles executed on this processor
     this.procStart = 0;                 // Javascript time that the processor started running, ms
     this.procTime = 0.000001;           // Total processor running time, ms
@@ -95,6 +100,8 @@ function D205Processor() {
     this.delayLastStamp = 0;            // Timestamp of last setCallback() delay, ms
     this.delayRequested = 0;            // Last requested setCallback() delay, ms
 
+    this.clear();                       // Create and initialize the processor state
+
     this.loadDefaultProgram();          // Preload a default program
 }
 
@@ -103,8 +110,11 @@ function D205Processor() {
 /* Global constants */
 D205Processor.version = "0.00";
 
-D205Processor.wordTime = 60/3570/200;   // one word time, about 84 µs at 3570rpm (=> 142.8 KHz)
-D205Processor.wordsPerMilli = 1/D205Processor.wordTime/1000;
+D205Processor.trackSize = 200;          // words per drum revolution
+D205Processor.loopSize = 20;            // words per high-speed loop
+D205Processor.wordTime = 60/3570/D205Processor.trackSize;
+                                        // one word time, about 84 µs at 3570rpm (=> 142.8 KHz)
+D205Processor.wordsPerMilli = 0.001/D205Processor.wordTime;
                                         // word times per millisecond
 D205Processor.delayAlpha = 0.999;       // decay factor for exponential weighted average delay
 D205Processor.slackAlpha = 0.9999;      // decay factor for exponential weighted average slack
@@ -165,12 +175,14 @@ D205Processor.prototype.clear = function clear() {
     // Operational toggles
     this.togTiming = 0;                 // Timing toggle: 0=execute, 1=fetch
     this.togCST = 1;                    // Computer Stop toggle (?)
+    this.cctContinuous = 0;             // Console step(0) / continuous(1) toggle
 
     // Halt/error toggles
     this.stopOverflow = 0;              // Halted due to overflow
     this.stopSector = 0;                // Halted due to sector alarm
     this.stopForbidden = 0;             // Halted due to forbidden combination
     this.stopControl = 0;               // Halted due to Stop operator (08) or overflow
+    this.stopBreakpoint = 0;            // Halted due to breakpoint
     this.stopIdle = 1;                  // Halted or in step mode
 
     // Memory control toggles
@@ -185,6 +197,12 @@ D205Processor.prototype.clear = function clear() {
     this.memL5 = 0;                     // 5000 loop access
     this.memL6 = 0;                     // 6000 loop access
     this.memL7 = 0;                     // 7000 loop access
+
+    // Kill any delayed action that may be in process
+    if (this.scheduler) {
+        clearCallback(this.scheduler);
+        this.scheduler = 0;
+    }
 };
 
 /**************************************/
@@ -283,20 +301,6 @@ D205Processor.binaryBCD = function binaryBCD(v) {
         v = (v-d)/10;
     }
     return result;
-};
-
-/**************************************/
-D205Processor.unitsOf = function unitsOf(v, base) {
-    /* Computes the integral number of (v mod base), rounded up */
-
-    return Math.floor((v+base-1)/base);
-};
-
-/**************************************/
-D205Processor.incrementsOf = function incrementsOf(v, base) {
-    /* Computes the integral number of (v mod base)*base, rounded up */
-
-    return Math.floor((v+base-1)/base)*base;
 };
 
 /***********************************************************************
@@ -413,27 +417,27 @@ D205Processor.prototype.fieldTransfer = function fieldTransfer(word, wstart, wid
 ***********************************************************************/
 
 /**************************************/
-D205Processor.prototype.unsignedAdd = function unsignedAdd(a, d) {
-    /* Performs a raw, unsigned addition of "a" and "d", producing an 11-digit
-    BCD result. On input, the low-order bit of this.CT (the carry bit) and
-    this.togCOMPL (the complement toggle) are signficant. On output, this.CT
-    is set from the result of the addition. In addition, this.ADDER will still
-    have a copy of the sign (11th) digit. Sets the Forbidden-Combination stop
-    as necessary, but does not set Overflow. */
+D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry) {
+    /* Performs an unsigned, BCD addition of "a" and "d", producing an 11-digit
+    BCD result. On input, "complement" indicates whether 9s-complement addition
+    should be performed; "initialCarry" indicates whether an initial carry of 1
+    should be applied to the adder. On output, this.togCOMPL will be set from
+    "complement" and this.CT is set from the final carry toggles of the addition.
+    Further, this.ADDER will still have a copy of the sign (11th) digit. Sets
+    the Forbidden-Combination stop if non-decimal digits are encountered, but
+    does not set the Overflow stop. */
     var ad;                             // current augend (a) digit;
     var adder;                          // local copy of adder digit
     var am = a % 0x100000000000;        // augend mantissa
-    var carry;                          // local copy of carry toggle (CT 1)
-    var compl;                          // local copy of complement toggle
-    var ct;                             // local copy of carry register (CT 1-16)
+    var carry = (initialCarry || 0) & 1;// local copy of carry toggle (CT 1)
+    var compl = complement || 0;        // local copy of complement toggle
+    var ct = carry;                     // local copy of carry register (CT 1-16)
     var dd;                             // current addend (d) digit;
     var dm = d % 0x100000000000;        // addend mantissa
     var x;                              // digit counter
 
     this.togADDER = 1;                  // for display only
     this.togDPCTR = 1;                  // for display only
-    compl = this.togCOMPL;
-    carry = ct = this.CT & 0x01;
 
     // Loop through the 11 digits including sign digits
     for (x=0; x<11; ++x) {
@@ -473,107 +477,51 @@ D205Processor.prototype.unsignedAdd = function unsignedAdd(a, d) {
     } // for x
 
     // set toggles for display purposes and return the result
+    this.togCOMPL = compl;
     this.CT = ct;
     this.ADDER = adder;
     return am;
 };
 
 /**************************************/
-D205Processor.prototype.serialAdd = function serialAdd(a, d) {
+D205Processor.prototype.signedAdd = function signedAdd(a, d) {
     /* Algebraically add the addend (d) to the augend (a), returning the result
     as the function value. All values are BCD with the sign in the 11th digit
     position. Sets the Overflow and Forbidden-Combination stops as necessary */
-    var ad;                             // current augend (a) digit;
-    var adder;                          // local copy of adder digit
     var am = a % 0x10000000000;         // augend mantissa
     var aSign = ((a - am)/0x10000000000) & 0x01;
-    var carry;                          // local copy of carry toggle (CT 1)
-    var compl;                          // local copy of complement toggle
-    var ct;                             // local copy of carry register (CT 1-16)
-    var dd;                             // current addend (d) digit;
+    var compl;                          // complement addition required
     var dm = d % 0x10000000000;         // addend mantissa
     var dSign = ((d - dm)/0x10000000000) & 0x01;
     var sign = dSign;                   // local copy of sign toggle
-    var x;                              // digit counter
 
     this.togADDER = 1;                  // for display only
     this.togDPCTR = 1;                  // for display only
-    compl = (aSign == dSign ? 0 : 1);
-    ct = carry = compl;
-
-    // Loop through the 11 digits including signs (which were set to zero in am and dm)
-    for (x=0; x<11; ++x) {
-        // shift low-order augend digit right into the adder
-        ad = am % 0x10;
-        am = (am - ad)/0x10;
-        if (ad > 9) {
-            this.stopForbidden = 1;
-            this.togCST = 1;            // halt the processor
-        }
-
-        // add the digits plus carry, complementing as necessary
-        dd = dm % 0x10;
-        if (dd > 9) {
-            this.stopForbidden = 1;
-            this.togCST = 1;            // halt the processor
-        }
-        if (compl) {
-            ad = 9-ad;
-        }
-        adder = ad + dd + carry;
-
-        // decimal-correct the adder
-        if (adder < 10) {
-            carry = 0;
-        } else {
-            adder -= 10;
-            carry = 1;
-        }
-
-        // compute the carry toggle register (just for display)
-        ct = (((ad & dd) | (ad & ct) | (dd & ct)) << 1) + carry;
-        // rotate the adder into the sign digit
-        am += adder*0x10000000000;
-        // shift the addend right to the next digit
-        dm = (dm - dd)/0x10;
-    } // for x
+    compl = (aSign^dSign);
+    am = this.bcdAdd(am, dm, compl, compl);
 
     // Now examine the resulting sign (still in the adder) to see if we have overflow
     // or need to recomplement the result
-    if (adder == 0) {
+    switch (this.ADDER) {
+    case 0:
         am += sign*0x10000000000;
-    } else if (adder == 1) {
+        break;
+    case 1:
         am += (sign-1)*0x10000000000;
         this.stopOverflow = 1;
-    } else { // sign is 9
+        break;
+    default: // sign is 9
         // reverse the sign toggle and recomplement the result (virtually adding to the zeroed dm)
         sign = 1-sign;
-        compl = carry = 1;
-        for (x=0; x<11; ++x) {
-            ad = am % 0x10;
-            am = (am - ad)/0x10;
-            ad = 9-ad;
-            adder = ad + carry;
-            if (adder < 10) {
-                carry = 0;
-            } else {
-                adder -= 10;
-                carry = 1;
-            }
-            ct = ((ad & ct) << 1) + carry;
-            am += adder*0x10000000000;
-        } // for x
-
+        am = this.bcdAdd(am, 0, 1, 1);
         // after recomplementing, set the correct sign (adder still contains sign of result)
-        am += (sign-adder)*0x10000000000;
+        am += (sign - this.ADDER)*0x10000000000;
         this.procTime += 2;
-    }
+        break;
+    } // switch this.ADDER
 
     // set toggles for display purposes and return the result
-    this.togCOMPL = compl;
     this.togSIGN = sign;
-    this.CT = ct;
-    this.ADDER = adder;
     return am;
 };
 
@@ -697,8 +645,7 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
         rc = rd = rm % 0x10;
         count += rc;
         while (rc > 0) {
-            this.CT = 0;
-            am = this.unsignedAdd(am, dm);
+            am = this.bcdAdd(am, dm, 0, 0);
             --rc;
         } // while rd
 
@@ -711,8 +658,7 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
         ++count;
         if (rm >= 0x5000000000) {
         } else {
-            this.CT = 0;
-            am = this.unsignedAdd(am, 0x01);
+            am = this.bcdAdd(am, 0x01, 0, 0);
         }
         this.R = this.D = 0;
     }
@@ -763,8 +709,7 @@ D205Processor.prototype.integerDivide = function integerDivide() {
         this.togCOMPL = 1;
         rd = 0;
         while (am >= dm && rd < 10) {
-            this.CT |= 0x01;
-            am = this.unsignedAdd(dm, am);
+            am = this.bcdAdd(dm, am, 1, 1);
             ++rd;
             ++count;
         }
@@ -816,57 +761,53 @@ D205Processor.prototype.readMemoryFinish = function readMemoryFinish() {
 /**************************************/
 D205Processor.prototype.readMemory = function readMemory(successor) {
     /* Initiates a read of the memory drum at the BCD address specified by
-    C3-C6. After an appropriate delay for drum latency, the word in placed in
-    D and the successor function is called. Sets the memory access toggles as
-    necessary.
-    Note: the D register SHOULD be loaded at the END of the memory access,
-    but we do it here, so that the word will show on the panels during the
-    delay for drum latency */
-    var addr;                           // binary address, mod 8000
-    var destTime;                       // drum time at target address
-    var drumTime = performance.now()*D205Processor.wordsPerMilli; // [word-times]
-    var drumAddr = Math.floor(drumTime);// where the drum should be in real item
+    C3-C6. The memory word is placed in the D register, and an appropriate
+    delay for drum latency, the successor function is called. Sets the memory
+    access toggles as necessary.
+    Note: the D register SHOULD be loaded after the latency delay, but we do
+    it here so that the word will show on the panels during the drum latency */
+    var addr;                           // binary target address, mod 8000
+    var drumTime;                       // current drum position [word-times]
     var latency;                        // drum latency in word-times
-    var trackSize;                      // words/track in target area of drum
+    var trackSize;                      // words/track in target band of drum
 
     addr = D205Processor.bcdBinary(this.CADDR % 0x8000);
     this.memACCESS = 1;
     if (addr < 4000) {
-        trackSize = 200;
+        trackSize = D205Processor.trackSize;
         this.memMAIN = this.memLM = 1;
         this.D = this.MM[addr];
     } else {
-        trackSize = 20;
+        trackSize = D205Processor.loopSize;
         if (addr < 5000) {
             this.memL4 = 1;
-            this.D = this.L4[addr%20];
+            this.D = this.L4[addr%trackSize];
         } else if (addr < 6000) {
             this.memL5 = 1;
-            this.D = this.L5[addr%20];
+            this.D = this.L5[addr%trackSize];
         } else if (addr < 7000) {
             this.memL6 = 1;
-            this.D = this.L6[addr%20];
+            this.D = this.L6[addr%trackSize];
         } else {
             this.memL7 = 1;
-            this.D = this.L7[addr%20];
+            this.D = this.L7[addr%trackSize];
         }
     }
 
-    latency = (addr%trackSize - drumAddr%trackSize + trackSize)%trackSize;
-    destTime = latency+drumTime+1;
-    if (this.procTime <= destTime) {
-        this.procTime = destTime;       // sync emulated time to the read completion
-    } else {
-        // The emulation is running faster than real time, so spin the drum the
-        // necessary number of additional track times until real time catches up.
-        latency += D205Processor.incrementsOf(this.procTime-destTime, trackSize);
-        this.procTime = latency+drumTime+1;
-    }
+    drumTime = performance.now()*D205Processor.wordsPerMilli;
+    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
+                        D205Processor.delayAlpha*this.procSlackAvg;
+
+    latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
+    this.procTime += latency+1;         // emulated time at end of drum access
+
+    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
+                         D205Processor.delayAlpha*this.delayDeltaAvg;
 
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
-            latency/D205Processor.wordsPerMilli, this.readMemoryFinish);
+            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.readMemoryFinish);
 };
 
 /**************************************/
@@ -891,54 +832,51 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     After an appropriate delay for drum latency, the word in A is stored on the drum
     and the successor function is called. Sets the memory access toggles as necessary.
     If clearA is truthy, the A register is cleared at the completion of the write.
-    Note: we actually store the word before the latency delay, but that is just an
-    artifact of this implementation */
-    var addr;                           // binary address, mod 8000
-    var destTime;                       // drum time at target address
-    var drumTime = performance.now()*D205Processor.wordsPerMilli; // [word-times]
-    var drumAddr = Math.floor(drumTime);// where the drum should be in real item
+    Note: the word should be stored after the latency delay, but we do it here
+    so that the word will show in the panels during the drum latency */
+    var addr;                           // binary target address, mod 8000
+    var drumTime;                       // current drum position [word-times]
     var latency;                        // drum latency in word-times
-    var trackSize;                      // words/track in target area of drum
+    var trackSize;                      // words/track in target band of drum
 
     addr = D205Processor.bcdBinary(this.CADDR % 0x8000);
     this.memACCESS = 1;
     if (addr < 4000) {
-        trackSize = 200;
+        trackSize = D205Processor.trackSize;
         this.memMAIN = this.memLM = this.memRWM = 1;
         this.MM[addr] = this.A;
     } else {
-        trackSize = 20;
+        trackSize = D205Processor.loopSize;
         this.memRWL = 1;
         if (addr < 5000) {
             this.memL4 = 1;
-            this.L4[addr%20] = this.A;
+            this.L4[addr%trackSize] = this.A;
         } else if (addr < 6000) {
             this.memL5 = 1;
-            this.L5[addr%20] = this.A;
+            this.L5[addr%trackSize] = this.A;
         } else if (addr < 7000) {
             this.memL6 = 1;
-            this.L6[addr%20] = this.A;
+            this.L6[addr%trackSize] = this.A;
         } else {
             this.memL7 = 1;
-            this.L7[addr%20] = this.A;
+            this.L7[addr%trackSize] = this.A;
         }
     }
 
-    latency = (addr%trackSize - drumAddr%trackSize + trackSize)%trackSize;
-    destTime = latency+drumTime+1;
-    if (this.procTime <= destTime) {
-        this.procTime = destTime;       // sync emulated time to the write completion
-    } else {
-        // The emulation is running faster than real time, so spin the drum the
-        // necessary number of additional track times until real time catches up.
-        latency += D205Processor.incrementsOf(this.procTime-destTime, trackSize);
-        this.procTime = latency+drumTime+1;
-    }
+    drumTime = performance.now()*D205Processor.wordsPerMilli;
+    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
+                        D205Processor.delayAlpha*this.procSlackAvg;
+
+    latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
+    this.procTime += latency+1;         // emulated time at end of drum access
+
+    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
+                         D205Processor.delayAlpha*this.delayDeltaAvg;
 
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
-            latency/D205Processor.wordsPerMilli, this.writeMemoryFinish, clearA);
+            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, clearA);
 };
 
 /**************************************/
@@ -951,9 +889,7 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
     but we do it here, so that the updated registers will show on the panels
     during the delay for drum latency */
     var addr;                           // main binary address, mod 4000
-    var destTime;                       // drum time at target address
-    var drumTime = performance.now()*D205Processor.wordsPerMilli; // [word-times]
-    var drumAddr = Math.floor(drumTime);// where the drum should be in real item
+    var drumTime;                       // current drum position [word-times]
     var latency;                        // drum latency in word-times
     var loopMem;                        // reference to the loop memory array
     var x;                              // iteration control
@@ -980,31 +916,31 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
         break;
     } // switch loop
 
-    latency = (addr%200 - drumAddr%200 + 200)%200;
-    destTime = latency+drumTime+21;
-    if (this.procTime <= destTime) {
-        this.procTime = destTime;       // sync emulated time to the read completion
-    } else {
-        // The emulation is running faster than real time, so spin the drum the
-        // necessary number of additional track times until real time catches up.
-        latency += D205Processor.incrementsOf(this.procTime-destTime, 200);
-        this.procTime = latency+drumTime+21;
-    }
-
-    for (x=0; x<20; ++x) {
-        this.MM[addr] = loopMem[addr%20];
-        if ((++addr)%200 == 0) {
+    for (x=0; x<D205Processor.loopSize; ++x) {
+        this.MM[addr] = loopMem[addr%D205Processor.loopSize];
+        if ((++addr)%D205Processor.trackSize == 0) {
             addr %= 4000;           // handle main memory address wraparound
             // bump the track counter in the C register (for display only)
-            this.CADDR = this.serialAdd(this.CADDR, 0x200)%0x10000;
+            this.CADDR = this.bcdAdd(this.CADDR, 0x200)%0x10000;
             this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
         }
     } // for x
 
+    drumTime = performance.now()*D205Processor.wordsPerMilli;
+    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
+                        D205Processor.delayAlpha*this.procSlackAvg;
+
+    latency = (addr%D205Processor.trackSize - this.procTime%D205Processor.trackSize +
+               D205Processor.trackSize)%D205Processor.trackSize;
+    this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
+
+    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
+                         D205Processor.delayAlpha*this.delayDeltaAvg;
+
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
-            latency/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
+            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
 };
 
 /**************************************/
@@ -1017,9 +953,7 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     but we do it here, so that the updated registers will show on the panels
     during the delay for drum latency */
     var addr;                           // main binary address, mod 4000
-    var destTime;                       // drum time at target address
-    var drumTime = performance.now()*D205Processor.wordsPerMilli; // [word-times]
-    var drumAddr = Math.floor(drumTime);// where the drum should be in real item
+    var drumTime;                       // current drum position [word-times]
     var latency;                        // drum latency in word-times
     var loopMem;                        // reference to the loop memory array
     var x;                              // iteration control
@@ -1046,32 +980,93 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
         break;
     } // switch loop
 
-    latency = (addr%200 - drumAddr%200 + 200)%200;
-    destTime = latency+drumTime+21;
-    if (this.procTime <= destTime) {
-        this.procTime = destTime;       // sync emulated time to the read completion
-    } else {
-        // The emulation is running faster than real time, so spin the drum the
-        // necessary number of additional track times until real time catches up.
-        latency += D205Processor.incrementsOf(this.procTime-destTime, 200);
-        this.procTime = latency+drumTime+21;
-    }
-
-    for (x=0; x<20; ++x) {
-        loopMem[addr%20] = this.MM[addr];
-        if ((++addr)%200 == 0) {
+    for (x=0; x<D205Processor.loopSize; ++x) {
+        loopMem[addr%D205Processor.loopSize] = this.MM[addr];
+        if ((++addr)%D205Processor.trackSize == 0) {
             addr %= 4000;           // handle main memory address wraparound
             // bump the track counter in the C register (for display only)
-            this.CADDR = this.serialAdd(this.CADDR, 0x200)%0x10000;
+            this.CADDR = this.bcdAdd(this.CADDR, 0x200)%0x10000;
             this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
         }
     } // for x
 
+    drumTime = performance.now()*D205Processor.wordsPerMilli;
+    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
+                        D205Processor.delayAlpha*this.procSlackAvg;
+
+    latency = (addr%D205Processor.trackSize - this.procTime%D205Processor.trackSize +
+               D205Processor.trackSize)%D205Processor.trackSize;
+    this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
+
+    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
+                         D205Processor.delayAlpha*this.delayDeltaAvg;
+
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
-            latency/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
+            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
 };
+
+/***********************************************************************
+*   I/O Module                                                         *
+***********************************************************************/
+
+/**************************************/
+D205Processor.prototype.outputSignDigit = function outputSignDigit() {
+    /* Outputs the sign digit for a PTW (03) command and sets up to output the
+    first number digit. If the Shift Counter is already at 19, terminates the
+    output operation */
+    var d;
+    var w = this.A % 0x10000000000;
+
+    d = (this.A - w)/0x10000000000;     // get the digit
+    this.A = w*0x10 + d;                // rotate A+sign left one
+    if (this.SHIFT == 0x19) {           // if the shift counter is already 19, we're done
+        this.togOK = this.togPO1 = 0;   // for display only
+        this.ioFinished();
+    } else {
+        this.togOK = 1-this.togOK;      // for dislay only
+        this.togPO1 = 1-this.togPO1;    // for display only
+        this.togPO2 = 1;                // for display only
+        this.togDELAY = 1-this.togDELAY;// for display only
+        this.devices["ConsoleOut"].setSignDigit(this.cswOutput, d, this.boundOutputNumberDigit);
+    }
+};
+
+/**************************************/
+D205Processor.prototype.outputNumberDigit = function outputNumberDigit() {
+    /* Outputs a numeric digit for a PTW (03) command and sets up to output the
+    next number digit. If the Shift Counter is already at 19, terminates the
+    output operation and sends a Finish signal */
+    var d;
+    var w = this.A % 0x10000000000;
+
+    this.togOK = 1-this.togOK;          // for dislay only
+    this.togPO1 = 1-this.togPO1;        // for display only
+    this.togPO2 = 1-this.togPO2;        // for display only
+    this.togDELAY = 1-this.togDELAY;    // for display only
+    if (this.SHIFT == 0x19) {           // if the shift counter is already 19, we're done
+        d = (this.CADDR - this.CADDR%0x1000)/0x1000;
+        this.devices["ConsoleOut"].setFinish(this.cswOutput, d, this.boundIOFinished);
+    } else {
+        d = (this.A - w)/0x10000000000;         // get the digit
+        this.A = w*0x10 + d;                    // rotate A+sign left one
+        this.SHIFT = this.bcdAdd(this.SHIFT, 1);
+        this.devices["ConsoleOut"].setNumberDigit(this.cswOutput, d, this.boundOutputNumberDigit);
+    }
+};
+
+/**************************************/
+D205Processor.prototype.ioFinished = function ioFinished() {
+    /* Handles the final cycle of an I/O operation and restores this.procTime */
+
+    this.togOK = 0;                     // for display only
+    this.togPO1 = this.togPO2 = 0;      // for display only
+    this.togDELAY = 0;
+    this.procTime += performance.now()*D205Processor.wordsPerMilli;
+    this.executeComplete();
+};
+
 
 /***********************************************************************
 *   Fetch Module                                                       *
@@ -1095,14 +1090,14 @@ D205Processor.prototype.transferDtoC = function transferDtoC() {
             1 - (((this.D - this.D%0x10000000000)/0x10000000000) & 0x01);
 
     addr = (addr-ctl)/0x10000;                          // extract the actual address digits
-    this.CCONTROL = this.serialAdd(addr, 0x0001) % 0x10000; // bump the control address modulo 10000
+    this.CCONTROL = this.bcdAdd(addr, 0x0001) % 0x10000;// bump the control address modulo 10000
 
     addr = this.D % 0x1000000;                          // get the opcode and address digits from D
     this.D = (this.D - addr)/0x1000000;                 // shift D right six digits
     if (this.togCLEAR) {                                // check for B modification
-        addr = this.serialAdd(addr, 0);                 // if no B mod, add 0 (this is actually the way it worked)
+        addr = this.bcdAdd(addr, 0);                    // if no B mod, add 0 (this is actually the way it worked)
     } else {
-        addr = this.serialAdd(addr, this.B) % 0x1000000;// otherwise, add B to the operand address
+        addr = this.bcdAdd(addr, this.B) % 0x1000000;   // otherwise, add B to the operand address
     }
 
     this.SHIFT = 0x19;                                  // for display only
@@ -1124,7 +1119,6 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
     }
 
     this.transferDtoC();
-    this.clearControlToggles();
     this.procTime += 4;                 // minimum alpha for all orders is 4
     if (this.cswSkip && (breakDigit & 0x08)) {
         if (!this.sswLockNormal) {
@@ -1136,7 +1130,7 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
     }
 
     // If we're not halted and either console has started in Continuous mode, continue
-    if (this.togCST || !(this.sswStepContinuous || this.cctStepContinuous)) {
+    if (this.togCST || !(this.sswStepContinuous || this.cctContinuous)) {
         this.stop();
     } else if (this.togTiming) {
         this.fetch();                   // once more with feeling
@@ -1177,7 +1171,7 @@ D205Processor.prototype.executeComplete = function executeComplete() {
     if there is a stop or alarm condition, otherwise determines whether to
     do a Fetch or Execute cycle next. We should clear the control toggles here,
     but leave them so they'll display during the fetch latency delay. They
-    will be cleared in fetchComplete() */
+    will be cleared in the next call to execute() */
 
     if (this.togBKPT) {
         this.togBKPT = 0;
@@ -1187,7 +1181,7 @@ D205Processor.prototype.executeComplete = function executeComplete() {
 
     if (this.togCST) {
         this.stop();
-    } else if (!(this.sswStepContinuous || this.cctStepContinuous)) {
+    } else if (!(this.sswStepContinuous || this.cctContinuous)) {
         this.stop();
     } else if (this.togTiming) {
         this.fetch();                   // once more with feeling
@@ -1221,25 +1215,25 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
 
     case 0x64:          //---------------- CAD  Clear and Add A
         this.procTime += 3;
-        this.A = this.serialAdd(0, this.D);
+        this.A = this.signedAdd(0, this.D);
         this.D = 0;
         break;
 
     case 0x65:          //---------------- CSU  Clear and Subtract A
         this.procTime += 3;
-        this.A = this.serialAdd(0, this.D + 0x10000000000); // any sign overflow will be ignored
+        this.A = this.signedAdd(0, this.D + 0x10000000000); // any sign overflow will be ignored
         this.D = 0;
         break;
 
     case 0x66:          //---------------- CADA Clear and Add Absolute
         this.procTime += 3;
-        this.A = this.serialAdd(0, this.D % 0x10000000000);
+        this.A = this.signedAdd(0, this.D % 0x10000000000);
         this.D = 0;
         break;
 
     case 0x67:          //---------------- CSUA Clear and Subtract Absolute
         this.procTime += 3;
-        this.A = this.serialAdd(0, this.D % 0x10000000000 + 0x10000000000);
+        this.A = this.signedAdd(0, this.D % 0x10000000000 + 0x10000000000);
         this.D = 0;
         break;
 
@@ -1260,7 +1254,7 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         this.togADDAB = 1;                              // for display only
         this.togCLEAR = 1;                              // for display only
         this.DELTABDIVT = 1;                            // for display only
-        this.B = this.serialAdd(0, this.D % 0x10000);
+        this.B = this.bcdAdd(0, this.D % 0x10000);
         this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // for display only
         this.D = 0;
         break;
@@ -1274,25 +1268,25 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
 
     case 0x74:          //---------------- AD   Add
         this.procTime += 3;
-        this.A = this.serialAdd(this.A, this.D);
+        this.A = this.signedAdd(this.A, this.D);
         this.D = 0;
         break;
 
     case 0x75:          //---------------- SU   Subtract
         this.procTime += 3;
-        this.A = this.serialAdd(this.A, this.D + 0x10000000000); // any sign overflow will be ignored
+        this.A = this.signedAdd(this.A, this.D + 0x10000000000); // any sign overflow will be ignored
         this.D = 0;
         break;
 
     case 0x76:          //---------------- ADA  Add Absolute
         this.procTime += 3;
-        this.A = this.serialAdd(this.A, this.D % 0x10000000000);
+        this.A = this.signedAdd(this.A, this.D % 0x10000000000);
         this.D = 0;
         break;
 
     case 0x77:          //---------------- SUA  Subtract Absolute
         this.procTime += 3;
-        this.A = this.serialAdd(this.A, this.D % 0x10000000000 + 0x10000000000);
+        this.A = this.signedAdd(this.A, this.D % 0x10000000000 + 0x10000000000);
         this.D = 0;
         break;
 
@@ -1361,9 +1355,11 @@ D205Processor.prototype.execute = function execute() {
         this.executeComplete();
     } else if (this.COP >= 0x60) {      // if operator requires an operand
         ++this.procTime;                        // minimum alpha for Class II is 5 word-times
+        this.clearControlToggles();
         this.readMemory(this.executeWithOperand);
     } else {                            // otherwise execute a non-operand instruction
-        this.procTime += 3;                     // minimum Class I execution word-times
+        this.procTime += 3;                     // minimum Class I execution is 3 word-times
+        this.clearControlToggles();
         switch (this.COP) {
         case 0x00:      //---------------- PTR  Paper-tape/keyboard read
             this.executeComplete();
@@ -1390,13 +1386,29 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x03:      //---------------- PTW  Paper-tape/Flexowriter write
-            this.executeComplete();
+            if (this.cswPOSuppress) {
+                this.executeComplete();                 // ignore printout commands
+            } else if (this.cswOutput == 0) {
+                this.togCST = 1;                        // halt if Output switch is OFF
+                this.executeComplete();
+            } else {
+                this.togPO1 = 1;                        // for display only
+                this.SHIFT = this.signedAdd(0x19, this.CADDR%0x20 + 0x10000000000)%0x20; // 19-n
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                d = (this.CADDR%0x1000 - this.CADDR%0x100)/0x100;
+                if (d) {                                // if C8 is not zero, output it first as the format digit
+                    this.togOK = this.togDELAY = 1;     // for display only
+                    this.devices["ConsoleOut"].setFormat(this.cswOutput, d, this.boundOutputSignDigit);
+                } else {
+                    this.outputSignDigit();
+                }
+            }
             break;
 
         case 0x04:      //---------------- CNZ  Change on Non-Zero
             this.procTime += 3;
             this.togZCT = 1;                            // for display only
-            this.A = this.serialAdd(this.A, 0);         // clears the sign digit, among other things
+            this.A = this.signedAdd(this.A, 0);         // clears the sign digit, among other things
             if (this.A) {
                 this.togTiming = 0;                     // stay in Execute
                 this.stopOverflow = 1;                  // set overflow
@@ -1417,7 +1429,20 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x07:      //---------------- PTWF Paper-tape Write Format
-            this.executeComplete();
+            if (this.cswPOSuppress) {
+                this.executeComplete();                 // ignore printout commands
+            } else if (this.cswOutput == 0) {
+                this.togCST = 1;                        // halt if Output switch is OFF
+                this.executeComplete();
+            } else {
+                d = (this.CADDR%0x1000 - this.CADDR%0x100)/0x100;
+                if (d) {                                // if C8 is not zero, output it as the format digit
+                    this.togOK = this.togDELAY = 1;
+                    this.devices["ConsoleOut"].setFormat(this.cswOutput, d, this.boundIOFinished);
+                } else {
+                    this.ioFinished();
+                }
+            }
             break;
 
         // 0x08:        //---------------- STOP [was handled above]
@@ -1434,7 +1459,7 @@ D205Processor.prototype.execute = function execute() {
             this.togADDAB = 1;                          // for display only
             this.togDELTABDIV = 1;                      // for display only
             this.SHIFT = 0x15;                          // for display only
-            this.A = this.serialAdd(0, this.B);
+            this.A = this.bcdAdd(0, this.B);
             this.executeComplete();
             break;
 
@@ -1510,15 +1535,15 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x16:      //---------------- ADSC Add Special Counter to A
             this.procTime += 3;
-            this.A = this.serialAdd(this.A, this.SPECIAL);
+            this.A = this.signedAdd(this.A, this.SPECIAL);
             this.D = 0;
             this.executeComplete();
             break;
 
-        case 0x17:      //---------------- SUSC Subtrace Special Counter from A
+        case 0x17:      //---------------- SUSC Subtract Special Counter from A
             this.procTime += 3;
             this.D = this.SPECIAL + 0x10000000000;      // set to negative
-            this.A = this.serialAdd(this.A, this.D);
+            this.A = this.signedAdd(this.A, this.D);
             this.D = 0;
             this.executeComplete();
             break;
@@ -1553,7 +1578,7 @@ D205Processor.prototype.execute = function execute() {
             if (this.B == 0) {
                 this.B = 0x9999;
             } else {
-                this.B = this.serialAdd(this.B, 0x9999) % 0x10000; // add -1
+                this.B = this.bcdAdd(this.B, 0x9999) % 0x10000; // add -1
                 this.togTiming = 0;                     // stay in Execute
                 this.stopOverflow = 1;                  // set overflow
                 this.COP = 0x28;                        // make into a CC
@@ -1566,7 +1591,7 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x23:      //---------------- RO   Round A, Clear R
             this.procTime += 3;
-            w = this.serialAdd(this.A%0x10000000000, (this.R < 0x5000000000 ? 0 : 1));
+            w = this.signedAdd(this.A%0x10000000000, (this.R < 0x5000000000 ? 0 : 1));
             this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // display only
             this.A += w - this.A%0x10000000000;
             this.R = this.D = 0;
@@ -1637,7 +1662,7 @@ D205Processor.prototype.execute = function execute() {
             this.togDELTABDIV = 1;                      // for display only
             this.togZCT = 1;                            // for display only
             this.SHIFT = 0x15;                          // for display only
-            this.B = this.serialAdd(this.B, 1) % 0x10000; // discard any overflow
+            this.B = this.bcdAdd(this.B, 1) % 0x10000;  // discard any overflow in B
             this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // display only
             this.D = 0;
             this.executeComplete();
@@ -1759,23 +1784,25 @@ D205Processor.prototype.start = function start() {
     /* Initiates the processor according to the current Timing Toggle state */
     var drumTime = performance.now()*D205Processor.wordsPerMilli;
 
-    this.procStart = drumTime;
-    this.procTime = drumTime;
-    this.delayLastStamp = drumTime;
-    this.delayRequested = 0;
+    if (this.togCST) {
+        this.procStart = drumTime;
+        this.procTime = drumTime;
+        this.delayLastStamp = drumTime;
+        this.delayRequested = 0;
 
-    this.stopIdle = 0;
-    this.stopControl = 0;
-    this.stopForbidden = 0;
-    this.stopBreakpoint = 0;
-    // stopOverflow is not reset by the START button
+        this.stopIdle = 0;
+        this.stopControl = 0;
+        this.stopForbidden = 0;
+        this.stopBreakpoint = 0;
+        // stopOverflow is not reset by the START button
 
-    this.togCST = 0;
-    if (this.togTiming && !this.sswLockNormal) {
-        this.fetch();
-    } else {
-        this.togTiming = 0;
-        this.execute();
+        this.togCST = 0;
+        if (this.togTiming && !this.sswLockNormal) {
+            this.fetch();
+        } else {
+            this.togTiming = 0;
+            this.execute();
+        }
     }
 };
 
@@ -1784,6 +1811,7 @@ D205Processor.prototype.stop = function stop() {
     /* Stops running the processor on the Javascript thread */
 
     this.togCST = 1;
+    this.cctContinuous = 0;
     this.stopIdle = 1;                  // turn on the IDLE lamp
     if (this.scheduler) {
         clearCallback(this.scheduler);
@@ -1816,7 +1844,9 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     /* Loads a default program to the memory drum and constructs a CU at
     location 0 to branch to it */
 
-    this.MM[   0] = 0x0000200100;       // branch to start of program @0100
+    this.MM[   0] = 0x0000740002;       // ADD     2 -- start of counter speed test
+    this.MM[   1] = 0x0000200000;       // CU      0
+    this.MM[   2] = 0x0000000001;       // LIT     1
 
     this.MM[  10] = 0x0000360200        // BT6   200
     this.MM[  11] = 0x0000370220        // BT7   220
@@ -1842,9 +1872,9 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 116] = 0x120138;           // ST    138
     this.MM[ 117] = 0x200102;           // CU    102
     this.MM[ 118] = 0x640139;           // CAD   139
-    this.MM[ 119] = 0x080139;           // HALT  139  was 0x030510 PTW 0510
+    this.MM[ 119] = 0x030505;           // PTW   0510
     this.MM[ 120] = 0x640137;           // CAD   137
-    this.MM[ 121] = 0x080137;           // HALT  137  was 0x030010 PTW 0010
+    this.MM[ 121] = 0x030610;           // PTW   0010
     this.MM[ 122] = 0x640139;           // CAD   139
     this.MM[ 123] = 0x740133;           // ADD   133
     this.MM[ 124] = 0x120139;           // ST    139
@@ -1888,9 +1918,9 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 219] = 0x0000206982;       // CU   6982
     // Block for the 7000 loop
     this.MM[ 220] = 0x0000647039;       // CAD  7039
-    this.MM[ 221] = 0x0008087039;       // HALT 7039  was 0x0000030510 PTW 0510
+    this.MM[ 221] = 0x0000030505;       // PTW  0510
     this.MM[ 222] = 0x0000647037;       // CAD  7037
-    this.MM[ 223] = 0x0008087037;       // HALT 7037  was 0x0000030010 PTW 0010
+    this.MM[ 223] = 0x0000030610;       // PTW  0010
     this.MM[ 224] = 0x0000647039;       // CAD  7039
     this.MM[ 225] = 0x0000747033;       // ADD  7033
     this.MM[ 226] = 0x0000127039;       // ST   7039
@@ -1907,4 +1937,9 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 237] = 0;
     this.MM[ 237] = 0;
     this.MM[ 239] = 0x0000200000;
+
+    // Counter speed test in 4000 loop
+    this.L4[   0] = 0x0000744002;       // ADD  4002 -- start of counter speed test
+    this.L4[   1] = 0x0000204000;       // CU   4000
+    this.L4[   2] = 0x0000000001;       // LIT     1
 };

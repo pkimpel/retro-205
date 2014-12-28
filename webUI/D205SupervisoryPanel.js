@@ -42,7 +42,7 @@ function D205SupervisoryPanel(p) {
 }
 
 /**************************************/
-D205SupervisoryPanel.displayRefreshPeriod = 33;   // milliseconds
+D205SupervisoryPanel.displayRefreshPeriod = 50;   // milliseconds
 D205SupervisoryPanel.offSwitch = "./resources/ToggleDown.png";
 D205SupervisoryPanel.onSwitch = "./resources/ToggleUp.png";
 
@@ -53,12 +53,69 @@ D205SupervisoryPanel.prototype.$$ = function $$(e) {
 
 /**************************************/
 D205SupervisoryPanel.prototype.beforeUnload = function beforeUnload(ev) {
-    var msg = "Closing this window will make the device unusable.\n" +
+    var msg = "Closing this window will make the panel unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
 
     ev.preventDefault();
     ev.returnValue = msg;
     return msg;
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.displayCallbackState = function displayCallbackState() {
+    /* Builds a table of outstanding callback state */
+    var cb;
+    var cbs;
+    var e;
+    var body = document.createElement("tbody");
+    var oldBody = this.$$("CallbackBody");
+    var row;
+    var state = getCallbackState(0x03);
+    var token;
+
+    cbs = state.delayDev;
+    for (token in cbs) {
+        row = document.createElement("tr");
+
+        e = document.createElement("td");
+        e.appendChild(document.createTextNode(token));
+        row.appendChild(e);
+
+        e = document.createElement("td");
+        e.appendChild(document.createTextNode((cbs[token]||0).toFixed(2)));
+        row.appendChild(e);
+
+        e = document.createElement("td");
+        e.colSpan = 2;
+        row.appendChild(e);
+        body.appendChild(row);
+    }
+
+    cbs = state.pendingCallbacks;
+    for (token in cbs) {
+        cb = cbs[token];
+        row = document.createElement("tr");
+
+        e = document.createElement("td");
+        e.appendChild(document.createTextNode(token.toString()));
+        row.appendChild(e);
+
+        e = document.createElement("td");
+        e.appendChild(document.createTextNode(cb.delay.toFixed(2)));
+        row.appendChild(e);
+
+        e = document.createElement("td");
+        e.appendChild(document.createTextNode((cb.context && cb.context.mnemonic) || "??"));
+        row.appendChild(e);
+
+        e = document.createElement("td");
+        e.appendChild(document.createTextNode((cb.args ? cb.args.length : 0).toString()));
+        row.appendChild(e);
+        body.appendChild(row);
+    }
+
+    body.id = oldBody.id;
+    oldBody.parentNode.replaceChild(body, oldBody);
 };
 
 /**************************************/
@@ -122,10 +179,10 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.sectorLamp.set(p.stopSector);
     this.fcLamp.set(p.stopForbidden);
     this.controlLamp.set(p.stopControl);
-    this.idleLamp.set(p.stopIdle && p.poweredOn);
+    this.idleLamp.set(p.poweredOn && p.stopIdle);
 
-    this.executeLamp.set(1-p.togTiming && p.poweredOn);
-    this.fetchLamp.set(p.togTiming && p.poweredOn);
+    this.executeLamp.set(p.poweredOn && 1-p.togTiming);
+    this.fetchLamp.set(p.poweredOn && p.togTiming);
 
     this.mainLamp.set(p.memMAIN);
     this.rwmLamp.set(p.memRWM);
@@ -139,12 +196,11 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.l6Lamp.set(p.memL6);
     this.l7Lamp.set(p.memL7);
 
-    if (this.p.togCST) {                // processor has stopped, so...
-        if (this.intervalTimer) {       // if the display auto-update is running
-            clearInterval(this.intervalTimer); // kill it
-            this.intervalTimer = 0;
-        }
-    }
+    /********** DEBUG **********
+    this.$$("ProcDelta").value = p.procSlackAvg.toFixed(2);
+    this.$$("LastLatency").value = p.delayDeltaAvg.toFixed(2);
+    this.displayCallbackState();
+    ***************************/
 };
 
 /**************************************/
@@ -317,6 +373,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
     }
 
     ev.preventDefault();
+    ev.stopPropagation();
     return false;
 };
 
@@ -360,7 +417,7 @@ D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
             this.p.togTiming = 0;
             break;
         case "FetchBtn":
-            this.p.togTiming = 1;
+            this.p.togTiming = 1 - this.p.sswLockNormal;
             break;
         }
         this.updatePanel();
@@ -378,12 +435,19 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
         if (!this.p.poweredOn) {
             this.p.powerUp();
             this.powerLamp.set(1);
+            if (!this.intervalTimer) {
+                this.intervalTimer = setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+            }
         }
         break;
     case "PowerOffBtn":
         if (this.p.poweredOn) {
             this.p.powerDown();
             this.powerLamp.set(0);
+            if (this.intervalTimer) {               // if the display auto-update is running
+                clearInterval(this.intervalTimer);  // kill it
+                this.intervalTimer = 0;
+            }
         }
         break;
     }
@@ -399,9 +463,6 @@ D205SupervisoryPanel.prototype.startBtn_Click = function startBtn_Click(ev) {
     if (this.p.poweredOn && this.p.togCST) {
         this.p.start();
         this.updatePanel();
-        if (!this.intervalTimer) {
-            this.intervalTimer = setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
-        }
     }
     ev.preventDefault();
     return false;
@@ -420,6 +481,9 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
     case "LockNormalSwitch":
         this.lockNormalSwitch.flip();
         this.p.sswLockNormal = this.lockNormalSwitch.state;
+        if (this.lockNormalSwitch.state) {
+            this.p.togTiming = 0;       // force to Execute mode
+        }
         break;
     case "StepContinuousSwitch":
         this.stepContinuousSwitch.flip();
@@ -432,6 +496,9 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
     case "WordContSwitch":              // non-functional, just turn it back off
         this.wordContSwitch.flip();
         setCallback(null, this.wordContSwitch, 500, this.wordContSwitch.set, 0);
+        break;
+    case "FrequencyKnob":
+        this.frequencyKnob.step();      // non-function knob -- just step it
         break;
     }
     this.updatePanel();
@@ -662,15 +729,12 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     //this.window.addEventListener("beforeunload",
     //        D205SupervisoryPanel.prototype.beforeUnload);
 
-    this.$$("FrequencyKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
-        this.frequencyKnob.step();
-    }));
-
     this.$$("PulseSourceSwitch").addEventListener("click", this.boundFlipSwitch);
     this.$$("WordContSwitch").addEventListener("click", this.boundFlipSwitch);
     this.$$("AudibleAlarmSwitch").addEventListener("click", this.boundFlipSwitch);
     this.$$("LockNormalSwitch").addEventListener("click", this.boundFlipSwitch);
     this.$$("StepContinuousSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("FrequencyKnob").addEventListener("click", this.boundFlipSwitch);
 
     this.$$("StartBtn").addEventListener("click", this.boundStartBtn_Click);
 
@@ -692,7 +756,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
 
 /**************************************/
 D205SupervisoryPanel.prototype.shutDown = function shutDown() {
-    /* Shuts down the device */
+    /* Shuts down the panel */
 
     if (this.intervalTimer) {
         clearInterval(this.intervalTimer);

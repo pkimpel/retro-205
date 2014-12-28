@@ -508,15 +508,42 @@ PanelRegister.prototype.setBoxCaption = function setBoxCaption(box, caption) {
 
 /**************************************/
 PanelRegister.prototype.update = function update(value) {
-    /* Update the register lamps from the value of the parameter */
-    var bitNr = 0;
-    var bit;
-    var mask = Math.floor(Math.abs(value)) % 0x100000000000;
+    /* Update the register lamps from the value of the parameter. This routine
+    compares the value of the register that was previously updated against the new
+    one in an attempt to minimize the number of lamp flips that need to be done */
+    var bitBase = 0;
+    var bitNr;
+    var lastMask;
+    var lastValue = this.lastValue;
+    var thisMask;
+    var thisValue = Math.floor(Math.abs(value)) % 0x100000000000;
 
-    while (bitNr < this.bits) {
-        bit = mask % 2;
-        this.lamps[bitNr].set(bit);
-        mask = (mask-bit)/2;
-        bitNr++;
+    if (thisValue != lastValue) {
+        this.lastValue = thisValue;     // save it for next time
+        do {
+            // Loop through the masks 30 bits at a time so we can use Javascript bit ops
+            bitNr = bitBase;
+            lastMask = lastValue % 0x40000000;              // get the low-order 30 bits
+            lastValue = (lastValue-lastMask)/0x40000000;    // shift the value right 30 bits
+            thisMask = thisValue % 0x40000000;              // ditto for the second value
+            thisValue = (thisValue-thisMask)/0x40000000;
+
+            lastMask ^= thisMask;       // determine which bits have changed
+            while (lastMask) {
+                if (lastMask & 0x01) {
+                    this.lamps[bitNr].set(thisMask & 0x01);
+                }
+                if (++bitNr <= this.bits) {
+                    lastMask >>>= 1;
+                    thisMask >>>= 1;
+                } else {
+                    thisValue = thisMask = 0;
+                    lastValue = lastMask = 0;
+                    break;              // out of inner while loop
+                }
+            }
+
+            bitBase += 30;
+        } while (thisValue || lastValue);
     }
 };

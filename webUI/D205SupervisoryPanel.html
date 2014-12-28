@@ -168,5 +168,27 @@
     <div id=L5LampCaption class=caption>L5</div>
     <div id=L4LampCaption class=caption>L4</div>
 </div>
+
+<div id=Diagnostics style="display:none">
+    <br>
+    Proc Delta: <input id=ProcDelta class="rj" type=text size=10>
+    &nbsp;&nbsp;
+    Latency: <input id=LastLatency class="rj" type=text size=10>
+
+    <table id=CallbackTable
+           style="position:relative; top:1ex; visibility:visible; border-collapse:collapse; border-spacing:0">
+    <thead>
+      <tr>
+        <th>ID
+        <th>Delay
+        <th>Context
+        <th>#Args
+    </thead>
+    <tbody id=CallbackBody>
+    </tbody>
+    </table>
+</div>
+
+
 </body>
 </html>
