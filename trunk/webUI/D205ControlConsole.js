@@ -20,7 +20,10 @@ function D205ControlConsole(p) {
     var mnemonic = "ControlConsole";
 
     this.p = p;                         // D205Processor object
-    this.timer = 0;                     // setCallback() token
+    this.intervalTimer = 0;             // setCallback() token
+    this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
+    this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
+    this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);
 
     this.clear();
 
@@ -39,6 +42,8 @@ function D205ControlConsole(p) {
 
 /**************************************/
 D205ControlConsole.displayRefreshPeriod = 50;   // milliseconds
+D205ControlConsole.offSwitch = "./resources/ToggleDown.png";
+D205ControlConsole.onSwitch = "./resources/ToggleUp.png";
 
 /**************************************/
 D205ControlConsole.prototype.$$ = function $$(e) {
@@ -47,13 +52,13 @@ D205ControlConsole.prototype.$$ = function $$(e) {
 
 /**************************************/
 D205ControlConsole.prototype.clear = function clear() {
-    /* Initializes (and if necessary, creates) the printer unit state */
+    /* Initializes (and if necessary, creates) the panel state */
 
 };
 
 /**************************************/
 D205ControlConsole.prototype.beforeUnload = function beforeUnload(ev) {
-    var msg = "Closing this window will make the device unusable.\n" +
+    var msg = "Closing this window will make the panel unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
 
     ev.preventDefault();
@@ -91,28 +96,92 @@ D205ControlConsole.prototype.randomDisplay = function randomDisplay() {
 };
 
 /**************************************/
+D205ControlConsole.prototype.updatePanel = function updatePanel() {
+    var p = this.p;                     // local copy of Processor object
+
+    this.regA.update(p.A);
+    this.regB.update(p.B);
+    this.regC.update(p.C);
+    this.regD.update(p.D);
+    this.regR.update(p.R);
+
+    this.idleLamp.set(p.poweredOn && p.stopIdle);
+    this.fcsaLamp.set(p.stopForbidden || p.stopSector);
+    this.controlLamp.set(p.stopControl);
+    this.bkptLamp.set(p.stopBreakpoint);
+    this.overflowLamp.set(p.stopOverflow);
+
+    this.executeLamp.set(p.poweredOn && 1-p.togTiming);
+    this.fetchLamp.set(p.poweredOn && p.togTiming);
+
+    this.notReadyLamp.set(p.poweredOn && (p.sswLockNormal || p.sswStepContinuous));
+    this.continuousLamp.set(p.cctContinuous);
+};
+
+/**************************************/
 D205ControlConsole.prototype.stepBtn_Click = function stepBtn_Click(ev) {
-    if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = 0;
+    if (this.intervalTimer) {
+        clearInterval(this.intervalTimer);
+        this.intervalTimer = 0;
     }
     this.randomDisplay();
 };
 
 /**************************************/
 D205ControlConsole.prototype.stopBtn_Click = function stopBtn_Click(ev) {
-    if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = 0;
+    if (this.intervalTimer) {
+        clearInterval(this.intervalTimer);
+        this.intervalTimer = 0;
     }
 };
 
 /**************************************/
 D205ControlConsole.prototype.contBtn_Click = function contBtn_Click(ev) {
-    if (!this.timer) {
-        this.timer = setInterval(D205Util.bindMethod(this, this.randomDisplay), D205ControlConsole.displayRefreshPeriod);
+    if (!this.intervalTimer) {
+        this.intervalTimer = setInterval(D205Util.bindMethod(this, this.randomDisplay), D205ControlConsole.displayRefreshPeriod);
     }
     this.randomDisplay();
+};
+
+/**************************************/
+D205ControlConsole.prototype.button_Click = function button_Click(ev) {
+    /* Handler for button clicks */
+    var ready = !(this.p.sswLockNormal || this.p.sswStepContinuous);
+
+    if (this.p.poweredOn) {
+        switch (ev.target.id) {
+        case "ClearBtn":
+            this.p.clear();
+            break;
+        case "ResetBtn":
+            this.p.stopOverflow = 0;
+            break;
+        case "StepBtn":
+            if (ready) {
+                this.p.cctContinuous = 0;
+                if (this.p.togCST) {
+                    this.p.start();
+                }
+            }
+            break;
+        case "StopBtn":
+            if (ready) {
+                this.p.cctContinuous = 0;
+                this.p.stop();
+            }
+            break;
+        case "ContBtn":
+            if (ready && this.p.togCST) {
+                this.p.cctContinuous = 1;
+                this.p.start();
+            }
+            break;
+        } // switch ev.target.it
+        this.updatePanel();
+    }
+    ev.preventDefault();
+    ev.stopPropagation();
+    return false;
 };
 
 /**************************************/
@@ -120,11 +189,38 @@ D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
     var img = ev.target;
     var src = img.src;
 
-    if (src.indexOf("Down") > 0) {
-        img.src = src.replace("Down", "Up");
-    } else if (src.indexOf("Up") > 0) {
-        img.src = src.replace("Up", "Down");
+    switch (ev.target.id) {
+    case "AudibleAlarmSwitch":
+        this.audibleAlarmSwitch.flip();
+        this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state;
+        break;
+    case "SkipSwitch":
+        this.skipSwitch.flip();
+        this.p.cswSkip = this.skipSwitch.state;
+        break;
+    case "POSuppressSwitch":
+        this.poSuppressSwitch.flip();
+        this.p.cswPOSuppress = this.poSuppressSwitch.state;
+        break;
+    case "OutputKnob":
+        // Output knob: 0=Off, 1=Page, 2=Tape
+        this.outputKnob.step();
+        this.p.cswOutput = this.outputKnob.position;
+        break;
+    case "InputKnob":
+        // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
+        this.inputKnob.step();
+        this.p.cswInput = this.inputKnob.position;
+        break;
+    case "BreakpointKnob":
+        // Breakpoint knob: 0=Off, 1, 2, 4
+        this.breakpointKnob.step();
+        this.p.cswBreakpoint = this.breakpointKnob.position;
+        break;
     }
+    this.updatePanel();
+    ev.preventDefault();
+    return false;
 };
 
 /**************************************/
@@ -178,10 +274,6 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
         this.regR.lamps[43-x*4].setCaption("R-"+x);
     }
 
-    this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob", 1, [90, 115, 60]);
-    this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob", 0, [-40, -15, 15, 40]);
-    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob", 0, [290, 260, 235]);
-
     // Colored Lamps
 
     this.idleLamp = new ColoredLamp(body, null, null, "IdleLamp", "redLamp", "redLit");
@@ -196,40 +288,51 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     this.notReadyLamp = new ColoredLamp(body, null, null, "NotReadyLamp", "redLamp", "redLit");
     this.continuousLamp = new ColoredLamp(body, null, null, "ContinuousLamp", "greenLamp", "greenLit");
 
+    // Switches & Knobs
+
+    this.poSuppressSwitch = new ToggleSwitch(body, null, null, "POSuppressSwitch", D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
+    this.poSuppressSwitch.set(this.p.cswPOSuppress);
+    this.skipSwitch = new ToggleSwitch(body, null, null, "SkipSwitch", D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
+    this.skipSwitch.set(this.p.cswSkip);
+    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch", D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
+    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm);
+
+    this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob", 1, [90, 115, 60]);
+    this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob", 0, [-40, -15, 15, 40]);
+    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob", 3, [300, 270, 240]);
+
     // Events
 
     //this.window.addEventListener("beforeunload",
-    //        D205ControlConsole.prototype.beforeUnload, false);
-    this.$$("StepBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205ControlConsole.prototype.stepBtn_Click), false);
-    this.$$("StopBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205ControlConsole.prototype.stopBtn_Click), false);
-    this.$$("ContBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205ControlConsole.prototype.contBtn_Click), false);
-    this.$$("POSuppressSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch), false);
-    this.$$("SkipSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch), false);
-    this.$$("AudibleAlarmSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch), false);
+    //        D205ControlConsole.prototype.beforeUnload);
 
-    this.$$("OutputKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
-        this.outputKnob.step();
-    }), false);
-    this.$$("BreakpointKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
-        this.breakpointKnob.step();
-    }), false);
-    this.$$("InputKnob").addEventListener("click", D205Util.bindMethod(this, function(ev) {
-        this.inputKnob.step();
-    }), false);
+    this.$$("ClearBtn").addEventListener("click", this.boundButton_Click);
+    this.$$("ResetBtn").addEventListener("click", this.boundButton_Click);
+    this.$$("StepBtn").addEventListener("click", this.boundButton_Click);
+    this.$$("StopBtn").addEventListener("click", this.boundButton_Click);
+    this.$$("ContBtn").addEventListener("click", this.boundButton_Click);
+
+    this.$$("POSuppressSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("SkipSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("AudibleAlarmSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.$$("OutputKnob").addEventListener("click", this.boundFlipSwitch);
+    this.$$("InputKnob").addEventListener("click", this.boundFlipSwitch);
+    this.$$("BreakpointKnob").addEventListener("click", this.boundFlipSwitch);
+
+    this.p.cswOutput = this.outputKnob.position;
+    this.p.cswInput = this.inputKnob.position;
+    this.p.cswBreakpoint = this.breakpointKnob.position;
+
+    // Start the panel update
+    this.intervalTimer = setInterval(this.boundUpdatePanel, D205ControlConsole.displayRefreshPeriod);
 };
 
 /**************************************/
 D205ControlConsole.prototype.shutDown = function shutDown() {
-    /* Shuts down the device */
+    /* Shuts down the panel */
 
-    if (this.timer) {
-        clearInterval(this.timer);
+    if (this.intervalTimer) {
+        clearInterval(this.intervalTimer);
     }
     this.window.removeEventListener("beforeunload", D205ControlConsole.prototype.beforeUnload, false);
     this.window.close();

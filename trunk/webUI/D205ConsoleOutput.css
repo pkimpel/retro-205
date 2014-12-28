@@ -1,0 +1,242 @@
+/***********************************************************************
+* retro-205/emulator D205ConsoleOutput.css
+************************************************************************
+* Copyright (c) 2014, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* Electrodata/Burroughs Datatron 205 Console Output Unit.
+************************************************************************
+* 2014-12-26  P.Kimpel
+*   Original version, from B5500SPOUnit.css.
+***********************************************************************/
+
+#ConsoleOutput {
+    height:             100%;
+    min-height:         100%;
+    overflow:           hidden;
+    padding:            0}
+
+#ConsoleDiv {
+    position:           absolute;
+    top:                0;
+    bottom:             0;
+    left:               0;
+    right:              0;
+    margin:             4px;
+    background-color:   #B3A8A2;
+    border-radius:      16px}
+
+#FormatControlsDiv {
+    position:           absolute;
+    left:               16px;
+    right:              168px;
+    top:                16px;
+    z-index:            +1;
+    height:             136px;
+    width:              478px;
+    border-radius:      8px;
+    color:              white;
+    background-color:   #333}
+
+#FlexowriterLogo {
+    position:           absolute;
+    top:                32px;
+    right:              16px;
+    margin-left:        auto;
+    margin-right:       auto}
+
+#FlexowriterPlaten {
+    position:           absolute;
+    left:               16px;
+    right:              16px;
+    top:                168px;
+    bottom:             16px;
+    min-height:         280px;
+    min-width:          120px;
+    overflow-x:         hidden;
+    overflow-y:         scroll;
+    color:              black;
+    background-color:   white;
+    padding:            4px;
+    border:             1px solid gray}
+
+#Paper {
+    margin-left:        0;
+    margin-right:       0;
+    margin-top:         2000px;
+    margin-bottom:      0;
+    padding:            0}
+
+#EndOfPaper {
+    display:            block;
+    margin:             0;
+    padding:            0;
+    opacity:            0}
+#EndOfPaper.hidden {
+    display:            none}
+
+#ResetLamp {
+    left:               38px;
+    top:                16px}
+#ResetBtnCaption {
+    width:              36px;
+    left:               32px;
+    top:                60px}
+#ResetBtn {
+    left:               32px;
+    bottom:             20px}
+    
+#ZeroSuppressSwitch {
+    position:           absolute;
+    width:              24px;
+    left:               113px;
+    top:                12px}
+#ZeroSuppressOn {
+    width:              24px;
+    left:               113px;
+    top:                6px}
+#ZeroSuppressOff {
+    width:              24px;
+    left:               113px;
+    top:                42px}
+#ZeroSuppressCaption {
+    width:              100px;
+    left:               75px;
+    top:                56px}
+
+#WordsKnob {
+    position:           absolute;
+    text-align:         center;
+    width:              50px;
+    left:               100px;
+    bottom:             24px;
+    color:              white;
+    background-color:   #333}
+#WordsKnobCaption {
+    width:              100px;
+    left:               75px;
+    bottom:             4px}
+    
+#TabSpaceSwitch {
+    position:           absolute;
+    width:              24px;
+    left:               213px;
+    top:                12px}
+#TabSpaceSpace {
+    width:              24px;
+    left:               213px;
+    top:                6px}
+#TabSpaceOff {
+    width:              24px;
+    left:               188px;
+    top:                24px}
+#TabSpaceCaption {
+    width:              100px;
+    left:               175px;
+    top:                56px}
+    
+#LinesKnob {
+    position:           absolute;
+    text-align:         center;
+    width:              50px;
+    left:               200px;
+    bottom:             24px;
+    color:              white;
+    background-color:   #333}
+#LinesKnobCaption {
+    width:              100px;
+    left:               175px;
+    bottom:             4px}
+    
+#GroupingCountersBar {
+    position:           absolute;
+    top:                2px;
+    left:               325px;
+    z-index:            -1;
+    width:              1px;
+    height:             66px;
+    border-left:        1px solid white}        
+#GroupingCountersSwitch {
+    position:           absolute;
+    width:              24px;
+    left:               313px;
+    top:                12px}
+#GroupingTopLeftOn {
+    width:              24px;
+    left:               288px;
+    top:                6px}
+#GroupingMidLeftOff {
+    width:              24px;
+    left:               288px;
+    top:                24px}
+#GroupingBottomLeftOff {
+    width:              24px;
+    left:               288px;
+    top:                42px}
+#GroupingTopRightOn {
+    width:              24px;
+    left:               341px;
+    top:                6px}
+#GroupingMidRightOff {
+    width:              24px;
+    left:               341px;
+    top:                24px}
+#GroupingBottomRightOn {
+    width:              24px;
+    left:               341px;
+    top:                42px}
+#GroupingCountersCaption {
+    width:              100px;
+    left:               275px;
+    top:                56px}
+    
+#GroupsKnob {
+    position:           absolute;
+    text-align:         center;
+    width:              50px;
+    left:               300px;
+    bottom:             24px;
+    color:              white;
+    background-color:   #333}
+#GroupsKnobCaption {
+    width:              100px;
+    left:               275px;
+    bottom:             4px}
+    
+#AutoStopSwitch {
+    position:           absolute;
+    width:              24px;
+    left:               413px;
+    top:                12px}
+#AutoStopOn {
+    width:              24px;
+    left:               413px;
+    top:                6px}
+#AutoStopOff {
+    width:              24px;
+    left:               413px;
+    top:                42px}
+#AutoStopCaption {
+    width:              100px;
+    left:               375px;
+    top:                56px}
+    
+#PowerSwitch {
+    position:           absolute;
+    width:              24px;
+    left:               413px;
+    bottom:             24px}
+#PowerOn {
+    width:              24px;
+    left:               413px;
+    bottom:             53px}
+#PowerOff {
+    width:              24px;
+    left:               413px;
+    bottom:             16px}
+#PowerCaption {
+    width:              100px;
+    left:               375px;
+    bottom:             4px}
+    
