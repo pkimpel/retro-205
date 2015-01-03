@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 emulator control panel common style sheet.
+* ElectroData/Burroughs Datatron 205 emulator control panel common style sheet.
 ************************************************************************
 * 2014-11-01  P.Kimpel
 *   Original version, split from D205ControlConsole.css
@@ -98,7 +98,7 @@ DIV.neonLamp {
     border:             2px solid #999;
     background-image:   radial-gradient(circle, #999, #333)}
 DIV.neonLit {
-    background-image:   radial-gradient(circle, #F93 15%, #999)}
+    background-image:   radial-gradient(circle, #F93 30%, #999 100%)}
     
 DIV.neonLampTopCaption {
     position:           absolute;
@@ -124,7 +124,7 @@ DIV.whiteLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #999, #333)}
 DIV.whiteLit {
-    background-image:   radial-gradient(circle, #FFF 15%, #999)}
+    background-image:   radial-gradient(circle, #FFF 15%, #999 100%)}
 
 DIV.redLamp {
     position:           absolute;
@@ -134,7 +134,7 @@ DIV.redLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #900, #300)}
 DIV.redLit {
-    background-image:   radial-gradient(circle, #F00 15%, #900)}
+    background-image:   radial-gradient(circle, #F00 15%, #900 100%)}
 
 DIV.orangeLamp {
     position:           absolute;
@@ -144,7 +144,7 @@ DIV.orangeLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #960, #330)}
 DIV.orangeLit {
-    background-image:   radial-gradient(circle, #F93 15%, #960)}
+    background-image:   radial-gradient(circle, #F93 15%, #960 100%)}
 
 DIV.greenLamp {
     position:           absolute;
@@ -154,7 +154,7 @@ DIV.greenLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #090, #030)}
 DIV.greenLit {
-    background-image:   radial-gradient(circle, #0F0 15%, #090)}
+    background-image:   radial-gradient(circle, #0F0 15%, #090 100%)}
     
 DIV.coloredLampTopCaption {
     position:           absolute;

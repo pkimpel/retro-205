@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 Supervisory Control Panel object.
+* ElectroData/Burroughs Datatron 205 Supervisory Control Panel object.
 ************************************************************************
 * 2014-11-01  P.Kimpel
 *   Original version, from D205ControlConsole.html prototype.
@@ -15,12 +15,12 @@
 /**************************************/
 function D205SupervisoryPanel(p) {
     /* Constructor for the SupervisoryPanel object */
-    var h = 800; // was originally 524;
+    var h = 600;
     var w = 1180;
     var mnemonic = "SupervisoryPanel";
 
     this.p = p;                         // D205Processor object
-    this.intervalTimer = 0;             // setInterval() token
+    this.intervalToken = 0;             // setInterval() token
     this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
     this.boundPowerBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerBtn_Click);
     this.boundClear_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.clear_Click);
@@ -38,7 +38,7 @@ function D205SupervisoryPanel(p) {
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
             ",top=0,left=" + (screen.availWidth - w));
     this.window.addEventListener("load",
-        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.consoleOnLoad), false);
+        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.consoleOnLoad));
 }
 
 /**************************************/
@@ -179,10 +179,10 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.sectorLamp.set(p.stopSector);
     this.fcLamp.set(p.stopForbidden);
     this.controlLamp.set(p.stopControl);
-    this.idleLamp.set(p.poweredOn && p.stopIdle);
+    this.idleLamp.set(p.stopIdle && p.poweredOn);
 
-    this.executeLamp.set(p.poweredOn && 1-p.togTiming);
-    this.fetchLamp.set(p.poweredOn && p.togTiming);
+    this.executeLamp.set(1-p.togTiming && p.poweredOn);
+    this.fetchLamp.set(p.togTiming && p.poweredOn);
 
     this.mainLamp.set(p.memMAIN);
     this.rwmLamp.set(p.memRWM);
@@ -435,8 +435,8 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
         if (!this.p.poweredOn) {
             this.p.powerUp();
             this.powerLamp.set(1);
-            if (!this.intervalTimer) {
-                this.intervalTimer = setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+            if (!this.intervalToken) {
+                this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
             }
         }
         break;
@@ -444,9 +444,9 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
         if (this.p.poweredOn) {
             this.p.powerDown();
             this.powerLamp.set(0);
-            if (this.intervalTimer) {               // if the display auto-update is running
-                clearInterval(this.intervalTimer);  // kill it
-                this.intervalTimer = 0;
+            if (this.intervalToken) {               // if the display auto-update is running
+                this.window.clearInterval(this.intervalToken);  // kill it
+                this.intervalToken = 0;
             }
         }
         break;
@@ -460,18 +460,15 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
 D205SupervisoryPanel.prototype.startBtn_Click = function startBtn_Click(ev) {
     /* Handler for the START button: begins execution for the current cycle */
 
-    if (this.p.poweredOn && this.p.togCST) {
-        this.p.start();
-        this.updatePanel();
-    }
+    this.p.start();
+    this.updatePanel();
     ev.preventDefault();
     return false;
 };
 
 /**************************************/
 D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
-    var img = ev.target;
-    var src = img.src;
+    /* Handler for switch clicks */
 
     switch (ev.target.id) {
     case "AudibleAlarmSwitch":
@@ -481,9 +478,6 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
     case "LockNormalSwitch":
         this.lockNormalSwitch.flip();
         this.p.sswLockNormal = this.lockNormalSwitch.state;
-        if (this.lockNormalSwitch.state) {
-            this.p.togTiming = 0;       // force to Execute mode
-        }
         break;
     case "StepContinuousSwitch":
         this.stepContinuousSwitch.flip();
@@ -491,11 +485,11 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
         break;
     case "PulseSourceSwitch":           // non-functional, just turn it back off
         this.pulseSourceSwitch.flip();
-        setCallback(null, this.pulseSourceSwitch, 500, this.pulseSourceSwitch.set, 0);
+        setCallback(null, this.pulseSourceSwitch, 250, this.pulseSourceSwitch.set, 0);
         break;
     case "WordContSwitch":              // non-functional, just turn it back off
         this.wordContSwitch.flip();
-        setCallback(null, this.wordContSwitch, 500, this.wordContSwitch.set, 0);
+        setCallback(null, this.wordContSwitch, 250, this.wordContSwitch.set, 0);
         break;
     case "FrequencyKnob":
         this.frequencyKnob.step();      // non-function knob -- just step it
@@ -617,8 +611,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
 
     this.control.lamps[ 7].setCaption("MAG. TAPE");
     this.control.lamps[ 7].setCaption("3P", true);
-    this.control.lamps[ 6].setCaption("1BV4", true);
-    this.control.lamps[ 5].setCaption("1BV5", true);
+    this.control.lamps[ 6].setCaption("18V4", true);
+    this.control.lamps[ 5].setCaption("18V5", true);
     this.control.lamps[ 4].setCaption("10", true);
 
     this.control.lamps[11].setCaption("SHIFT CONTROL");
@@ -635,15 +629,15 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
 
     this.control.lamps[19].setCaption("OUTPUT CONTROL");
     this.control.lamps[19].setCaption("OK", true);
-    this.control.lamps[18].setCaption("PO1", true);
-    this.control.lamps[17].setCaption("PO2", true);
+    this.control.lamps[18].setCaption("PO 1", true);
+    this.control.lamps[17].setCaption("PO 2", true);
     this.control.lamps[16].setCaption("DELAY", true);
 
     this.control.lamps[23].setCaption("INPUT CONTROL");
     this.control.lamps[23].setCaption("START", true);
     this.control.lamps[22].setCaption("TF", true);
-    this.control.lamps[21].setCaption("TC1", true);
-    this.control.lamps[20].setCaption("TC2", true);
+    this.control.lamps[21].setCaption("TC 1", true);
+    this.control.lamps[20].setCaption("TC 2", true);
 
     this.control.lamps[27].setCaption("SIGN", true);
     this.control.lamps[26].setCaption("COUNT", true);
@@ -659,7 +653,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.control.lamps[35].setCaption("B\u2192A, IN", true);
     this.control.lamps[34].setCaption("ADDER", true);
     this.control.lamps[33].setCaption("DP CTR", true);
-    this.control.lamps[32].setCaption("\u0394 B, \u00F7", true); // delta, division signs
+    this.control.lamps[32].setCaption("\u0394B, \u00F7", true); // delta, division signs
 
     this.control.lamps[39].setCaption("SPECIAL CTR");
     this.control.lamps[39].setCaption("8", true);
@@ -673,8 +667,10 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.t4Lamp = new ColoredLamp(body, null, null, "T4Lamp", "whiteLamp", "whiteLit");
     this.t2Lamp = new ColoredLamp(body, null, null, "T2Lamp", "whiteLamp", "whiteLit");
     this.t1Lamp = new ColoredLamp(body, null, null, "T1Lamp", "whiteLamp", "whiteLit");
-    this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
-    this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
     this.singleWordLamp = new ColoredLamp(body, null, null, "SingleWordLamp", "whiteLamp", "whiteLit");
     this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob", 0, [-60, -30, 0, 30, 60]);
 
@@ -687,11 +683,14 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.fcLamp = new ColoredLamp(body, null, null, "FCLamp", "whiteLamp", "whiteLit");
     this.idleLamp = new ColoredLamp(body, null, null, "IdleLamp", "redLamp", "redLit");
 
-    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
     this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm);
-    this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
     this.lockNormalSwitch.set(this.p.sswLockNormal);
-    this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch", D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
     this.stepContinuousSwitch.set(this.p.sswStepContinuous);
 
     this.executeLamp = new ColoredLamp(body, null, null, "ExecuteLamp", "whiteLamp", "whiteLit");
@@ -749,17 +748,18 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("TWA").addEventListener("click", this.boundLamp_Click);
     this.$$("BIO").addEventListener("click", this.boundLamp_Click);
 
-    //this.p.powerUp();                   // >>>>> TEMP DURING DEBUGGING <<<<<
-    //this.powerLamp.set(1);
-    //this.updatePanel();
+    // Power on the system by default...
+    this.p.powerUp();
+    this.powerLamp.set(1);
+    this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
 };
 
 /**************************************/
 D205SupervisoryPanel.prototype.shutDown = function shutDown() {
     /* Shuts down the panel */
 
-    if (this.intervalTimer) {
-        clearInterval(this.intervalTimer);
+    if (this.intervalToken) {
+        this.window.clearInterval(this.intervalToken);
     }
     this.window.removeEventListener("beforeunload", D205SupervisoryPanel.prototype.beforeUnload);
     this.window.close();
