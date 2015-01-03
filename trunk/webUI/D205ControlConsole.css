@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 emulator Control Console style sheet.
+* ElectroData/Burroughs Datatron 205 emulator Control Console style sheet.
 ************************************************************************
 * 2014-10-04  P.Kimpel
 *   Original version, from retro-b5500 B5500DistributionAndDisplay.css
@@ -313,3 +313,23 @@
 #InputKnobKeyboard {
     top:                410px;
     left:               910px}
+
+#TapeReaderLamp {
+    bottom:             8px;
+    right:              120px;
+    width:              auto}
+    
+#KeyboardLamp {
+    bottom:             8px;
+    right:              32px;
+    width:              auto}
+
+.annunciator {
+    position:           absolute;
+    color:              #F93;
+    font-weight:        bold;        
+    padding-left:       4px;
+    padding-right:      4px;
+    padding-top:        4px;
+    padding-bottom:     4px;
+    border:             2px solid #F93}

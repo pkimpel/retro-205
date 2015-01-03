@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* JavaScript object definition for the Electrodata/Burroughs Datatron 205
+* JavaScript object definition for the ElectroData/Burroughs Datatron 205
 * Maintenance & Control Panel utility constructors.
 ************************************************************************
 * 2014-10-04  P.Kimpel
@@ -53,8 +53,8 @@ NeonLamp.prototype.set = function set(state) {
     var newState = state & 1;
 
     if (this.state ^ newState) {         // the state has changed
-        this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
         this.state = newState;
+        this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
     }
 };
 
@@ -63,8 +63,8 @@ NeonLamp.prototype.flip = function flip() {
     /* Complements the visible state of the lamp */
     var newState = this.state ^ 1;
 
-    this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
     this.state = newState;
+    this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
 };
 
 /**************************************/
@@ -133,8 +133,8 @@ ColoredLamp.prototype.set = function set(state) {
     var newState = state & 1;
 
     if (this.state ^ newState) {         // the state has changed
-        this.element.className = (newState ? this.litClass : this.lampClass);
         this.state = newState;
+        this.element.className = (newState ? this.litClass : this.lampClass);
     }
 };
 
@@ -143,8 +143,8 @@ ColoredLamp.prototype.flip = function flip() {
     /* Complements the visible state of the lamp */
     var newState = this.state ^ 1;
 
-    this.element.className = (newState ? this.litClass : this.lampClass);
     this.state = newState;
+    this.element.className = (newState ? this.litClass : this.lampClass);
 };
 
 /**************************************/
@@ -212,8 +212,8 @@ ToggleSwitch.prototype.set = function set(state) {
     var newState = state & 1;
 
     if (this.state ^ newState) {         // the state has changed
-        this.element.src = (newState ? this.onImage : this.offImage);
         this.state = newState;
+        this.element.src = (newState ? this.onImage : this.offImage);
     }
 };
 
@@ -222,13 +222,13 @@ ToggleSwitch.prototype.flip = function flip() {
     /* Complements the visible state of the switch */
     var newState = this.state ^ 1;
 
-    this.element.src = (newState ? this.onImage : this.offImage);
     this.state = newState;
+    this.element.src = (newState ? this.onImage : this.offImage);
 };
 
 /**************************************/
 ToggleSwitch.prototype.setCaption = function setCaption(caption, atBottom) {
-    /* Establishes an optional caption at the or bottom of a single switch.
+    /* Establishes an optional caption at the top or bottom of a single switch.
     Returns the caption element */
     var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
 
@@ -242,6 +242,96 @@ ToggleSwitch.prototype.setCaption = function setCaption(caption, atBottom) {
         } else {
             this.topCaptionDiv = e;
             e.className = ToggleSwitch.topCaptionClass;
+        }
+        e.appendChild(document.createTextNode(caption));
+        this.element.appendChild(e);
+    }
+    return e;
+};
+
+
+/***********************************************************************
+*  Panel Three-way Toggle Switch                                       *
+***********************************************************************/
+function ThreeWaySwitch(element, x, y, id, offImage, onImage1, onImage2) {
+    /* Constructor for the three-way toggle switch objects used within panels.
+    x & y are the coordinates of the switch within its containing element;
+    id is the DOM id */
+
+    this.state = 0;                     // current switch state, 0=off
+    this.topCaptionDiv = null;          // optional top caption element
+    this.bottomCaptionDiv = null;       // optional bottom caption element
+    this.offImage = offImage;           // image used for the off state
+    this.onImage1 = onImage1;           // image used for the lower on state
+    this.onImage2 = onImage2;           // image used for the upper on state
+
+    // visible DOM element
+    this.element = document.createElement("img");
+    this.element.id = id;
+    this.element.src = offImage;
+    if (x !== null) {
+        this.element.style.left = x.toString() + "px";
+    }
+    if (y !== null) {
+        this.element.style.top = y.toString() + "px";
+    }
+
+    if (element) {
+        element.appendChild(this.element);
+    }
+}
+
+/**************************************/
+
+ThreeWaySwitch.topCaptionClass = "ToggleSwitchTopCaption";
+ThreeWaySwitch.bottomCaptionClass = "ToggleSwitchBottomCaption";
+
+/**************************************/
+ThreeWaySwitch.prototype.set = function set(state) {
+    /* Changes the visible state of the switch according to the value
+    of "state" */
+
+    if (this.state != state) {          // the state has changed
+        switch (state) {
+        case 1:
+            this.state = 1;
+            this.element.src = this.onImage1;
+            break;
+        case 2:
+            this.state = 2;
+            this.element.src = this.onImage2;
+            break;
+        default:
+            this.state = 0;
+            this.element.src = this.offImage;
+            break;
+        } // switch state
+    }
+};
+
+/**************************************/
+ThreeWaySwitch.prototype.flip = function flip() {
+    /* Increments the visible state of the switch */
+
+    this.set(this.state+1);
+};
+
+/**************************************/
+ThreeWaySwitch.prototype.setCaption = function setCaption(caption, atBottom) {
+    /* Establishes an optional caption at the top or bottom of a single switch.
+    Returns the caption element */
+    var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
+
+    if (e) {
+        e.textContent = caption;
+    } else {
+        e = document.createElement("div");
+        if (atBottom) {
+            this.bottomCaptionDiv = e;
+            e.className = ThreeWaySwitch.bottomCaptionClass;
+        } else {
+            this.topCaptionDiv = e;
+            e.className = ThreeWaySwitch.topCaptionClass;
         }
         e.appendChild(document.createTextNode(caption));
         this.element.appendChild(e);
@@ -363,7 +453,7 @@ BlackControlKnob.prototype.step = function step() {
 
 /**************************************/
 BlackControlKnob.prototype.setCaption = function setCaption(caption, atBottom) {
-    /* Establishes an optional caption at the or bottom of a single switch.
+    /* Establishes an optional caption at the top or bottom of a single switch.
     Returns the caption element */
     var e = (atBottom ? this.bottomCaptionDiv : this.topCaptionDiv);
 

@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 Control Console object.
+* ElectroData/Burroughs Datatron 205 Control Console object.
 ************************************************************************
 * 2014-10-18  P.Kimpel
 *   Original version, from D205ConsolePanel.html prototype.
@@ -20,10 +20,16 @@ function D205ControlConsole(p) {
     var mnemonic = "ControlConsole";
 
     this.p = p;                         // D205Processor object
-    this.intervalTimer = 0;             // setCallback() token
+    this.fastUpdateMode = 0;            // slow vs. fast panel update mode
+    this.intervalToken = 0;             // setCallback() token
+    this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
     this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);
+
+    // Set up the Console I/O devices and redirect to them
+    this.consoleOut = new D205ConsoleOutput("ConsoleOut", p);
+    this.consoleIn = new D205ConsoleInput("ConsoleIn", p);
 
     this.clear();
 
@@ -37,10 +43,11 @@ function D205ControlConsole(p) {
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
             ",left=0,top=" + (screen.availHeight - h));
     this.window.addEventListener("load",
-        D205Util.bindMethod(this, D205ControlConsole.prototype.consoleOnLoad), false);
+        D205Util.bindMethod(this, D205ControlConsole.prototype.consoleOnLoad));
 }
 
 /**************************************/
+D205ControlConsole.slowRefreshPeriod = 1000;    // milliseconds
 D205ControlConsole.displayRefreshPeriod = 50;   // milliseconds
 D205ControlConsole.offSwitch = "./resources/ToggleDown.png";
 D205ControlConsole.onSwitch = "./resources/ToggleUp.png";
@@ -54,6 +61,8 @@ D205ControlConsole.prototype.$$ = function $$(e) {
 D205ControlConsole.prototype.clear = function clear() {
     /* Initializes (and if necessary, creates) the panel state */
 
+    this.lastStartState = 0;            // last state of Processor.togSTART
+    this.digitSender = null;            // reference to keyboard callback function
 };
 
 /**************************************/
@@ -105,40 +114,64 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
     this.regD.update(p.D);
     this.regR.update(p.R);
 
-    this.idleLamp.set(p.poweredOn && p.stopIdle);
+    this.idleLamp.set(p.stopIdle && p.poweredOn);
     this.fcsaLamp.set(p.stopForbidden || p.stopSector);
     this.controlLamp.set(p.stopControl);
     this.bkptLamp.set(p.stopBreakpoint);
     this.overflowLamp.set(p.stopOverflow);
 
-    this.executeLamp.set(p.poweredOn && 1-p.togTiming);
-    this.fetchLamp.set(p.poweredOn && p.togTiming);
+    this.executeLamp.set(1-p.togTiming && p.poweredOn);
+    this.fetchLamp.set(p.togTiming && p.poweredOn);
 
-    this.notReadyLamp.set(p.poweredOn && (p.sswLockNormal || p.sswStepContinuous));
-    this.continuousLamp.set(p.cctContinuous);
+    this.notReadyLamp.set((p.sswLockNormal || p.sswStepContinuous) && p.poweredOn);
+    this.continuousLamp.set((p.sswStepContinuous || p.cctContinuous) && p.poweredOn);
+
+    if (p.togSTART != this.lastStartState) {
+        this.lastStartState = p.togSTART;
+        this.$$("TapeReaderLamp").className = "annunciator";
+        this.$$("KeyboardLamp").className = "annunciator";
+         if (p.togSTART) {
+           switch (this.inputKnob.position) {
+            case 0:                     // mechanical reader
+            case 1:                     // optical reader
+                this.$$("TapeReaderLamp").className = "annunciator annunciatorLit";
+                break;
+            case 2:                     // keyboard
+                this.$$("KeyboardLamp").className = "annunciator annunciatorLit";
+                break;
+            } // switch inputKnob
+        }
+    }
+
+    if (p.poweredOn != this.fastUpdateMode) {
+        this.window.clearInterval(this.intervalToken);
+        this.fastUpdateMode = p.poweredOn;
+        this.intervalToken = this.window.setInterval(this.boundUpdatePanel,
+            (p.poweredOn ? D205ControlConsole.displayRefreshPeriod : D205ControlConsole.slowRefreshPeriod));
+    }
 };
 
 /**************************************/
 D205ControlConsole.prototype.stepBtn_Click = function stepBtn_Click(ev) {
-    if (this.intervalTimer) {
-        clearInterval(this.intervalTimer);
-        this.intervalTimer = 0;
+    if (this.intervalToken) {
+        this.window.clearInterval(this.intervalToken);
+        this.intervalToken = 0;
     }
     this.randomDisplay();
 };
 
 /**************************************/
 D205ControlConsole.prototype.stopBtn_Click = function stopBtn_Click(ev) {
-    if (this.intervalTimer) {
-        clearInterval(this.intervalTimer);
-        this.intervalTimer = 0;
+    if (this.intervalToken) {
+        this.window.clearInterval(this.intervalToken);
+        this.intervalToken = 0;
     }
 };
 
 /**************************************/
 D205ControlConsole.prototype.contBtn_Click = function contBtn_Click(ev) {
-    if (!this.intervalTimer) {
-        this.intervalTimer = setInterval(D205Util.bindMethod(this, this.randomDisplay), D205ControlConsole.displayRefreshPeriod);
+    if (!this.intervalToken) {
+        this.intervalToken = this.window.setInterval(D205Util.bindMethod(this, this.randomDisplay), D205ControlConsole.displayRefreshPeriod);
     }
     this.randomDisplay();
 };
@@ -159,20 +192,20 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
         case "StepBtn":
             if (ready) {
                 this.p.cctContinuous = 0;
-                if (this.p.togCST) {
-                    this.p.start();
-                }
+                this.p.start();
             }
             break;
         case "StopBtn":
             if (ready) {
+                this.p.stopControl = 1;
                 this.p.cctContinuous = 0;
                 this.p.stop();
             }
             break;
         case "ContBtn":
-            if (ready && this.p.togCST) {
+            if (ready) {
                 this.p.cctContinuous = 1;
+                this.p.togTiming = 0;   // to Execute
                 this.p.start();
             }
             break;
@@ -186,8 +219,7 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
 
 /**************************************/
 D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
-    var img = ev.target;
-    var src = img.src;
+    /* Handler for switch clicks */
 
     switch (ev.target.id) {
     case "AudibleAlarmSwitch":
@@ -211,6 +243,7 @@ D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
         // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
         this.inputKnob.step();
         this.p.cswInput = this.inputKnob.position;
+        this.lastStartState = -1;       // force updatePanel to reevaluate the annunciators
         break;
     case "BreakpointKnob":
         // Breakpoint knob: 0=Off, 1, 2, 4
@@ -222,6 +255,55 @@ D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
     ev.preventDefault();
     return false;
 };
+
+/**************************************/
+D205ControlConsole.prototype.keypress = function keypress(ev) {
+    /* Handles keyboard character events. Depending on whether there is an
+    outstanding request for a keypress, returns a digit or finish pulse to the
+    Processor, or discards the event altogether. Note that we have to do a little
+    dance with the reference to the callback function, as the next digit can be
+    solicited by the processor before the callback returns to this code, so the
+    callback reference must be nullified before the call */
+    var c = ev.charCode;
+    var sender = this.digitSender;
+
+    if (sender) {                       // if there is an outstanding digit request
+        switch (c) {
+        case 0x30:
+        case 0x31:
+        case 0x32:
+        case 0x33:
+        case 0x34:
+        case 0x35:
+        case 0x36:
+        case 0x37:
+        case 0x38:
+        case 0x39:
+            this.digitSender = null;
+            ev.preventDefault();
+            ev.stopPropagation();
+            sender(c-0x30);
+            break;
+        case 0x0D:                      // Enter key
+        case 0x46:                      // "F"
+        case 0x66:                      // "f"
+            this.digitSender = null;
+            ev.preventDefault();
+            ev.stopPropagation();
+            sender(-1);
+            break;
+        case 0:                         // Firefox reports only graphic charCodes for keypress
+            if (ev.keyCode == 0x0D) {   // check keyCode instead
+                this.digitSender = null;
+                ev.preventDefault();
+                ev.stopPropagation();
+                sender(-1);
+            }
+            break;
+        } // switch c
+    }
+};
+
 
 /**************************************/
 D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
@@ -290,19 +372,23 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
 
     // Switches & Knobs
 
-    this.poSuppressSwitch = new ToggleSwitch(body, null, null, "POSuppressSwitch", D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
+    this.poSuppressSwitch = new ToggleSwitch(body, null, null, "POSuppressSwitch",
+            D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
     this.poSuppressSwitch.set(this.p.cswPOSuppress);
-    this.skipSwitch = new ToggleSwitch(body, null, null, "SkipSwitch", D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
+    this.skipSwitch = new ToggleSwitch(body, null, null, "SkipSwitch",
+            D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
     this.skipSwitch.set(this.p.cswSkip);
-    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch", D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
+    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
+            D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
     this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm);
 
     this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob", 1, [90, 115, 60]);
     this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob", 0, [-40, -15, 15, 40]);
-    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob", 3, [300, 270, 240]);
+    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob", 2, [300, 270, 240]);
 
     // Events
 
+    this.window.addEventListener("keypress", this.boundKeypress);
     //this.window.addEventListener("beforeunload",
     //        D205ControlConsole.prototype.beforeUnload);
 
@@ -323,17 +409,55 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     this.p.cswInput = this.inputKnob.position;
     this.p.cswBreakpoint = this.breakpointKnob.position;
 
-    // Start the panel update
-    this.intervalTimer = setInterval(this.boundUpdatePanel, D205ControlConsole.displayRefreshPeriod);
+    // Start the panel update in slow mode
+    this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205ControlConsole.slowRefreshPeriod);
+};
+
+/**************************************/
+D205ControlConsole.prototype.readDigit = function readDigit(digitSender) {
+    /* Initiates the read of a digit from one of the Console input devices.
+    For the paper-tape readers, attempts to read the digit immediately. For
+    the keyboard, stashes the callback function and waits for a keyboard event */
+
+    switch (this.inputKnob.position) {
+    case 0:                             // mechanical reader
+    case 1:                             // optical reader
+        this.consoleIn.readTapeDigit(this.inputKnob.position, digitSender);
+        break;
+    case 2:                             // keyboard
+        this.digitSender = digitSender;
+        this.window.focus();
+        break;
+    } // switch inputKnob
+};
+
+/**************************************/
+D205ControlConsole.prototype.writeFormatDigit = function writeFormatDigit(formatDigit, successor) {
+    this.consoleOut.writeFormatDigit(this.outputKnob.position, formatDigit, successor);
+};
+
+/**************************************/
+D205ControlConsole.prototype.writeSignDigit = function writeSignDigit(signDigit, successor) {
+    this.consoleOut.writeSignDigit(this.outputKnob.position, signDigit, successor);
+};
+
+/**************************************/
+D205ControlConsole.prototype.writeNumberDigit = function writeNumberDigit(digit, successor) {
+    this.consoleOut.writeNumberDigit(this.outputKnob.position, digit, successor);
+};
+
+/**************************************/
+D205ControlConsole.prototype.writeFinish = function writeFinish(controlDigit, successor) {
+    this.consoleOut.writeFinish(this.outputKnob.position, controlDigit, successor);
 };
 
 /**************************************/
 D205ControlConsole.prototype.shutDown = function shutDown() {
     /* Shuts down the panel */
 
-    if (this.intervalTimer) {
-        clearInterval(this.intervalTimer);
+    if (this.intervalToken) {
+        this.window.clearInterval(this.intervalToken);
     }
-    this.window.removeEventListener("beforeunload", D205ControlConsole.prototype.beforeUnload, false);
+    this.window.removeEventListener("beforeunload", D205ControlConsole.prototype.beforeUnload);
     this.window.close();
 };

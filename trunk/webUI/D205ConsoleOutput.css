@@ -5,19 +5,50 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 Console Output Unit.
+* ElectroData/Burroughs Datatron 205 Console Output Unit.
 ************************************************************************
 * 2014-12-26  P.Kimpel
 *   Original version, from B5500SPOUnit.css.
 ***********************************************************************/
 
-#ConsoleOutput {
+#PunchBody {
     height:             100%;
     min-height:         100%;
     overflow:           hidden;
     padding:            0}
 
-#ConsoleDiv {
+#PaperTapePunch {
+    position:           absolute;
+    top:                0;
+    bottom:             0;
+    left:               0;
+    right:              0;
+    margin:             4px;
+    background-color:   #333;
+    border-radius:      8px}
+
+#PunchTape {
+    position:           absolute;
+    left:               8px;
+    right:              8px;
+    top:                8px;
+    bottom:             8px;
+    min-height:         32px;
+    min-width:          120px;
+    overflow-x:         hidden;
+    overflow-y:         scroll;
+    color:              black;
+    background-color:   white;
+    padding:            4px;
+    border:             1px solid gray}
+
+#FlexBody {
+    height:             100%;
+    min-height:         100%;
+    overflow:           hidden;
+    padding:            0}
+
+#Flexowriter {
     position:           absolute;
     top:                0;
     bottom:             0;
@@ -52,7 +83,7 @@
     right:              16px;
     top:                168px;
     bottom:             16px;
-    min-height:         280px;
+    min-height:         64px;
     min-width:          120px;
     overflow-x:         hidden;
     overflow-y:         scroll;

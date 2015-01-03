@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 emulator common Javascript utilities module.
+* ElectroData/Burroughs Datatron 205 emulator common Javascript utilities module.
 ************************************************************************
 * 2014-10-04  P.Kimpel
 *   Original version, from retro-b5500 B5500Util.js

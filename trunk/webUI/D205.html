@@ -10,7 +10,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* Electrodata/Burroughs Datatron 205 emulator home page.
+* ElectroData/Burroughs Datatron 205 emulator home page.
 ************************************************************************
 * 2014-10-18  P.Kimpel
 *   Original version, from D205ConsolePanel.html.
@@ -31,15 +31,15 @@
 <script src="./D205ControlConsole.js"></script>
 
 <script src="./D205ConsoleOutput.js"></script>
+<script src="./D205ConsoleInput.js"></script>
 
 <script>
 window.onload = function() {
     var devices = {};                   // Hash of I/O devices for the Processor
     var p = new D205Processor(devices);
 
-    devices["ControlConsole"] = new D205ControlConsole(p);
-    devices["SupervisoryPanel"] = new D205SupervisoryPanel(p);
-    devices["ConsoleOut"] = new D205ConsoleOutput("ConsoleOut", p);
+    devices.ControlConsole = new D205ControlConsole(p);
+    devices.SupervisoryPanel = new D205SupervisoryPanel(p);
 };
 </script>
 </head>
