@@ -94,15 +94,8 @@ function D205Processor(devices) {
 
     // Processor throttling control
     this.scheduler = 0;                 // Current setCallback token
-    this.totalCycles = 0;               // Total cycles executed on this processor
     this.procStart = 0;                 // Javascript time that the processor started running, ms
-    this.procTime = 0.000001;           // Total processor running time, ms
-    this.procSlack = 0;                 // Total processor throttling delay, ms
-    this.procSlackAvg = 0;              // Average slack time per time slice, ms
-    this.procRunAvg = 0;                // Average run time per time slice, ms
-    this.delayDeltaAvg = 0;             // Average difference between requested and actual setCallback() delays, ms
-    this.delayLastStamp = 0;            // Timestamp of last setCallback() delay, ms
-    this.delayRequested = 0;            // Last requested setCallback() delay, ms
+    this.procTime = 0;                  // Total processor running time, ms
 
     this.clear();                       // Create and initialize the processor state
 
@@ -112,7 +105,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.00";
+D205Processor.version = "0.01";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -202,7 +195,7 @@ D205Processor.prototype.clear = function clear() {
     this.memL6 = 0;                     // 6000 loop access
     this.memL7 = 0;                     // 7000 loop access
 
-    // Kill any delayed action that may be in process
+    // Kill any pending action that may be in process
     if (this.scheduler) {
         clearCallback(this.scheduler);
         this.scheduler = 0;
@@ -799,15 +792,8 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     }
 
     drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
-                        D205Processor.delayAlpha*this.procSlackAvg;
-
     latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
     this.procTime += latency+1;         // emulated time at end of drum access
-
-    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
-                         D205Processor.delayAlpha*this.delayDeltaAvg;
-
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
@@ -868,15 +854,8 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     }
 
     drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
-                        D205Processor.delayAlpha*this.procSlackAvg;
-
     latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
     this.procTime += latency+1;         // emulated time at end of drum access
-
-    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
-                         D205Processor.delayAlpha*this.delayDeltaAvg;
-
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
@@ -931,16 +910,9 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
     } // for x
 
     drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
-                        D205Processor.delayAlpha*this.procSlackAvg;
-
     latency = (addr%D205Processor.trackSize - this.procTime%D205Processor.trackSize +
                D205Processor.trackSize)%D205Processor.trackSize;
     this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
-
-    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
-                         D205Processor.delayAlpha*this.delayDeltaAvg;
-
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
@@ -995,16 +967,9 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     } // for x
 
     drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
-                        D205Processor.delayAlpha*this.procSlackAvg;
-
     latency = (addr%D205Processor.trackSize - this.procTime%D205Processor.trackSize +
                D205Processor.trackSize)%D205Processor.trackSize;
     this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
-
-    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*latency +
-                         D205Processor.delayAlpha*this.delayDeltaAvg;
-
     this.memACTION = 1;
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
@@ -1076,11 +1041,6 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
 
     this.procTime += x;
     drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.procSlackAvg = (1-D205Processor.delayAlpha)*(this.procTime-drumTime) +
-                        D205Processor.delayAlpha*this.procSlackAvg;
-    this.delayDeltaAvg = (1-D205Processor.delayAlpha)*x +
-                         D205Processor.delayAlpha*this.delayDeltaAvg;
-
     this.scheduler = setCallback("MEM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.successor, high);
 };
@@ -1227,7 +1187,6 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
             this.togDPCTR = 1;          // for display only
             this.togCLEAR = 1-((sign >>> 1) & 0x01);
             this.togSIGN = sign & 0x01;
-            sign &= 0xC0;
 
             // Increment the destination address (except on the first word)
             this.SHIFTCONTROL = 0x01;   // for display only
@@ -1239,16 +1198,16 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
             this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
 
             // Modify the word by B as necessary and store it
-            this.D = sign*0x10000000000 + word;
+            this.D = (sign & 0x0C)*0x10000000000 + word;
             if (this.togCLEAR) {
-                this.A = this.signedAdd(this.D, 0);
+                this.A = this.bcdAdd(this.D, 0);
             } else {
-                this.A = this.signedAdd(this.D, this.B);
+                this.A = this.bcdAdd(this.D, this.B);
             }
 
             this.D = 0;
             word = this.A % 0x10000000000;
-            sign = (((this.A - word)/0x10000000000) & 0x0E) | this.togSIGN;
+            sign = (((this.A - word)/0x10000000000) & 0x0E) | (sign & 0x01);
             this.A = sign*0x10000000000 + word;
             this.writeMemory(this.boundInputReadDigit, false);
         }
@@ -1588,6 +1547,7 @@ D205Processor.prototype.execute = function execute() {
 
         switch (this.COP) {
         case 0x00:      //---------------- PTR  Paper-tape/keyboard read
+            this.D = 0;
             this.togSTART = 1;
             this.inputReadDigit();
             break;
@@ -2018,8 +1978,6 @@ D205Processor.prototype.start = function start() {
     if (this.togCST && this.poweredOn) {
         this.procStart = drumTime;
         this.procTime = drumTime;
-        this.delayLastStamp = drumTime;
-        this.delayRequested = 0;
 
         this.stopIdle = 0;
         this.stopControl = 0;
@@ -2065,11 +2023,16 @@ D205Processor.prototype.powerUp = function powerUp() {
 /**************************************/
 D205Processor.prototype.powerDown = function powerDown() {
     /* Powers down the system */
+    var e;
 
     if (this.poweredOn) {
         this.stop();
         this.clear();
         this.poweredOn = 0;
+        for (e in this.devices) {
+            this.devices[e].shutDown();
+            delete this.devices[e];
+        }
     }
 };
 

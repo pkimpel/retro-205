@@ -725,8 +725,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("PowerOnBtn").addEventListener("click", this.boundPowerBtn_Click);
     this.$$("PowerOffBtn").addEventListener("click", this.boundPowerBtn_Click);
 
-    //this.window.addEventListener("beforeunload",
-    //        D205SupervisoryPanel.prototype.beforeUnload);
+    this.window.addEventListener("beforeunload", D205SupervisoryPanel.prototype.beforeUnload);
 
     this.$$("PulseSourceSwitch").addEventListener("click", this.boundFlipSwitch);
     this.$$("WordContSwitch").addEventListener("click", this.boundFlipSwitch);
@@ -747,6 +746,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("CarryPanel").addEventListener("click", this.boundLamp_Click);
     this.$$("TWA").addEventListener("click", this.boundLamp_Click);
     this.$$("BIO").addEventListener("click", this.boundLamp_Click);
+
+    this.$$("EmulatorVersion").textContent = D205Processor.version;
 
     // Power on the system by default...
     this.p.powerUp();

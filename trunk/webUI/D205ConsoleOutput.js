@@ -180,7 +180,7 @@ D205ConsoleOutput.prototype.flexCopyPaper = function flexCopyPaper(ev) {
     /* Copies the text contents of the "paper" area of the device, opens a new
     temporary window, and pastes that text into the window so it can be copied
     or saved */
-    var text = ev.target.textContent;
+    var text = this.flexPaper.textContent;
     var title = "D205 " + this.mnemonic + " Text Snapshot";
     var win = window.open("./D205FramePaper.html", "Flexowriter-Snapshot",
             "scrollbars,resizable,width=500,height=500");
@@ -194,6 +194,8 @@ D205ConsoleOutput.prototype.flexCopyPaper = function flexCopyPaper(ev) {
         doc.getElementById("Paper").textContent = text;
     });
 
+    this.flexPaper.textContent = " ";
+    this.flexEmptyLine();
     ev.preventDefault();
     ev.stopPropagation();
 };
@@ -248,10 +250,10 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     this.flexDoc.title = "retro-205 - Flexowriter";
     this.flexPaper = this.flex$$("Paper");
     this.flexEOP = this.flex$$("EndOfPaper");
-    this.flexPaper.appendChild(this.flexDoc.createTextNode(" "));
+    this.flexPaper.textContent = " ";
     this.flexEmptyLine();
-    body = this.flex$$("FormatControlsDiv");
 
+    body = this.flex$$("FormatControlsDiv");
     this.resetLamp = new ColoredLamp(body, null, null, "ResetLamp", "whiteLamp", "whiteLit");
 
     this.zeroSuppressSwitch = new ToggleSwitch(body, null, null, "ZeroSuppressSwitch",
@@ -344,7 +346,7 @@ D205ConsoleOutput.prototype.punchCopyTape = function punchCopyTape(ev) {
     /* Copies the text contents of the "paper" area of the device, opens a new
     temporary window, and pastes that text into the window so it can be copied
     or saved */
-    var text = ev.target.textContent;
+    var text = this.punchTape.textContent;
     var title = "D205 " + this.mnemonic + " Text Snapshot";
     var win = window.open("./D205FramePaper.html", "PaperTapePunch-Snapshot",
             "scrollbars,resizable,width=500,height=500");
@@ -358,6 +360,7 @@ D205ConsoleOutput.prototype.punchCopyTape = function punchCopyTape(ev) {
         doc.getElementById("Paper").textContent = text;
     });
 
+    this.punchTape.textContent = " ";
     ev.preventDefault();
     ev.stopPropagation();
 };
@@ -370,8 +373,7 @@ D205ConsoleOutput.prototype.punchOnload = function punchOnload() {
     this.punchDoc.title = "retro-205 - Paper Tape Punch";
     this.punchTape = this.punch$$("Paper");
     this.punchEOP = this.punch$$("EndOfPaper");
-    this.punchTape.appendChild(this.punchDoc.createTextNode(" "));
-    this.punchEmptyLine();
+    this.punchTape.textContent = " ";
 
     this.punchWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);
@@ -438,7 +440,7 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(outputU
             case 1:
                 delay = this.punchPeriod*10;
                 for (tabCol=0; tabCol<10; ++tabCol) {
-                    this.punchEmptyLine();
+                    this.punchChar(" ");
                 }
                 break;
             default:
@@ -538,7 +540,7 @@ D205ConsoleOutput.prototype.writeFinish = function writeFinish(outputUnit, contr
     switch (outputUnit) {
     case 1:                             // Flexowriter
         this.formatDigit = this.alphaLock = 0;
-        if (controlDigit & 0x80) {
+        if (controlDigit & 0x08) {
             // suppress line/group counting
         } else if (this.groupingCountersSwitch.state) {
             // perform line/group counting -- note that .selectedIndex is zero-relative

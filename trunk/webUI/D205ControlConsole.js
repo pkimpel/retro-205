@@ -27,10 +27,6 @@ function D205ControlConsole(p) {
     this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);
 
-    // Set up the Console I/O devices and redirect to them
-    this.consoleOut = new D205ConsoleOutput("ConsoleOut", p);
-    this.consoleIn = new D205ConsoleInput("ConsoleIn", p);
-
     this.clear();
 
     this.window = window.open("", mnemonic);
@@ -38,6 +34,11 @@ function D205ControlConsole(p) {
         this.shutDown();                // destroy the previously-existing window
         this.window = null;
     }
+
+    // Set up the Console I/O devices and redirect to them
+    this.consoleOut = new D205ConsoleOutput("ConsoleOut", p);
+    this.consoleIn = new D205ConsoleInput("ConsoleIn", p);
+
     this.doc = null;
     this.window = window.open("../webUI/D205ControlConsole.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
@@ -389,8 +390,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     // Events
 
     this.window.addEventListener("keypress", this.boundKeypress);
-    //this.window.addEventListener("beforeunload",
-    //        D205ControlConsole.prototype.beforeUnload);
+    this.window.addEventListener("beforeunload", D205ControlConsole.prototype.beforeUnload);
 
     this.$$("ClearBtn").addEventListener("click", this.boundButton_Click);
     this.$$("ResetBtn").addEventListener("click", this.boundButton_Click);
@@ -457,6 +457,14 @@ D205ControlConsole.prototype.shutDown = function shutDown() {
 
     if (this.intervalToken) {
         this.window.clearInterval(this.intervalToken);
+    }
+    if (this.consoleIn) {
+        this.consoleIn.shutDown();
+        this.consoleIn = null;
+    }
+    if (this.consoleOut) {
+        this.consoleOut.shutDown();
+        this.consoleOut = null;
     }
     this.window.removeEventListener("beforeunload", D205ControlConsole.prototype.beforeUnload);
     this.window.close();

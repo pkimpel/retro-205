@@ -281,12 +281,12 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     position:           absolute;
     left:               253px;
     top:                426px;
-    width:              8px;
-    height:             8px;
+    width:              12px;
+    height:             12px;
     font-size:          4px;
     background-color:   #666;
     border-radius:      50%;
-    border:             8px solid silver}
+    border:             6px solid silver}
 #ExtOscCaption {
     left:               245px;
     top:                456px;
@@ -561,3 +561,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               1132px;
     top:                456px;
     width:              24px}
+
+#EmulatorVersion {
+    right:              8px;
+    bottom:             8px}
