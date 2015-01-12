@@ -2013,6 +2013,7 @@ D205Processor.prototype.execute = function execute() {
                 this.executeComplete();
             } else {
                 this.stopIdle = 1;                      // turn IDLE lamp on in case Output Knob is OFF
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
                 d = (this.CADDR%0x1000 - this.CADDR%0x100)/0x100;
                 if (d) {                                // if C8 is not zero, output it as the format digit
                     this.togOK = this.togDELAY = 1;
