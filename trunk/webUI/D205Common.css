@@ -37,24 +37,32 @@
 
 HTML {
     height:             100%}
+    
+BODY {    
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          10pt;
+    background-color:   white;
+    color:              black;
+    margin:             4px;
+    padding:            4px}
 
 BODY.panelBody {
     position:           relative;
-    font-family:        DejaVuSansWeb, sans-serif;
     font-size:          8pt;
-    background-color:   white;
-    color:              black;
     margin:             0;
     padding:            0}
 
 BODY.deviceBody {
-    color:              black;
-    background-color:   white;
-    font-family:        DejaVuSansWeb, sans-serif;
     font-size:          7pt;
     overflow:           hidden;
     margin:             0;
     padding:            0}
+    
+H1 {
+    margin-top:         2em;
+    margin-bottom:      1em;
+    font-size:          14pt;
+    font-weight:        bold}
 
 IFRAME.paper {
     font-family:        DejaVuSansMonoBookWeb, monospace;
@@ -124,7 +132,7 @@ DIV.whiteLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #999, #333)}
 DIV.whiteLit {
-    background-image:   radial-gradient(circle, #FFF 15%, #999 100%)}
+    background-image:   radial-gradient(circle, #FFF 50%, #999 100%)}
 
 DIV.redLamp {
     position:           absolute;
@@ -134,7 +142,7 @@ DIV.redLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #900, #300)}
 DIV.redLit {
-    background-image:   radial-gradient(circle, #F00 15%, #900 100%)}
+    background-image:   radial-gradient(circle, #F00 50%, #900 100%)}
 
 DIV.orangeLamp {
     position:           absolute;
@@ -144,7 +152,7 @@ DIV.orangeLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #960, #330)}
 DIV.orangeLit {
-    background-image:   radial-gradient(circle, #F93 15%, #960 100%)}
+    background-image:   radial-gradient(circle, #F93 50%, #960 100%)}
 
 DIV.greenLamp {
     position:           absolute;
@@ -154,7 +162,7 @@ DIV.greenLamp {
     border-radius:      50%;
     background-image:   radial-gradient(circle, #090, #030)}
 DIV.greenLit {
-    background-image:   radial-gradient(circle, #0F0 15%, #090 100%)}
+    background-image:   radial-gradient(circle, #0F0 50%, #090 100%)}
     
 DIV.coloredLampTopCaption {
     position:           absolute;

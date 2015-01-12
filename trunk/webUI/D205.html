@@ -21,6 +21,17 @@
 <meta http-equiv="Content-Style-Type" content="text/css">
 <link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
 
+<style>
+#VersionDiv {
+    position:           absolute;
+    top:                4px;
+    right:              4px;
+    text-align:         right}
+#D205Image {
+    margin-top:         80px;
+    text-align:         center}
+</style>
+
 <script src="./D205PanelUtil.js"></script>      <!-- must be first -->
 <script src="./D205Util.js"></script>
 <script src="./D205SetCallback.js"></script>
@@ -35,15 +46,28 @@
 
 <script>
 window.onload = function() {
-    var devices = {};                   // Hash of I/O devices for the Processor
+    var devices = {};                   // hash of I/O devices for the Processor
     var p = new D205Processor(devices);
 
     devices.ControlConsole = new D205ControlConsole(p);
     devices.SupervisoryPanel = new D205SupervisoryPanel(p);
+
+    document.getElementById("EmulatorVersion").textContent = D205Processor.version;
 };
 </script>
 </head>
 
 <body>
+<div id=VersionDiv>
+    <img id=Retro205Logo src="./resources/retro-205-Logo.png" alt="retro-205 Logo">
+    <div id=EmulatorVersion></div>
+</div>
+<h1>ElectroData/Burroughs 205 Emulator</h1>
+<hr>
+<i>(You can minimize this window, but please do not close it)</i>
+
+<div id=D205Image>
+    <img src="./resources/BRL61-burroughs-204.jpg" alt="ElectroData 204 System">
+</div>
 </body>
 </html>
