@@ -10,8 +10,10 @@
 * Instance variables in all caps generally refer to register or flip-flop (FF)
 * entities in the processor hardware. See the following documents:
 *
-*   Burroughs 205 Handbook (Bulletin 3021, Burroughs Corporation, 1956).
-*   Programming and Coding Manual, Datatron (Bulletin 3040A, ElectroData Corporation, 1954).
+*   Burroughs 205 Handbook
+*       (Bulletin 3021, Burroughs Corporation, 1956).
+*   Programming and Coding Manual, Datatron
+*       (Bulletin 3040A, ElectroData Corporation, 1954).
 *   Handbook of Operating Procedures for the Burroughs 205
 *       (Bulletin 3034A, Burroughs Corporation, May 1960).
 *
@@ -20,14 +22,17 @@
 *
 * also:
 *
+*   Burroughs 205 Handbook: Floating Point Control Unit Model 36044
+*       (Bulletin 3028, Burroughs Corporation 1957).
 *   Engineering Description of the ElectroData Digital Computer, J. C. Alrich,
 *       (IRE Transactions on Electronic Computers, vol EC-4, Number 1, March 1955).
-*   TM4001 Datatron 205 Computer (Training Edition) (Burroughs Corporation, December,1956).
+*   TM4001 Datatron 205 Computer (Training Edition)
+*       (Burroughs Corporation, December,1956).
 *
 * Datatron 205 word format:
 *   44 bits, encoded as binary-coded decimal (BCD); non-decimal codes are invalid
 *   and cause the computer to stop.
-*   High-order 4 bits are the "sign digit"
+*   High-order 4 bits are the "sign digit":
 *       Low-order bit of this digit is the actual sign.
 *       Higher-order bits are used in some I/O operations.
 *   Remaining 40 bits are the value as:
@@ -105,7 +110,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.01";
+D205Processor.version = "0.02";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -113,8 +118,6 @@ D205Processor.wordTime = 60/3570/D205Processor.trackSize;
                                         // one word time, about 84 µs at 3570rpm (=> 142.8 KHz)
 D205Processor.wordsPerMilli = 0.001/D205Processor.wordTime;
                                         // word times per millisecond
-D205Processor.delayAlpha = 0.999;       // decay factor for exponential weighted average delay
-D205Processor.slackAlpha = 0.9999;      // decay factor for exponential weighted average slack
 
 D205Processor.pow2 = [ // powers of 2 from 0 to 52
                      0x1,              0x2,              0x4,              0x8,
@@ -132,7 +135,7 @@ D205Processor.pow2 = [ // powers of 2 from 0 to 52
          0x1000000000000,  0x2000000000000,  0x4000000000000,  0x8000000000000,
         0x10000000000000];
 
-D205Processor.mask2 = [ // (2**n)-1 For n From 0 to 52
+D205Processor.mask2 = [ // (2**n)-1 for n from 0 to 52
                      0x0,              0x1,              0x3,              0x7,
                     0x0F,             0x1F,             0x3F,             0x7F,
                    0x0FF,            0x1FF,            0x3FF,            0x7FF,
@@ -473,7 +476,7 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
         dm = (dm - dd)/0x10;
     } // for x
 
-    // set toggles for display purposes and return the result
+    // Set toggles for display purposes and return the result
     this.togCOMPL = compl;
     this.CT = ct;
     this.ADDER = adder;
@@ -481,15 +484,15 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
 };
 
 /**************************************/
-D205Processor.prototype.signedAdd = function signedAdd(a, d) {
-    /* Algebraically add the addend (d) to the augend (a), returning the result
-    as the function value. All values are BCD with the sign in the 11th digit
+D205Processor.prototype.integerAdd = function integerAdd() {
+    /* Algebraically add the addend (D) to the augend (A), returning the result
+    in A and clearing D. All values are BCD with the sign in the 11th digit
     position. Sets the Overflow and Forbidden-Combination stops as necessary */
-    var am = a % 0x10000000000;         // augend mantissa
-    var aSign = ((a - am)/0x10000000000) & 0x01;
+    var am = this.A % 0x10000000000;    // augend mantissa
+    var aSign = ((this.A - am)/0x10000000000) & 0x01;
     var compl;                          // complement addition required
-    var dm = d % 0x10000000000;         // addend mantissa
-    var dSign = ((d - dm)/0x10000000000) & 0x01;
+    var dm = this.D % 0x10000000000;    // addend mantissa
+    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
     var sign = dSign;                   // local copy of sign toggle
 
     this.togADDER = 1;                  // for display only
@@ -517,14 +520,15 @@ D205Processor.prototype.signedAdd = function signedAdd(a, d) {
         break;
     } // switch this.ADDER
 
-    // set toggles for display purposes and return the result
+    // Set toggles for display purposes and return the result
     this.togSIGN = sign;
-    return am;
+    this.A = am;
+    this.D = 0;
 };
 
 /**************************************/
-D205Processor.prototype.serialExtract = function serialExtract(a, d) {
-    /* "Extract" digits from a value (a) according to the digit pattern (d).
+D205Processor.prototype.integerExtract = function integerExtract() {
+    /* "Extract" digits from A according to the digit pattern in D.
     This is actually a weird form of add. In the simple case, the extract
     pattern  consists of a string of ones and zeroes. The value digits will be
     retained where the corresponding pattern digits are 1 and will be zeroed
@@ -535,15 +539,15 @@ D205Processor.prototype.serialExtract = function serialExtract(a, d) {
     case, carries from digit to digit occur normally, and thus a generalized
     extract can result in overflow.
     Sets the Overflow and Forbidden-Combination stops as necessary */
-    var ad;                             // current value (a) digit;
+    var ad;                             // current value (A) digit;
     var adder = 0;                      // local copy of adder digit
-    var am = a % 0x10000000000;         // value mantissa
-    var aSign = ((a - am)/0x10000000000) & 0x01;
+    var am = this.A % 0x10000000000;    // value mantissa
+    var aSign = ((this.A - am)/0x10000000000) & 0x01;
     var carry;                          // local copy of carry toggle (CT 1)
     var ct;                             // local copy of carry register (CT 1-16)
-    var dd;                             // current pattern (d) digit;
-    var dm = d % 0x10000000000;         // pattern mantissa
-    var dSign = ((d - dm)/0x10000000000) & 0x01;
+    var dd;                             // current pattern (D) digit;
+    var dm = this.D % 0x10000000000;    // pattern mantissa
+    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
     var sign = aSign & dSign;           // local copy of sign toggle
     var x;                              // digit counter
 
@@ -599,12 +603,13 @@ D205Processor.prototype.serialExtract = function serialExtract(a, d) {
         this.stopOverflow = 1;
     }
 
-    // set toggles for display purposes and return the result
+    // Set toggles for display purposes and return the result
     this.togCOMPL = 0;
     this.togSIGN = sign;
     this.CT = ct;
     this.ADDER = adder;
-    return am;
+    this.A = am;
+    this.D = 0;
 };
 
 /**************************************/
@@ -665,11 +670,12 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
     this.togSIGN = sign;                // for display only
     this.A = sign*0x10000000000 + am;
     this.R = rm;
+    this.D = 0;
 };
 
 /**************************************/
 D205Processor.prototype.integerDivide = function integerDivide() {
-    /* Algebraically divide the A & R registerd by the D register, producing a
+    /* Algebraically divide the A & R registers by the D register, producing a
     signed 10-digit quotient in A and the remainder in R. All values are BCD
     with the sign in the 11th digit position. Sets Forbidden-Combination stop
     as necessary. If the magnitude of the divisor (D) is less or equal to the
@@ -703,7 +709,6 @@ D205Processor.prototype.integerDivide = function integerDivide() {
 
         // Now repeatedly subtract D from A until we would get underflow.
         // Unlike the 205, we don't do one subtraction too many.
-        this.togCOMPL = 1;
         rd = 0;
         while (am >= dm && rd < 10) {
             am = this.bcdAdd(dm, am, 1, 1);
@@ -711,17 +716,15 @@ D205Processor.prototype.integerDivide = function integerDivide() {
             ++count;
         }
 
-        // Check for overflow (dividend > divisor)
+        // Check for overflow (dividend > divisor).
         if (rd < 10) {
+            rm += rd;                   // accumulate the quotient digit
             this.togDIVALARM = 0;
         } else {
             this.stopOverflow = 1;
             am = rm = 0;
             break;                      // out of for loop
         }
-
-        // Accumulate the quotient digit
-        rm += rd;
     } // for x
 
     this.SHIFTCONTROL = 0x0E;           // for display only
@@ -731,12 +734,371 @@ D205Processor.prototype.integerDivide = function integerDivide() {
     this.togSTEP = 1;                   // for display only
     this.A = sign*0x10000000000 + rm;
     this.R = am;
+    this.D = 0;
     if (this.stopOverflow) {
         this.procTime += 24;
     } else {
         this.procTime += 52 + count*2;
     }
 };
+
+/**************************************/
+D205Processor.prototype.floatingAdd = function floatingAdd() {
+    /* Algebraically add the floating-point addend (D) to the floating-point
+    augend (A), placing the result in A and clearing D. The R register is not
+    affected. All values are BCD with the sign in the 11th digit position.
+    The floating exponent is in the first two digit positions, biased by 50.
+    Sets the Overflow and Forbidden-Combination stops as necessary */
+    var ae;                             // augend exponent (binary)
+    var am = this.A % 0x10000000000;    // augend mantissa (BCD)
+    var aSign = ((this.A - am)/0x10000000000) & 0x01;
+    var compl;                          // complement addition required
+    var d;                              // scratch digit;
+    var de;                             // addend exponent (binary)
+    var dm = this.D % 0x10000000000;    // addend mantissa (BCD)
+    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
+    var sign = dSign;                   // local copy of sign toggle
+
+    this.togADDER = 1;                  // for display only
+    this.togDPCTR = 1;                  // for display only
+
+    ae = (am - am%0x100000000)/0x100000000;
+    am %= 0x100000000;
+    de = (dm - dm%0x100000000)/0x100000000;
+    dm %= 0x100000000;
+
+    // If the exponents are unequal, normalize the larger and scale the smaller
+    // until they are in alignment, or one mantissa becomes zero.
+    if (am == 0) {
+        ae = de;
+    } else if (dm == 0) {
+        de = ae;
+    } else if (ae > de) {
+        // Normalize A
+        while (ae > de && am < 0x10000000) {
+            am *= 0x10;                 // shift left
+            ae = this.bcdAdd(1, ae, 1, 1);      // --ae
+        }
+        // Scale D until its exponent matches or the mantissa goes to zero.
+        while (ae > de && dm > 0) {
+            d = dm % 0x10;
+            dm = (dm - d)/0x10;         // shift right
+            de = this.bcdAdd(1, de, 0, 0);      // ++de
+        }
+    } else if (ae < de) {
+        // Normalize D
+        while (ae < de && dm < 0x10000000) {
+            dm *= 0x10;                 // shift left
+            de = this.bcdAdd(1, de, 1, 1);      // --de
+        }
+        // Scale A until its exponent matches or the mantissa goes to zero.
+        while (ae < de && am > 0) {
+            d = am % 0x10;
+            am = (am - d)/0x10;         // shift right
+            ae = this.bcdAdd(1, ae, 0, 0);      // ++ae
+        }
+    }
+
+    compl = (aSign^dSign);
+    am = this.bcdAdd(am, dm, compl, compl);
+
+    // Now examine the resulting sign (still in the adder) to see if we
+    // need to recomplement the result.
+    if (this.ADDER) {
+        // Reverse the sign toggle and recomplement the result (virtually adding to the zeroed dm).
+        sign = 1-sign;
+        am = this.bcdAdd(am, 0, 1, 1);
+        this.procTime += 2;
+    }
+
+    // Normalize or scale the result as necessary
+    this.SPECIAL = 0;                   // for display only
+    if (am >= 0x100000000) {
+        // Mantissa overflow: add/subtract can produce at most one digit of
+        // overflow, so shift right and increment the exponent, checking for
+        // overflow in the exponent.
+        if (ae < 0x99) {
+            ++this.SPECIAL;             // for display only
+            d = am % 0x10;
+            am = (am - d)/0x10;         // shift right
+            ae = this.bcdAdd(1, ae, 0, 0);      // ++ae
+        } else {
+            // A scaling shift would overflow the exponent, so set the overflow
+            // alarm and leave the mantissa as it was from the add, without the
+            // exponent inserted back into it. Since the A register gets reassembled
+            // below, we need to set up the mantissa and exponent so the reconstruct
+            // will effectively do nothing.
+            this.stopOverflow = 1;
+            sign = 0;                   // per 205 FP Handbook
+            ae = (am - am%0x100000000)/0x100000000;
+            am %= 0x100000000;
+        }
+    } else if (am > 0) {
+        // Normalize the result as necessary
+        while (am < 0x10000000) {
+            if (ae > 0) {
+                ++this.SPECIAL;         // for display only
+                am *= 0x10;             // shift left
+                ae = this.bcdAdd(1, ae, 1, 1);  // --ae
+            } else {
+                // Exponent underflow: set R and the reconstructed A to zero.
+                am = ae = sign = 0;
+                this.R = 0;
+                break;
+            }
+        }
+    } else {                            // mantissa is zero
+        ae = 0;                         // per example in 205 FP Handbook
+    }
+
+    // Set toggles for display purposes and set the result.
+    this.togSIGN = sign;
+    this.A = (sign*0x100 + ae)*0x100000000 + am;
+    this.D = 0;
+};
+
+/**************************************/
+D205Processor.prototype.floatingMultiply = function floatingMultiply() {
+    /* Algebraically multiply the floating-point multiplicand in the D register
+    by the floating-point multiplier in the A register, producing an 18-digit
+    product (16 mantissa + 2 exponent) in A and R. All values are BCD with the
+    sign in the 11th digit position. The floating exponent is in the first two
+    digit positions, biased by 50. Sets the Forbidden-Combination stop as
+    necessary */
+    var ad;                             // current product (A) digit;
+    var ae;                             // product/multiplier (A) exponent
+    var am = this.A % 0x10000000000;    // product (A) mantissa
+    var aSign = ((this.A - am)/0x10000000000) & 0x01;
+    var count = 0;                      // count of word-times consumed
+    var de;                             // multiplicand exponent
+    var dm = this.D % 0x10000000000;    // multiplicand mantissa
+    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
+    var rc;                             // dup of rd for add counting
+    var rd;                             // current multipler (R) digit;
+    var rm;                             // current multiplier (R) mantissa
+    var sign = aSign ^ dSign;           // local copy of sign toggle (sign of product)
+    var x;                              // digit counter
+
+    this.togMULDIV = 1;                 // for display only
+    this.SPECIAL = 0;                   // for display only
+    ae = (am - am%0x100000000)/0x100000000;
+    am %= 0x100000000;
+    de = (dm - dm%0x100000000)/0x100000000;
+    dm %= 0x100000000;
+
+    if (am == 0) {
+        this.A = this.R = 0;
+    } else if (dm == 0) {
+        this.A = this.R = 0;
+    } else {
+        ae = this.bcdAdd(ae, de);
+        if (ae >= 0x150) {
+            this.stopOverflow = 1;
+            sign = 0;
+            this.A = am;
+            this.R = 0;
+        } else {
+            rm = am;                            // move the multiplier to R
+            am = 0;                             // clear the local product (A) mantissa
+            this.SHIFT = 0x09;                  // for display only
+            this.SHIFTCONTROL = 0x0C;           // for display only
+
+            // We now have the multiplicand in D (dm), the multiplier in R (rm), and an
+            // initial product of zero in A (am). Go through a classic multiply cycle,
+            // doing repeated addition based on each multipler digit, and between digits
+            // shifting the product (in am and rm) one place to the right. After 8 digits,
+            // we're done, except for normalization.
+
+            this.togCOMPL = 0;
+            for (x=0; x<8; ++x) {
+                rc = rd = rm % 0x10;
+                count += rc;
+                while (rc > 0) {
+                    am = this.bcdAdd(am, dm, 0, 0);
+                    --rc;
+                } // while rd
+
+                ad = am % 0x10;
+                am = (am-ad)/0x10;
+                rm = (rm-rd)/0x10 + ad*0x1000000000;
+            } // for x
+
+            // Check for exponent underflow
+            if (ae < 0x50) {
+                this.A = this.R = 0;    // underflow
+            } else {
+                // Subtract the exponent bias and normalize the result as necessary.
+                ae = this.bcdAdd(0x50, ae, 1, 1);
+                while (am < 0x10000000) {
+                    if (ae <= 0) {
+                        // Exponent underflow: set R and the reconstructed A to zero.
+                        am = ae = sign = 0;
+                        this.R = 0;
+                        break;
+                    } else {
+                        ++this.SPECIAL;         // for display only
+                        rd = (rm - rm%0x1000000000)/0x1000000000;
+                        rm = (rm % 0x1000000000)*0x10;
+                        am = am*0x10 + rd;      // shift left
+                        ae = this.bcdAdd(1, ae, 1, 1);  // --ae
+                    }
+                }
+
+                this.A = (sign*0x100 + ae)*0x100000000 + am;
+                this.R = rm;
+            }
+
+            this.procTime += 13 + count*2;
+        }
+    }
+
+    this.togSIGN = sign;                // for display only
+    this.D = 0;
+};
+
+/**************************************/
+D205Processor.prototype.floatingDivide = function floatingDivide() {
+    /* Algebraically divide the 18-digit (16 mantissa + 2 exponent) floating-
+    point dividend in the A & R registers by the floating-point divisor in the
+    D register, producing a 9- or 10-digit quotient in the A & R registers
+    and a 6- or 7-digit remainder in the low-order digits of the R register.
+    See the Floating Point Handbook for the gory details of the result format.
+    All values are BCD with the sign in the 11th digit position. The floating
+    exponent is in the first two digit positions, biased by 50. Sets the
+    Forbidden-Combination stop as necessary */
+    var ae;                             // dividend/quotient exponent
+    var am = this.A % 0x10000000000;    // current remainder (A) mantissa
+    var aSign = ((this.A - am)/0x10000000000) & 0x01;
+    var count = 0;                      // count of word-times consumed
+    var de;                             // divisor exponent
+    var dm = this.D % 0x10000000000;    // divisor mantissa
+    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
+    var rd;                             // current quotient (R) digit;
+    var rm = this.R;                    // current quotient (R) mantissa
+    var sign = aSign ^ dSign;           // local copy of sign toggle (sign of quotient)
+    var x;                              // digit counter
+
+    var as, ds, rs;  // <<<<< DEBUG >>>>>
+
+    this.togMULDIV = 1;                 // for display only
+    this.togDELTABDIV = 1;              // for display only
+    this.togDIVALARM = 0;               // for display only
+    this.SPECIAL = 0;                   // for display only
+    ae = (am - am%0x100000000)/0x100000000;
+    am %= 0x100000000;
+    de = (dm - dm%0x100000000)/0x100000000;
+    dm %= 0x100000000;
+
+    // Normalize A & R
+    while (am && am < 0x10000000) {
+        if (ae <= 0) {
+            am = 0;                     // exponent underflow
+        } else {
+            rd = (rm - rm%0x1000000000)/0x1000000000;
+            rm = (rm % 0x1000000000)*0x10;
+            am = am*0x10 + rd;      // shift left
+            ae = this.bcdAdd(1, ae, 1, 1);      // --ae
+        }
+    }
+
+    // Normalize D
+    while (dm && dm < 0x10000000) {
+        if (de <= 0) {
+            dm = 0;                     // exponent underflow
+        } else {
+            dm *= 0x10;                 // shift left
+            de = this.bcdAdd(1, de, 1, 1);      // --de
+        }
+    }
+
+    // Check for zero operands and commence the division
+    if (am == 0) {
+        this.A = this.R = sign = 0;     // dividend is zero so result is zero
+    } else if (dm == 0) {
+        this.A = this.R = sign = 0;     // divide by zero
+        this.togDIVALARM = 1;           // for display only
+        this.stopOverflow = 1;
+    } else {
+        // Add the exponent bias to the dividend exponent and check for underflow
+        ae = this.bcdAdd(ae, 0x50);
+        if (ae < de) {
+            // Exponents differ by more than 50 -- underflow
+            this.A = this.R = sign = 0;
+        } else {
+            // If dividend >= divisor, scale the exponent by 1
+            if (am >= dm) {
+                ae = this.bcdAdd(ae, 1);
+            }
+            // Subtract the exponents and check for overflow
+            ae = this.bcdAdd(de, ae, 1, 1);
+            if (ae > 0x99) {
+                this.stopOverflow = 1;
+                sign = 0;
+                this.A = am;
+                this.R = rm;
+            } else {
+                // We now have the divisor in D (dm) and the dividend in A (am) & R (rm).
+                // The value in am will become the remainder; the value in rm will become
+                // the quotient. Go through a classic long-division cycle, repeatedly
+                // subtracting the divisor from the dividend, counting subtractions until
+                // underflow occurs, and shifting the divisor left one digit.
+
+                for (x=0; x<10; ++x) {
+                    // Repeatedly subtract D from A until we would get underflow.
+                    // Unlike the 205, we don't do one subtraction too many.
+                    rd = 0;
+                    while (am >= dm) {
+                        am = this.bcdAdd(dm, am, 1, 1);
+                        as = am.toString(16);
+                        ++rd;
+                        ++count;
+                    }
+
+                    // Shift A & R to the left one digit, accumulating the quotient digit in R
+                    rm = rm*0x10 + rd;
+                    rd = (rm - rm%0x10000000000)/0x10000000000;
+                    rm %= 0x10000000000;
+                    if (x < 9) {
+                        am = am*0x10 + rd;      // shift into remainder except on last digit
+                    }
+                    as = am.toString(16);
+                    rs = rm.toString(16);
+                    ds = dm.toString(16);
+                } // for x
+
+                // Rotate the quotient from R into A for 8 digits or until it's normalized
+                for (x=0; x<8 || am%0x100000000 < 0x10000000; ++x) {
+                    ++this.SPECIAL;         // for display only
+                    rd = (am - am%0x1000000000)/0x1000000000;
+                    rm = rm*0x10 + rd;
+                    rd = (rm - rm%0x10000000000)/0x10000000000;
+                    rm %= 0x10000000000;
+                    am = (am%0x1000000000)*0x10 + rd;
+                }
+
+                as = am.toString(16);
+                rs = rm.toString(16);
+
+                this.SHIFTCONTROL = 0x0E;           // for display only
+                this.SHIFT = 0x09;                  // for display only
+                this.togSTEP = 1;                   // for display only
+
+                this.A = (sign*0x100 + ae)*0x100000000 + am%0x100000000;
+                this.R = rm;
+            }
+
+            if (this.stopOverflow) {
+                this.procTime += 24;
+            } else {
+                this.procTime += 52 + count*2;
+            }
+        }
+    }
+
+    this.togSIGN = sign;                // for display only
+    this.D = 0;
+};
+
 
 /***********************************************************************
 *   Memory Access                                                      *
@@ -1100,7 +1462,7 @@ D205Processor.prototype.outputNumberDigit = function outputNumberDigit() {
 D205Processor.prototype.outputFinished = function outputFinished() {
     /* Handles the final cycle of an I/O operation and restores this.procTime */
 
-    if (this.togPO1) {                  // if false, we've probably been cleared
+    if (this.togOK || this.togPO1) {    // if false, we've probably been cleared
         this.togOK = 0;                 // for display only
         this.togPO1 = this.togPO2 = 0;  // for display only
         this.togDELAY = 0;              // for display only
@@ -1229,8 +1591,8 @@ D205Processor.prototype.inputSingleDigit = function inputSingleDigit(digit) {
     } else {
         this.procTime += performance.now()*D205Processor.wordsPerMilli + 4; // restore time after I/O
         this.togSTART = 0;
-        this.A = this.signedAdd(this.A, digit);
-        this.D = 0;
+        this.D = digit;
+        this.integerAdd();
         this.executeComplete();
     }
 };
@@ -1379,32 +1741,35 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
 
     case 0x63:          //---------------- EX   Extract
         this.procTime += 3;
-        this.A = this.serialExtract(this.A, this.D);
-        this.D = 0;
+        this.integerExtract();
         break;
 
     case 0x64:          //---------------- CAD  Clear and Add A
         this.procTime += 3;
-        this.A = this.signedAdd(0, this.D);
-        this.D = 0;
+        this.A = 0;
+        this.integerAdd();
         break;
 
     case 0x65:          //---------------- CSU  Clear and Subtract A
         this.procTime += 3;
-        this.A = this.signedAdd(0, this.D + 0x10000000000); // any sign overflow will be ignored
-        this.D = 0;
+        // Complement the D sign -- any sign overflow will be ignored by integerAdd
+        this.A = 0;
+        this.D += 0x10000000000;
+        this.integerAdd();
         break;
 
     case 0x66:          //---------------- CADA Clear and Add Absolute
         this.procTime += 3;
-        this.A = this.signedAdd(0, this.D % 0x10000000000);
-        this.D = 0;
+        this.A = 0;
+        this.D %= 0x10000000000;
+        this.integerAdd();
         break;
 
     case 0x67:          //---------------- CSUA Clear and Subtract Absolute
         this.procTime += 3;
-        this.A = this.signedAdd(0, this.D % 0x10000000000 + 0x10000000000);
-        this.D = 0;
+        this.A = 0;
+        this.D = this.D%0x10000000000 + 0x10000000000;
+        this.integerAdd();
         break;
 
     // 0x68-0x69:       //---------------- (no op)
@@ -1434,44 +1799,55 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // for display, mostly
         this.stopOverflow = this.togSIGN ^
                 (((this.D - this.D%0x10000000000)/0x10000000000) & 0x01);
+        this.D = 0;
         break;
 
     case 0x74:          //---------------- AD   Add
         this.procTime += 3;
-        this.A = this.signedAdd(this.A, this.D);
-        this.D = 0;
+        this.integerAdd();
         break;
 
     case 0x75:          //---------------- SU   Subtract
         this.procTime += 3;
-        this.A = this.signedAdd(this.A, this.D + 0x10000000000); // any sign overflow will be ignored
-        this.D = 0;
+        // Complement the D sign -- any sign overflow will be ignored by integerAdd
+        this.D += 0x10000000000;
+        this.integerAdd();
         break;
 
     case 0x76:          //---------------- ADA  Add Absolute
         this.procTime += 3;
-        this.A = this.signedAdd(this.A, this.D % 0x10000000000);
-        this.D = 0;
+        this.D %= 0x10000000000;                        // clear the D-sign digit
+        this.integerAdd();
         break;
 
     case 0x77:          //---------------- SUA  Subtract Absolute
         this.procTime += 3;
-        this.A = this.signedAdd(this.A, this.D % 0x10000000000 + 0x10000000000);
-        this.D = 0;
+        this.D = this.D%0x10000000000 + 0x10000000000; // set the sign bit
+        this.integerAdd();
         break;
 
     // 0x78-0x79:       //---------------- (no op)
 
     case 0x80:          //---------------- FAD  Floating Add
+        this.procTime += 4;
+        this.floatingAdd();
         break;
 
     case 0x81:          //---------------- FSU  Floating Subtract
+        this.procTime += 4;
+        // Complement the D sign -- any sign overflow will be ignored by floatingAdd.
+        this.D += 0x10000000000;
+        this.floatingAdd();
         break;
 
     case 0x82:          //---------------- FM   Floating Multiply
+        this.procTime += 3;
+        this.floatingMultiply();
         break;
 
     case 0x83:          //---------------- FDIV Floating Divide
+        this.procTime += 3;
+        this.floatingDivide();
         break;
 
     // 0x84:            //---------------- (no op)
@@ -1491,15 +1867,27 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
     // 0x88-0x89:       //---------------- (no op)
 
     case 0x90:          //---------------- FAA  Floating Add Absolute
+        this.procTime += 4;
+        this.D %= 0x10000000000;        // clear the D-sign digit
+        this.floatingAdd();
         break;
 
     case 0x91:          //---------------- FSA  Floating Subtract Absolute
+        this.procTime += 4;
+        this.D = this.D%0x10000000000 + 0x10000000000; // set the D-sign
+        this.floatingAdd();
         break;
 
     case 0x92:          //---------------- FMA  Floating Multiply Absolute
+        this.procTime += 3;
+        this.D %= 0x10000000000;        // clear the D-sign digit
+        this.floatingMultiply();
         break;
 
     case 0x93:          //---------------- FDA  Floating Divide Absolute
+        this.procTime += 3;
+        this.D %= 0x10000000000;        // clear the D-sign digit
+        this.floatingDivide();
         break;
 
     // 0x94-0x99:       //---------------- (no op)
@@ -1596,7 +1984,8 @@ D205Processor.prototype.execute = function execute() {
         case 0x04:      //---------------- CNZ  Change on Non-Zero
             this.procTime += 3;
             this.togZCT = 1;                            // for display only
-            this.A = this.signedAdd(this.A, 0);         // clears the sign digit, among other things
+            this.D = 0;
+            this.integerAdd();                          // clears the sign digit, among other things
             if (this.A) {
                 this.togTiming = 0;                     // stay in Execute
                 this.stopOverflow = 1;                  // set overflow
@@ -1726,16 +2115,15 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x16:      //---------------- ADSC Add Special Counter to A
             this.procTime += 3;
-            this.A = this.signedAdd(this.A, this.SPECIAL);
-            this.D = 0;
+            this.D = this.SPECIAL;
+            this.integerAdd();
             this.executeComplete();
             break;
 
         case 0x17:      //---------------- SUSC Subtract Special Counter from A
             this.procTime += 3;
             this.D = this.SPECIAL + 0x10000000000;      // set to negative
-            this.A = this.signedAdd(this.A, this.D);
-            this.D = 0;
+            this.integerAdd();
             this.executeComplete();
             break;
 
@@ -1782,10 +2170,15 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x23:      //---------------- RO   Round A, Clear R
             this.procTime += 3;
-            w = this.signedAdd(this.A%0x10000000000, (this.R < 0x5000000000 ? 0 : 1));
-            this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // display only
-            this.A += w - this.A%0x10000000000;
-            this.R = this.D = 0;
+            this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01;
+            // Add round-off (as the carry bit) to absolute value of A.
+            this.A = this.bcdAdd(this.A%0x10000000000, 0, 0, (this.R < 0x5000000000 ? 0 : 1));
+            if (this.A >= 0x10000000000) {
+                this.stopOverflow = 1;                  // overflow occurred
+                this.A -= 0x10000000000;                // remove the overflow bit
+            }
+            this.A += this.togSIGN*0x10000000000;       // restore the sign bit in A
+            this.D = this.R = 0;                        // clear D & R
             this.executeComplete();
             break;
 
@@ -2036,6 +2429,7 @@ D205Processor.prototype.powerDown = function powerDown() {
     }
 };
 
+/**************************************/
 D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     /* Loads a default program to the memory drum and constructs a CU at
     location 0 to branch to it */
@@ -2050,15 +2444,16 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
 
     // Hello World
     this.MM[  20] = 0x0000070500;       // PTWF 0500  line feed
-    this.MM[  21] = 0x0000640026;       // CAD    26
+    this.MM[  21] = 0x0000640027;       // CAD    27
     this.MM[  22] = 0x0000030410;       // PTW  0410
-    this.MM[  23] = 0x0000640027;       // CAD    27
-    this.MM[  24] = 0x0000030410;       // PTW  0410
-    this.MM[  25] = 0x0000089429;       // HALT 9429
-    this.MM[  26] = 0x4845535356;       // LIT  "HELLO"
-    this.MM[  27] = 0x6656595344;       // LIT  "WORLD"
+    this.MM[  23] = 0x0000070800;       // PTWF 0800  space
+    this.MM[  24] = 0x0000640028;       // CAD    28
+    this.MM[  25] = 0x0000030410;       // PTW  0410
+    this.MM[  26] = 0x0000089429;       // HALT 9429
+    this.MM[  27] = 0x4845535356;       // LIT  "HELLO"
+    this.MM[  28] = 0x6656595344;       // LIT  "WORLD"
 
-    // Tom Sawyer's "Square Roots 100":
+    // Tom Sawyer's "Square Roots 100" (Babylonian or Newton's method):
     this.MM[ 100] = 0x640139;           // CAD   139
     this.MM[ 101] = 0x120138;           // ST    138
     this.MM[ 102] = 0x640139;           // CAD   139
@@ -2078,9 +2473,9 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 116] = 0x120138;           // ST    138
     this.MM[ 117] = 0x200102;           // CU    102
     this.MM[ 118] = 0x640139;           // CAD   139
-    this.MM[ 119] = 0x030505;           // PTW   0510
+    this.MM[ 119] = 0x030505;           // PTW   0505
     this.MM[ 120] = 0x640137;           // CAD   137
-    this.MM[ 121] = 0x030610;           // PTW   0010
+    this.MM[ 121] = 0x030810;           // PTW   0810
     this.MM[ 122] = 0x640139;           // CAD   139
     this.MM[ 123] = 0x740133;           // ADD   133
     this.MM[ 124] = 0x120139;           // ST    139
@@ -2097,10 +2492,10 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 135] = 0x10;
     this.MM[ 136] = 0;
     this.MM[ 137] = 0;
-    this.MM[ 137] = 0;
+    this.MM[ 138] = 0;
     this.MM[ 139] = 0x200000;
 
-    // Tom Sawyer's "Square Roots 100" running from the loops and R cleared for division:
+    // "Square Roots 100" running from the loops with R cleared for division:
     // Block for the 6980 loop
     this.MM[ 200] = 0x0000647039;       // CAD  7039
     this.MM[ 201] = 0x0000127038;       // ST   7038
@@ -2124,9 +2519,9 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 219] = 0x0000206982;       // CU   6982
     // Block for the 7000 loop
     this.MM[ 220] = 0x0000647039;       // CAD  7039
-    this.MM[ 221] = 0x0000030505;       // PTW  0510
+    this.MM[ 221] = 0x0000030505;       // PTW  0505
     this.MM[ 222] = 0x0000647037;       // CAD  7037
-    this.MM[ 223] = 0x0000030610;       // PTW  0010
+    this.MM[ 223] = 0x0000030810;       // PTW  0810
     this.MM[ 224] = 0x0000647039;       // CAD  7039
     this.MM[ 225] = 0x0000747033;       // ADD  7033
     this.MM[ 226] = 0x0000127039;       // ST   7039
@@ -2141,8 +2536,50 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[ 235] = 0x0000000010;
     this.MM[ 236] = 0;
     this.MM[ 237] = 0;
-    this.MM[ 237] = 0;
+    this.MM[ 238] = 0;
     this.MM[ 239] = 0x0000200000;
+
+    // "Square Roots 100" adapted for floating-point and relative precision:
+    this.MM[ 300] = 0x0000640339;       // CAD   339    load initial argument
+    this.MM[ 301] = 0x0000120338;       // ST    338    store as initial upper bound
+    this.MM[ 302] = 0x0000640339;       // CAD   339    start of loop: load current argument
+    this.MM[ 303] = 0x0000330000;       // CR           clear R
+    this.MM[ 304] = 0x0000830338;       // FDIV  338    divide argument by upper bound
+    this.MM[ 305] = 0x0000120337;       // ST    337    store as current result
+    this.MM[ 306] = 0x0000830338;       // FDIV  338    ratio to upper bound
+    this.MM[ 307] = 0x0000120336;       // ST    336    store as current precision
+    this.MM[ 308] = 0x0000660335;       // CADA  335    load target precision
+    this.MM[ 309] = 0x0000810336;       // FSU   336    subtract current precision
+    this.MM[ 310] = 0x0000730335;       // OSGD  335    if current precision > target precision
+    this.MM[ 311] = 0x0000280318;       // CC    318        we're done -- jump out to print
+    this.MM[ 312] = 0x0000640338;       // CAD   338    load current upper bound
+    this.MM[ 313] = 0x0000800337;       // FAD   337    add current result
+    this.MM[ 314] = 0x0000330000;       // CR           clear R
+    this.MM[ 315] = 0x0000830334;       // FDIV  334    divide by 2.0 to get new upper bound
+    this.MM[ 316] = 0x0000120338;       // ST    338    store new upper bound
+    this.MM[ 317] = 0x0000200302;       // CU    302    do another iteration
+    this.MM[ 318] = 0x0001640339;       // CAD   339
+    this.MM[ 319] = 0x0000030510;       // PTW   0510
+    this.MM[ 320] = 0x0000640337;       // CAD   337
+    this.MM[ 321] = 0x0000030810;       // PTW   0810
+    this.MM[ 322] = 0x0000640339;       // CAD   339    load argument value
+    this.MM[ 323] = 0x0000800333;       // FAD   333    add 1 to argument value
+    this.MM[ 324] = 0x0000120339;       // ST    339
+    this.MM[ 325] = 0x0000200301;       // CU    301    start sqrt for next argument value
+    this.MM[ 326] = 0;
+    this.MM[ 327] = 0;
+    this.MM[ 328] = 0;
+    this.MM[ 329] = 0;
+    this.MM[ 330] = 0;
+    this.MM[ 331] = 0;
+    this.MM[ 332] = 0;
+    this.MM[ 333] = 0x05110000000;      // 1.0 literal: argument increment
+    this.MM[ 334] = 0x05120000000;      // 2.0 literal
+    this.MM[ 335] = 0x05099999990;      // 0.99999990 literal: target precision
+    this.MM[ 336] = 0;                  // current precision
+    this.MM[ 337] = 0;                  // current sqrt result
+    this.MM[ 338] = 0;                  // current upper bound on result
+    this.MM[ 339] = 0x05120000000;      // 2.0 sqrt argument
 
     // Counter speed test in 4000 loop
     this.L4[   0] = 0x0000744002;       // ADD  4002 -- start of counter speed test
