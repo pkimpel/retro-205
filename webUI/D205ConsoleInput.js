@@ -125,26 +125,6 @@ D205ConsoleInput.prototype.fileSelector_onChange = function fileSelector_onChang
 };
 
 /**************************************/
-D205ConsoleInput.prototype.sendTapeDigit = function sendTapeDigit(digit, receiver) {
-    /* Sends the digit or finish pulse read from the tape back to the Processor
-    after an appropriate delay. Updates the TapeView display with the digit/pulse
-    sent */
-    var char = (digit < 0 ? " " : digit.toString());
-    var length;
-    var text = this.tapeView.value;
-
-    this.inTimer = setCallback(this.mnemonic, this, this.readerPeriod, receiver, digit);
-    length = text.length;
-    if (length < 120) {
-        this.tapeView.value = text + char;
-        ++length;
-    } else {
-        this.tapeView.value = text.substring(length-119) + char;
-    }
-    this.tapeView.setSelectionRange(length-1, length);
-};
-
-/**************************************/
 D205ConsoleInput.prototype.beforeUnload = function beforeUnload(ev) {
     var msg = "Closing this window will make the device unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
@@ -178,6 +158,38 @@ D205ConsoleInput.prototype.readerOnload = function readerOnload() {
 };
 
 /**************************************/
+D205ConsoleInput.prototype.sendTapeDigit = function sendTapeDigit(digit, receiver) {
+    /* Sends the digit or finish pulse read from the tape back to the Processor
+    after an appropriate delay. Updates the TapeView display with the digit/pulse
+    sent */
+    var char = (digit < 0 ? " " : digit.toString());
+    var length;
+    var text = this.tapeView.value;
+
+    this.inTimer = setCallback(this.mnemonic, this, this.readerPeriod, receiver, digit);
+    length = text.length;
+    if (length < 120) {
+        this.tapeView.value = text + char;
+        ++length;
+    } else {
+        this.tapeView.value = text.substring(length-119) + char;
+    }
+    this.tapeView.setSelectionRange(length-1, length);
+};
+
+/**************************************/
+D205ConsoleInput.prototype.setReaderEmpty = function setReaderEmpty() {
+    /* Sets the reader to a not-ready status and empties the buffer */
+
+    this.ready = false;
+    this.tapeSupplyBar.value = 0;
+    this.buffer = "";                   // discard the input buffer
+    this.bufLength = 0;
+    this.bufIndex = 0;
+    this.$$("PRFileSelector").value = null; // reset the control so the same file can be reloaded
+};
+
+/**************************************/
 D205ConsoleInput.prototype.readTapeDigit = function readTapeDigit(inputUnit, receiver) {
     /* Reads one digit image from the paper-tape buffer and passes it to the
     "receiver" function. If at end-of-line, passes a finish indication to the
@@ -207,42 +219,40 @@ D205ConsoleInput.prototype.readTapeDigit = function readTapeDigit(inputUnit, rec
         do {
             if (x >= bufLength) {       // end of buffer -- send finish
                 this.sendTapeDigit(-1, receiver);
+                this.setReaderEmpty();
                 break; // out of do loop
             } else {
                 c = this.buffer.charCodeAt(x);
-                if (c == 0x0D) {        // carriage return -- send finish and check for LF
+                if (c > 0x39) {         // it's greater than "9" -- ignore
+                    ++x;
+                } else if (c >= 0x30) { // it's a digit -- send it with no finish
+                    ++x;
+                    this.sendTapeDigit(c-0x30, receiver);
+                    break; // out of do loop
+                } else if (c == 0x0D) { // carriage return -- send finish and check for LF
                     if (++x < bufLength && this.buffer.charCodeAt(x) == 0x0A) {
                         ++x;
                     }
                     this.sendTapeDigit(-1, receiver);
+                    if (x >= bufLength) {
+                        this.setReaderEmpty();
+                    }
                     break; // out of do loop
                 } else if (c == 0x0A) { // line feed -- send finish
                     ++x;
                     this.sendTapeDigit(-1, receiver);
+                    if (x >= bufLength) {
+                        this.setReaderEmpty();
+                    }
                     break; // out of do loop
-                } else if (c < 0x30) {      // it's less than "0" -- ignore
+                } else {                // it's less than "0" -- ignore
                     ++x;
-                } else if (c > 0x39) {      // it's greater than "9" -- ignore
-                    ++x;
-                } else {                    // it's a digit -- send it with no finish
-                    ++x;
-                    this.sendTapeDigit(c-0x30, receiver);
-                    break; // out of do loop
                 }
             }
         } while (true);
 
-        if (x < bufLength) {
-            this.tapeSupplyBar.value = bufLength-x;
-            this.bufIndex = x;
-        } else {
-            this.ready = false;
-            this.tapeSupplyBar.value = 0;
-            this.buffer = "";           // discard the input buffer
-            this.bufLength = 0;
-            this.bufIndex = 0;
-            this.$$("PRFileSelector").value = null; // reset the control so the same file can be reloaded
-        }
+        this.tapeSupplyBar.value = bufLength-x;
+        this.bufIndex = x;
     }
 };
 
