@@ -110,7 +110,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.02";
+D205Processor.version = "0.02a";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -2012,8 +2012,8 @@ D205Processor.prototype.execute = function execute() {
                 this.togCST = 1;                        // halt if Output switch is OFF
                 this.executeComplete();
             } else {
-                this.stopIdle = 1;                      // turn IDLE lamp on in case Output Knob is OFF
                 this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                this.stopIdle = 1;                      // turn IDLE lamp on in case Output Knob is OFF
                 d = (this.CADDR%0x1000 - this.CADDR%0x100)/0x100;
                 if (d) {                                // if C8 is not zero, output it as the format digit
                     this.togOK = this.togDELAY = 1;
