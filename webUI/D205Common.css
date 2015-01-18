@@ -106,7 +106,7 @@ DIV.neonLamp {
     border:             2px solid #999;
     background-image:   radial-gradient(circle, #999, #333)}
 DIV.neonLit {
-    background-image:   radial-gradient(circle, #F93 30%, #999 100%)}
+    background-image:   radial-gradient(circle, #F93, #F93, #999)}
     
 DIV.neonLampTopCaption {
     position:           absolute;
@@ -131,8 +131,18 @@ DIV.whiteLamp {
     font-size:          4px;
     border-radius:      50%;
     background-image:   radial-gradient(circle, #999, #333)}
+DIV.whiteLit1 {
+    background-image:   radial-gradient(circle, #AAA, #999, #444)}
+DIV.whiteLit2 {
+    background-image:   radial-gradient(circle, #BBB, #AAA, #555)}
+DIV.whiteLit3 {
+    background-image:   radial-gradient(circle, #CCC, #BBB, #666)}
+DIV.whiteLit4 {
+    background-image:   radial-gradient(circle, #DDD, #CCC, #777)}
+DIV.whiteLit5 {
+    background-image:   radial-gradient(circle, #EEE, #DDD, #888)}
 DIV.whiteLit {
-    background-image:   radial-gradient(circle, #FFF 50%, #999 100%)}
+    background-image:   radial-gradient(circle, #FFF, #EEE, #999)}
 
 DIV.redLamp {
     position:           absolute;
@@ -141,8 +151,18 @@ DIV.redLamp {
     font-size:          4px;
     border-radius:      50%;
     background-image:   radial-gradient(circle, #900, #300)}
+DIV.redLit1 {
+    background-image:   radial-gradient(circle, #A00, #900, #400)}
+DIV.redLit2 {
+    background-image:   radial-gradient(circle, #B00, #A00, #500)}
+DIV.redLit3 {
+    background-image:   radial-gradient(circle, #C00, #B00, #600)}
+DIV.redLit4 {
+    background-image:   radial-gradient(circle, #D00, #C00, #700)}
+DIV.redLit5 {
+    background-image:   radial-gradient(circle, #E00, #D00, #800)}
 DIV.redLit {
-    background-image:   radial-gradient(circle, #F00 50%, #900 100%)}
+    background-image:   radial-gradient(circle, #F00, #E00, #900)}
 
 DIV.orangeLamp {
     position:           absolute;
@@ -151,8 +171,18 @@ DIV.orangeLamp {
     font-size:          4px;
     border-radius:      50%;
     background-image:   radial-gradient(circle, #960, #330)}
+DIV.orangeLit1 {
+    background-image:   radial-gradient(circle, #A63, #963, #430)}
+DIV.orangeLit2 {
+    background-image:   radial-gradient(circle, #B73, #A73, #540)}
+DIV.orangeLit3 {
+    background-image:   radial-gradient(circle, #C73, #B73, #640)}
+DIV.orangeLit4 {
+    background-image:   radial-gradient(circle, #D83, #C83, #750)}
+DIV.orangeLit5 {
+    background-image:   radial-gradient(circle, #E83, #D83, #850)}
 DIV.orangeLit {
-    background-image:   radial-gradient(circle, #F93 50%, #960 100%)}
+    background-image:   radial-gradient(circle, #F93, #E93, #960)}
 
 DIV.greenLamp {
     position:           absolute;
@@ -161,8 +191,18 @@ DIV.greenLamp {
     font-size:          4px;
     border-radius:      50%;
     background-image:   radial-gradient(circle, #090, #030)}
+DIV.greenLit1 {
+    background-image:   radial-gradient(circle, #0A0, #090, #040)}
+DIV.greenLit2 {
+    background-image:   radial-gradient(circle, #0B0, #0A0, #050)}
+DIV.greenLit3 {
+    background-image:   radial-gradient(circle, #0C0, #0B0, #060)}
+DIV.greenLit4 {
+    background-image:   radial-gradient(circle, #0D0, #0C0, #070)}
+DIV.greenLit5 {
+    background-image:   radial-gradient(circle, #0E0, #0D0, #080)}
 DIV.greenLit {
-    background-image:   radial-gradient(circle, #0F0 50%, #090 100%)}
+    background-image:   radial-gradient(circle, #0F0, #0E0, #090)}
     
 DIV.coloredLampTopCaption {
     position:           absolute;
@@ -242,7 +282,7 @@ DIV.panelCaption {
     z-index:            +1;
     text-align:         center;
     height:             5px;
-    bottom:             1;
+    bottom:             1px;
     border-left:        1px solid white;
     border-right:       1px solid white;
     border-top:         1px solid white}

@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html manifest="D205Manifest.appcache">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <title>retro-205 Emulator</title>
@@ -27,9 +28,35 @@
     top:                4px;
     right:              4px;
     text-align:         right}
-#D205Image {
+#StatusMsg {
+    text-align:         center;
+    font-size:          85%;
+    color:              blue}
+#CenteredBody {
     margin-top:         80px;
     text-align:         center}
+#StartUpBtn {
+    margin-top:         1em;
+    background-color:   #246;
+    color:              white;
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-weight:        bold;
+    font-size:          12pt;
+    border-radius:      8px;
+    border:             2px solid #999}
+#StartUpBtn[disabled] {
+    background-color:   #468;
+    color:              #999;
+    border-color:       #666}
+#InfoTable {
+    margin-top:         0;
+    width:              100%}
+#PageFooter {
+    position:           absolute;
+    font-size:          75%;
+    bottom:             4px;
+    text-align:         center;
+    width:              100%}
 </style>
 
 <script src="./D205PanelUtil.js"></script>      <!-- must be first -->
@@ -44,17 +71,7 @@
 <script src="./D205ConsoleOutput.js"></script>
 <script src="./D205ConsoleInput.js"></script>
 
-<script>
-window.onload = function() {
-    var devices = {};                   // hash of I/O devices for the Processor
-    var p = new D205Processor(devices);
-
-    devices.ControlConsole = new D205ControlConsole(p);
-    devices.SupervisoryPanel = new D205SupervisoryPanel(p);
-
-    document.getElementById("EmulatorVersion").textContent = D205Processor.version;
-};
-</script>
+<script src="./D205.js"></script>
 </head>
 
 <body>
@@ -62,12 +79,25 @@ window.onload = function() {
     <img id=Retro205Logo src="./resources/retro-205-Logo.png" alt="retro-205 Logo">
     <div id=EmulatorVersion></div>
 </div>
-<h1>ElectroData/Burroughs 205 Emulator</h1>
+<h1>ElectroData/Burroughs Datatron 205 Emulator</h1>
 <hr>
-<i>(You can minimize this window, but please do not close it)</i>
+<table id=InfoTable>
+<tr>
+    <td><a href="https://code.google.com/p/retro-205/" target="_blank">
+        Open-Source Project</a>
+    <td id=StatusMsg>
+    <td class=rj><a href="http://datatron.blogspot.com/" target="_blank">
+        Burroughs 205 Blog</a>
+</table>
 
-<div id=D205Image>
+<div id=CenteredBody>
     <img src="./resources/BRL61-burroughs-204.jpg" alt="ElectroData 204 System">
+    <br>
+    <button id=StartUpBtn>Start the Emulator</button>
+</div>
+
+<div id=PageFooter>
+    <i>(You can minimize this window, but please do not close it while the emulator is running)</i>
 </div>
 </body>
 </html>

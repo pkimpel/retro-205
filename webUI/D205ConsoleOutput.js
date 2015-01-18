@@ -95,6 +95,38 @@ D205ConsoleOutput.prototype.clear = function clear() {
 };
 
 /**************************************/
+D205ConsoleOutput.prototype.loadPrefs = function loadPrefs() {
+    /* Loads, and if necessary initializes, the user's panel preferences */
+    var prefs = null;
+    var s = localStorage["retro-205-Flexowriter-Prefs"];
+
+    try {
+        if (s) {
+            prefs = JSON.parse(s);
+        }
+    } finally {
+        // nothing
+    }
+
+    return prefs || {
+        zeroSuppressSwitch: 0,
+        tabSpaceSwitch: 2,
+        groupingCountersSwitch: 0,
+        autoStopSwitch: 0,
+        powerSwitch: 1,
+        wordsKnob: 0,
+        linesKnob: 0,
+        groupsKnob: 0};
+};
+
+/**************************************/
+D205ConsoleOutput.prototype.storePrefs = function storePrefs(prefs) {
+    /* Stores the current panel preferences back to browser localStorage */
+
+    localStorage["retro-205-Flexowriter-Prefs"] = JSON.stringify(prefs);
+};
+
+/**************************************/
 D205ConsoleOutput.prototype.resetCounters = function resetCounters() {
     /* Resets the grouping counters and turns on the Reset lamp. If there is
     pending output function that was stopped earlier, it is now called */
@@ -132,6 +164,16 @@ D205ConsoleOutput.prototype.beforeUnload = function beforeUnload(ev) {
 /**************************************/
 D205ConsoleOutput.prototype.flex$$ = function flex$$(e) {
     return this.flexDoc.getElementById(e);
+};
+
+/**************************************/
+D205ConsoleOutput.prototype.flexEmptyPaper = function flexEmptyPaper() {
+    /* Empties the Flex output "paper" and initializes it for new output */
+
+    while (this.flexPaper.firstChild) {
+        this.flexPaper.removeChild(this.flexPaper.firstChild);
+    }
+    this.flexPaper.appendChild(this.flexDoc.createTextNode(""));
 };
 
 /**************************************/
@@ -194,7 +236,7 @@ D205ConsoleOutput.prototype.flexCopyPaper = function flexCopyPaper(ev) {
         doc.getElementById("Paper").textContent = text;
     });
 
-    this.flexPaper.textContent = " ";
+    this.flexEmptyPaper();
     this.flexEmptyLine();
     ev.preventDefault();
     ev.stopPropagation();
@@ -218,25 +260,42 @@ D205ConsoleOutput.prototype.button_Click = function button_Click(ev) {
 /**************************************/
 D205ConsoleOutput.prototype.flipSwitch = function flipSwitch(ev) {
     /* Handler for switch clicks */
+    var prefs = this.loadPrefs();
 
     switch (ev.target.id) {
     case "ZeroSuppressSwitch":
         this.zeroSuppressSwitch.flip();
+        prefs.zeroSuppressSwitch = this.zeroSuppressSwitch.state;
         break;
     case "TabSpaceSwitch":
         this.tabSpaceSwitch.flip();
+        prefs.tabSpaceSwitch = this.tabSpaceSwitch.state;
         break;
     case "GroupingCountersSwitch":
         this.groupingCountersSwitch.flip();
+        prefs.groupingCountersSwitch = this.groupingCountersSwitch.state;
         break;
     case "AutoStopSwitch":
         this.autoStopSwitch.flip();
+        prefs.autoStopSwitch = this.autoStopSwitch.state;
         break;
     case "PowerSwitch":
         this.powerSwitch.flip();
+        prefs.powerSwitch = 1;          // always force on
         setCallback(null, this.powerSwitch, 250, this.powerSwitch.set, 1);
         break;
+    case "WordsKnob":
+        prefs.wordsKnob = ev.target.selectedIndex;
+        break;
+    case "LinesKnob":
+        prefs.linesKnob = ev.target.selectedIndex;
+        break;
+    case "GroupsKnob":
+        prefs.groupsKnob = ev.target.selectedIndex;
+        break;
     }
+
+    this.storePrefs(prefs);
     ev.preventDefault();
     return false;
 };
@@ -245,12 +304,13 @@ D205ConsoleOutput.prototype.flipSwitch = function flipSwitch(ev) {
 D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     /* Initializes the Flexowriter window and user interface */
     var body;
+    var prefs = this.loadPrefs();
 
     this.flexDoc = this.flexWin.document;
     this.flexDoc.title = "retro-205 - Flexowriter";
     this.flexPaper = this.flex$$("Paper");
     this.flexEOP = this.flex$$("EndOfPaper");
-    this.flexPaper.textContent = " ";
+    this.flexEmptyPaper();
     this.flexEmptyLine();
 
     body = this.flex$$("FormatControlsDiv");
@@ -258,23 +318,26 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
 
     this.zeroSuppressSwitch = new ToggleSwitch(body, null, null, "ZeroSuppressSwitch",
             D205ConsoleOutput.offSwitch, D205ConsoleOutput.onSwitch);
-    this.zeroSuppressSwitch.set(0);
+    this.zeroSuppressSwitch.set(prefs.zeroSuppressSwitch);
     this.tabSpaceSwitch = new ThreeWaySwitch(body, null, null, "TabSpaceSwitch",
             D205ConsoleOutput.midSwitch, D205ConsoleOutput.offSwitch, D205ConsoleOutput.onSwitch);
-    this.tabSpaceSwitch.set(2);
+    this.tabSpaceSwitch.set(prefs.tabSpaceSwitch);
     this.groupingCountersSwitch = new ThreeWaySwitch(body, null, null, "GroupingCountersSwitch",
             D205ConsoleOutput.midSwitch, D205ConsoleOutput.offSwitch, D205ConsoleOutput.onSwitch);
-    this.groupingCountersSwitch.set(0);
+    this.groupingCountersSwitch.set(prefs.groupingCountersSwitch);
     this.autoStopSwitch = new ToggleSwitch(body, null, null, "AutoStopSwitch",
             D205ConsoleOutput.offSwitch, D205ConsoleOutput.onSwitch);
-    this.autoStopSwitch.set(0);
+    this.autoStopSwitch.set(prefs.autoStopSwitch);
     this.powerSwitch = new ToggleSwitch(body, null, null, "PowerSwitch",
             D205ConsoleOutput.offSwitch, D205ConsoleOutput.onSwitch);
-    this.powerSwitch.set(1);
+    this.powerSwitch.set(prefs.powerSwitch);
 
     this.wordsKnob = this.flex$$("WordsKnob");
+    this.wordsKnob.selectedIndex = prefs.wordsKnob;
     this.linesKnob = this.flex$$("LinesKnob");
+    this.linesKnob.selectedIndex = prefs.linesKnob;
     this.groupsKnob = this.flex$$("GroupsKnob");
+    this.groupsKnob.selectedIndex = prefs.groupsKnob;
 
     this.flexWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);
@@ -290,6 +353,9 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     this.flex$$("GroupingCountersSwitch").addEventListener("click", this.boundFlipSwitch);
     this.flex$$("AutoStopSwitch").addEventListener("click", this.boundFlipSwitch);
     this.flex$$("PowerSwitch").addEventListener("click", this.boundFlipSwitch);
+    this.wordsKnob.addEventListener("change", this.boundFlipSwitch);
+    this.linesKnob.addEventListener("change", this.boundFlipSwitch);
+    this.groupsKnob.addEventListener("change", this.boundFlipSwitch);
 
     //this.flexWin.moveTo(screen.availWidth-this.flexWin.outerWidth,
     //                   screen.availHeight-this.flexWin.outerHeight);
@@ -304,6 +370,16 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
 /**************************************/
 D205ConsoleOutput.prototype.punch$$ = function punch$$(e) {
     return this.punchDoc.getElementById(e);
+};
+
+/**************************************/
+D205ConsoleOutput.prototype.punchEmptyPaper = function punchEmptyPaper() {
+    /* Empties the punch output "paper" and initializes it for new output */
+
+    while (this.punchTape.firstChild) {
+        this.punchTape.removeChild(this.punchTape.firstChild);
+    }
+    this.punchTape.appendChild(this.punchDoc.createTextNode(""));
 };
 
 /**************************************/
@@ -360,7 +436,7 @@ D205ConsoleOutput.prototype.punchCopyTape = function punchCopyTape(ev) {
         doc.getElementById("Paper").textContent = text;
     });
 
-    this.punchTape.textContent = " ";
+    this.punchEmptyPaper();
     ev.preventDefault();
     ev.stopPropagation();
 };
@@ -373,7 +449,7 @@ D205ConsoleOutput.prototype.punchOnload = function punchOnload() {
     this.punchDoc.title = "retro-205 - Paper Tape Punch";
     this.punchTape = this.punch$$("Paper");
     this.punchEOP = this.punch$$("EndOfPaper");
-    this.punchTape.textContent = " ";
+    this.punchEmptyPaper();
 
     this.punchWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);

@@ -13,14 +13,18 @@
 "use strict";
 
 /**************************************/
-function D205SupervisoryPanel(p) {
+function D205SupervisoryPanel(p, systemShutdown) {
     /* Constructor for the SupervisoryPanel object */
     var h = 600;
     var w = 1180;
     var mnemonic = "SupervisoryPanel";
 
     this.p = p;                         // D205Processor object
+    this.systemShutdown = systemShutdown; // system shut-down callback
     this.intervalToken = 0;             // setInterval() token
+    this.stats = {};                    // current statistics values used by updatePanel()
+    this.lastStats = {drumTime: 0};     // prior statisticss values used by updatePanel()
+
     this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
     this.boundPowerBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerBtn_Click);
     this.boundClear_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.clear_Click);
@@ -49,6 +53,36 @@ D205SupervisoryPanel.onSwitch = "./resources/ToggleUp.png";
 /**************************************/
 D205SupervisoryPanel.prototype.$$ = function $$(e) {
     return this.doc.getElementById(e);
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.loadPrefs = function loadPrefs() {
+    /* Loads, and if necessary initializes, the user's panel preferences */
+    var prefs = null;
+    var s = localStorage["retro-205-SupervisoryPanel-Prefs"];
+
+    try {
+        if (s) {
+            prefs = JSON.parse(s);
+        }
+    } finally {
+        // nothing
+    }
+
+    return prefs || {
+        pulseSourceSwitch: 0,
+        wordContSwitch: 0,
+        frequencyKnob: 0,
+        audibleAlarmSwitch: 0,
+        lockNormalSwitch: 0,
+        stepContinuousSwitch: 0};
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.storePrefs = function storePrefs(prefs) {
+    /* Stores the current panel preferences back to browser localStorage */
+
+    localStorage["retro-205-SupervisoryPanel-Prefs"] = JSON.stringify(prefs);
 };
 
 /**************************************/
@@ -159,8 +193,30 @@ D205SupervisoryPanel.prototype.updateControlReg = function updateControlReg() {
 };
 
 /**************************************/
+D205SupervisoryPanel.prototype.timeToLevel = function timeToLevel(id, elapsed) {
+    /* Converts the timer value identified by "id" to a relative lamp intensity
+    level based on the "elapsed" time (in word-times) */
+    var lastTime = this.lastStats[id] || 0;
+    var thisTime = this.stats[id] || 0;
+
+    this.lastStats[id] = thisTime;
+    if (elapsed > 0) {
+        return (thisTime-lastTime)/elapsed;
+    } else {
+        return (thisTime > 0 ? 1 : 0);
+    }
+};
+
+/**************************************/
 D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
+    /* Updates the panel from the current Processor state */
+    var elapsed;
+    var eLevel;
     var p = this.p;                     // local copy of Processor object
+
+    p.fetchStats(this.stats);
+    elapsed = this.stats.drumTime - this.lastStats.drumTime;
+    eLevel = this.timeToLevel("executeTime", elapsed);
 
     this.regA.update(p.A);
     this.regB.update(p.B);
@@ -175,26 +231,28 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.cardaTronTWA.set(p.togTWA);
     this.cardaTronBIO.set(p.togBIO);
 
-    this.overflowLamp.set(p.stopOverflow);
+    this.overflowLamp.set(p.poweredOn && this.timeToLevel("overflowTime", elapsed));
     this.sectorLamp.set(p.stopSector);
     this.fcLamp.set(p.stopForbidden);
     this.controlLamp.set(p.stopControl);
-    this.idleLamp.set(p.stopIdle && p.poweredOn);
+    this.idleLamp.set(p.poweredOn && p.stopIdle);
 
-    this.executeLamp.set(1-p.togTiming && p.poweredOn);
-    this.fetchLamp.set(p.togTiming && p.poweredOn);
+    this.executeLamp.set(p.poweredOn && eLevel);
+    this.fetchLamp.set(p.poweredOn && (1-eLevel));
 
-    this.mainLamp.set(p.memMAIN);
-    this.rwmLamp.set(p.memRWM);
-    this.rwlLamp.set(p.memRWL);
-    this.wdblLamp.set(p.memWDBL);
-    this.actLamp.set(p.memACTION);
-    this.accessLamp.set(p.memACCESS);
-    this.lmLamp.set(p.memLM);
-    this.l4Lamp.set(p.memL4);
-    this.l5Lamp.set(p.memL5);
-    this.l6Lamp.set(p.memL6);
-    this.l7Lamp.set(p.memL7);
+    this.mainLamp.set(this.timeToLevel("memMAINTime", elapsed));
+    this.rwmLamp.set(this.timeToLevel("memRWMTime", elapsed));
+    this.rwlLamp.set(this.timeToLevel("memRWLTime", elapsed));
+    this.wdblLamp.set(this.timeToLevel("memWDBLTime", elapsed));
+    this.actLamp.set(this.timeToLevel("memACTIONTime", elapsed));
+    this.accessLamp.set(this.timeToLevel("memACCESSTime", elapsed));
+    this.lmLamp.set(this.timeToLevel("memLMTime", elapsed));
+    this.l4Lamp.set(this.timeToLevel("memL4Time", elapsed));
+    this.l5Lamp.set(this.timeToLevel("memL5Time", elapsed));
+    this.l6Lamp.set(this.timeToLevel("memL6Time", elapsed));
+    this.l7Lamp.set(this.timeToLevel("memL7Time", elapsed));
+
+    this.lastStats.drumTime = this.stats.drumTime;
 
     /********** DEBUG **********
     this.$$("ProcDelta").value = p.procSlackAvg.toFixed(2);
@@ -405,7 +463,7 @@ D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
             this.p.clearControl();
             break;
         case "ResetOverflowBtn":
-            this.p.stopOverflow = 0;
+            this.p.setOverflow(0);
             break;
         case "ResetSectorBtn":
             this.p.stopSector = 0;
@@ -442,7 +500,7 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
         break;
     case "PowerOffBtn":
         if (this.p.poweredOn) {
-            this.p.powerDown();
+            this.systemShutdown();
             this.powerLamp.set(0);
             if (this.intervalToken) {               // if the display auto-update is running
                 this.window.clearInterval(this.intervalToken);  // kill it
@@ -468,33 +526,42 @@ D205SupervisoryPanel.prototype.startBtn_Click = function startBtn_Click(ev) {
 
 /**************************************/
 D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
-    /* Handler for switch clicks */
+    /* Handler for switch & knob clicks */
+    var prefs = this.loadPrefs();
 
     switch (ev.target.id) {
     case "AudibleAlarmSwitch":
         this.audibleAlarmSwitch.flip();
-        this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state;
+        prefs.audibleAlarmSwitch = this.p.sswAudibleAlarm =
+            this.audibleAlarmSwitch.state;
         break;
     case "LockNormalSwitch":
         this.lockNormalSwitch.flip();
-        this.p.sswLockNormal = this.lockNormalSwitch.state;
+        prefs.lockNormalSwitch = this.p.sswLockNormal =
+            this.lockNormalSwitch.state;
         break;
     case "StepContinuousSwitch":
         this.stepContinuousSwitch.flip();
-        this.p.sswStepContinuous = this.stepContinuousSwitch.state;
+        prefs.stepContinuousSwitch = this.p.sswStepContinuous =
+            this.stepContinuousSwitch.state;
         break;
     case "PulseSourceSwitch":           // non-functional, just turn it back off
         this.pulseSourceSwitch.flip();
+        prefs.pulseSourceSwitch = 0;
         setCallback(null, this.pulseSourceSwitch, 250, this.pulseSourceSwitch.set, 0);
         break;
     case "WordContSwitch":              // non-functional, just turn it back off
         this.wordContSwitch.flip();
+        prefs.wordContSwitch = 0;
         setCallback(null, this.wordContSwitch, 250, this.wordContSwitch.set, 0);
         break;
-    case "FrequencyKnob":
-        this.frequencyKnob.step();      // non-function knob -- just step it
+    case "FrequencyKnob":               // non-function knob -- just step it
+        this.frequencyKnob.step();
+        prefs.frequencyKnob = this.frequencyKnob.position;
         break;
     }
+
+    this.storePrefs(prefs);
     this.updatePanel();
     ev.preventDefault();
     return false;
@@ -510,6 +577,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     var cx;
     var cy;
     var e;
+    var prefs = this.loadPrefs();
     var x;
 
     this.doc = this.window.document;
@@ -667,12 +735,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.t4Lamp = new ColoredLamp(body, null, null, "T4Lamp", "whiteLamp", "whiteLit");
     this.t2Lamp = new ColoredLamp(body, null, null, "T2Lamp", "whiteLamp", "whiteLit");
     this.t1Lamp = new ColoredLamp(body, null, null, "T1Lamp", "whiteLamp", "whiteLit");
-    this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
-    this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
     this.singleWordLamp = new ColoredLamp(body, null, null, "SingleWordLamp", "whiteLamp", "whiteLit");
-    this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob", 0, [-60, -30, 0, 30, 60]);
 
     this.powerLamp = new ColoredLamp(body, null, null, "PowerLamp", "greenLamp", "greenLit");
 
@@ -682,16 +745,6 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.controlLamp = new ColoredLamp(body, null, null, "ControlLamp", "orangeLamp", "orangeLit");
     this.fcLamp = new ColoredLamp(body, null, null, "FCLamp", "whiteLamp", "whiteLit");
     this.idleLamp = new ColoredLamp(body, null, null, "IdleLamp", "redLamp", "redLit");
-
-    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
-    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm);
-    this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
-    this.lockNormalSwitch.set(this.p.sswLockNormal);
-    this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
-    this.stepContinuousSwitch.set(this.p.sswStepContinuous);
 
     this.executeLamp = new ColoredLamp(body, null, null, "ExecuteLamp", "whiteLamp", "whiteLit");
     this.fetchLamp = new ColoredLamp(body, null, null, "FetchLamp", "whiteLamp", "whiteLit");
@@ -707,6 +760,27 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.l6Lamp = new ColoredLamp(body, null, null, "L6Lamp", "whiteLamp", "whiteLit");
     this.l5Lamp = new ColoredLamp(body, null, null, "L5Lamp", "whiteLamp", "whiteLit");
     this.l4Lamp = new ColoredLamp(body, null, null, "L4Lamp", "whiteLamp", "whiteLit");
+
+    // Switches & Knobs
+
+    this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.pulseSourceSwitch.set(prefs.pulseSourceSwitch);
+    this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.wordContSwitch.set(prefs.wordContSwitch);
+    this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob",
+        prefs.frequencyKnob, [-60, -30, 0, 30, 60]);
+
+    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
+    this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.lockNormalSwitch.set(this.p.sswLockNormal = prefs.lockNormalSwitch);
+    this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch",
+            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+    this.stepContinuousSwitch.set(this.p.sswStepContinuous = prefs.stepContinuousSwitch);
 
     // Events
 
