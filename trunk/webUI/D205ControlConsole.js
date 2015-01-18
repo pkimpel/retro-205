@@ -22,6 +22,9 @@ function D205ControlConsole(p) {
     this.p = p;                         // D205Processor object
     this.fastUpdateMode = 0;            // slow vs. fast panel update mode
     this.intervalToken = 0;             // setCallback() token
+    this.stats = {};                    // current statistics values used by updatePanel()
+    this.lastStats = {drumTime: 0};     // prior statisticss values used by updatePanel()
+
     this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
     this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
@@ -67,6 +70,36 @@ D205ControlConsole.prototype.clear = function clear() {
 };
 
 /**************************************/
+D205ControlConsole.prototype.loadPrefs = function loadPrefs() {
+    /* Loads, and if necessary initializes, the user's panel preferences */
+    var prefs = null;
+    var s = localStorage["retro-205-ControlConsole-Prefs"];
+
+    try {
+        if (s) {
+            prefs = JSON.parse(s);
+        }
+    } finally {
+        // nothing
+    }
+
+    return prefs || {
+        poSuppressSwitch: 0,
+        skipSwitch: 0,
+        audibleAlarmSwitch: 0,
+        outputKnob: 1,
+        breakpointKnob: 0,
+        inputKnob: 1};
+};
+
+/**************************************/
+D205ControlConsole.prototype.storePrefs = function storePrefs(prefs) {
+    /* Stores the current panel preferences back to browser localStorage */
+
+    localStorage["retro-205-ControlConsole-Prefs"] = JSON.stringify(prefs);
+};
+
+/**************************************/
 D205ControlConsole.prototype.beforeUnload = function beforeUnload(ev) {
     var msg = "Closing this window will make the panel unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
@@ -106,8 +139,29 @@ D205ControlConsole.prototype.randomDisplay = function randomDisplay() {
 };
 
 /**************************************/
+D205ControlConsole.prototype.timeToLevel = function timeToLevel(id, elapsed) {
+    /* Converts the timer value identified by "id" to a relative lamp intensity
+    level based on the "elapsed" time (in word-times) */
+    var lastTime = this.lastStats[id] || 0;
+    var thisTime = this.stats[id] || 0;
+
+    this.lastStats[id] = thisTime;
+    if (elapsed > 0) {
+        return (thisTime-lastTime)/elapsed;
+    } else {
+        return (thisTime > 0 ? 1 : 0);
+    }
+};
+
+/**************************************/
 D205ControlConsole.prototype.updatePanel = function updatePanel() {
+    /* Updates the panel from the current Processor state */
+    var elapsed;
+    var eLevel;
     var p = this.p;                     // local copy of Processor object
+
+    p.fetchStats(this.stats);
+    elapsed = this.stats.drumTime - this.lastStats.drumTime;
 
     this.regA.update(p.A);
     this.regB.update(p.B);
@@ -115,14 +169,15 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
     this.regD.update(p.D);
     this.regR.update(p.R);
 
-    this.idleLamp.set(p.stopIdle && p.poweredOn);
+    this.idleLamp.set(p.poweredOn && p.stopIdle);
     this.fcsaLamp.set(p.stopForbidden || p.stopSector);
     this.controlLamp.set(p.stopControl);
     this.bkptLamp.set(p.stopBreakpoint);
-    this.overflowLamp.set(p.stopOverflow);
+    this.overflowLamp.set(p.poweredOn && this.timeToLevel("overflowTime", elapsed));
 
-    this.executeLamp.set(1-p.togTiming && p.poweredOn);
-    this.fetchLamp.set(p.togTiming && p.poweredOn);
+    eLevel = this.timeToLevel("executeTime", elapsed);
+    this.executeLamp.set(p.poweredOn && eLevel);
+    this.fetchLamp.set(p.poweredOn && (1-eLevel));
 
     this.notReadyLamp.set((p.sswLockNormal || p.sswStepContinuous) && p.poweredOn);
     this.continuousLamp.set((p.sswStepContinuous || p.cctContinuous) && p.poweredOn);
@@ -150,6 +205,8 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
         this.intervalToken = this.window.setInterval(this.boundUpdatePanel,
             (p.poweredOn ? D205ControlConsole.displayRefreshPeriod : D205ControlConsole.slowRefreshPeriod));
     }
+
+    this.lastStats.drumTime = this.stats.drumTime;
 };
 
 /**************************************/
@@ -188,7 +245,7 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
             this.p.clear();
             break;
         case "ResetBtn":
-            this.p.stopOverflow = 0;
+            this.p.setOverflow(0);
             break;
         case "StepBtn":
             if (ready) {
@@ -220,38 +277,47 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
 
 /**************************************/
 D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
-    /* Handler for switch clicks */
+    /* Handler for switch & knob clicks */
+    var prefs = this.loadPrefs();
 
     switch (ev.target.id) {
     case "AudibleAlarmSwitch":
         this.audibleAlarmSwitch.flip();
-        this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state;
+        prefs.audibleAlarmSwitch = this.p.sswAudibleAlarm =
+            this.audibleAlarmSwitch.state;
         break;
     case "SkipSwitch":
         this.skipSwitch.flip();
-        this.p.cswSkip = this.skipSwitch.state;
+        prefs.skipSwitch = this.p.cswSkip =
+            this.skipSwitch.state;
         break;
     case "POSuppressSwitch":
         this.poSuppressSwitch.flip();
-        this.p.cswPOSuppress = this.poSuppressSwitch.state;
+        prefs.poSuppressSwitch = this.p.cswPOSuppress =
+            this.poSuppressSwitch.state;
         break;
     case "OutputKnob":
         // Output knob: 0=Off, 1=Page, 2=Tape
         this.outputKnob.step();
-        this.p.cswOutput = this.outputKnob.position;
+        prefs.outputKnob = this.p.cswOutput =
+            this.outputKnob.position;
         break;
     case "InputKnob":
         // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
         this.inputKnob.step();
-        this.p.cswInput = this.inputKnob.position;
+        prefs.inputKnob = this.p.cswInput =
+            this.inputKnob.position;
         this.lastStartState = -1;       // force updatePanel to reevaluate the annunciators
         break;
     case "BreakpointKnob":
         // Breakpoint knob: 0=Off, 1, 2, 4
         this.breakpointKnob.step();
-        this.p.cswBreakpoint = this.breakpointKnob.position;
+        prefs.breakpointKnob = this.p.cswBreakpoint =
+            this.breakpointKnob.position;
         break;
     }
+
+    this.storePrefs(prefs);
     this.updatePanel();
     ev.preventDefault();
     return false;
@@ -312,6 +378,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     var body;
     var box;
     var e;
+    var prefs = this.loadPrefs();
     var x;
 
     this.doc = this.window.document;
@@ -375,17 +442,20 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
 
     this.poSuppressSwitch = new ToggleSwitch(body, null, null, "POSuppressSwitch",
             D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
-    this.poSuppressSwitch.set(this.p.cswPOSuppress);
+    this.poSuppressSwitch.set(this.p.cswPOSuppress = prefs.poSuppressSwitch);
     this.skipSwitch = new ToggleSwitch(body, null, null, "SkipSwitch",
             D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
-    this.skipSwitch.set(this.p.cswSkip);
+    this.skipSwitch.set(this.p.cswSkip = prefs.skipSwitch);
     this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
             D205ControlConsole.offSwitch, D205ControlConsole.onSwitch);
-    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm);
+    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
 
-    this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob", 1, [90, 115, 60]);
-    this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob", 0, [-40, -15, 15, 40]);
-    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob", 2, [300, 270, 240]);
+    this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob",
+        prefs.outputKnob, [90, 115, 60]);
+    this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob",
+        prefs.breakpointKnob, [-40, -15, 15, 40]);
+    this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob",
+        prefs.inputKnob, [300, 270, 240]);
 
     // Events
 

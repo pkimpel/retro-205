@@ -104,6 +104,14 @@ function ColoredLamp(element, x, y, id, offClass, onClass) {
     this.lampClass = offClass;          // css styling for an "off" lamp
     this.litClass =                     // css styling for an "on" lamp
                 offClass + " " + onClass;
+    this.levelClass = [                 // css class names for the lamp levels
+            offClass,
+            this.litClass + "1",
+            this.litClass + "2",
+            this.litClass + "3",
+            this.litClass + "4",
+            this.litClass + "5",
+            this.litClass];
 
     // visible DOM element
     this.element = document.createElement("div");
@@ -123,6 +131,7 @@ function ColoredLamp(element, x, y, id, offClass, onClass) {
 
 /**************************************/
 
+ColoredLamp.lampLevels = 6;
 ColoredLamp.topCaptionClass = "coloredLampTopCaption";
 ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
 
@@ -130,21 +139,19 @@ ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
 ColoredLamp.prototype.set = function set(state) {
     /* Changes the visible state of the lamp according to the low-order
     bit of "state" */
-    var newState = state & 1;
+    var newState = Math.round(Math.max(Math.min(state, 1), 0)*ColoredLamp.lampLevels);
 
-    if (this.state ^ newState) {         // the state has changed
+    if (this.state != newState) {       // the state has changed
         this.state = newState;
-        this.element.className = (newState ? this.litClass : this.lampClass);
+        this.element.className = this.levelClass[newState];
     }
 };
 
 /**************************************/
 ColoredLamp.prototype.flip = function flip() {
     /* Complements the visible state of the lamp */
-    var newState = this.state ^ 1;
 
-    this.state = newState;
-    this.element.className = (newState ? this.litClass : this.lampClass);
+    this.set(ColoredLamp.lampLevels - this.state);
 };
 
 /**************************************/

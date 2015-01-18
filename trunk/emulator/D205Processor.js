@@ -110,7 +110,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.02a";
+D205Processor.version = "0.03";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -173,7 +173,7 @@ D205Processor.prototype.clear = function clear() {
     this.CT = 0;                        // Carry toggles for the adder
 
     // Operational toggles
-    this.togTiming = 0;                 // Timing toggle: 0=execute, 1=fetch
+    this.togTiming = 1;                 // Timing toggle: 0=execute, 1=fetch
     this.togCST = 1;                    // Computer Stop toggle (?)
     this.cctContinuous = 0;             // Console step(0) / continuous(1) toggle
 
@@ -197,6 +197,24 @@ D205Processor.prototype.clear = function clear() {
     this.memL5 = 0;                     // 5000 loop access
     this.memL6 = 0;                     // 6000 loop access
     this.memL7 = 0;                     // 7000 loop access
+
+    // Memory control toggles
+    this.memMAINTime = 0;
+    this.memRWMTime = 0;
+    this.memRWLTime = 0;
+    this.memWDBLTime = 0;
+    this.memACTIONTime = 0;
+    this.memACCESSTime = 0;
+    this.memLMTime = 0;
+    this.memL4Time = 0;
+    this.memL5Time = 0;
+    this.memL6Time = 0;
+    this.memL7Time = 0;
+
+    // Statistics control
+    this.executeTime = 0;               // Total time togTiming==0
+    this.overflowTime = 0;              // Total time stopOverflow==1
+    this.setTimingToggle(0);            // set to Execute initially; initalize executeTime
 
     // Kill any pending action that may be in process
     if (this.scheduler) {
@@ -302,6 +320,158 @@ D205Processor.binaryBCD = function binaryBCD(v) {
     }
     return result;
 };
+
+
+/***********************************************************************
+* Timing and Statistics Functions                                      *
+***********************************************************************/
+
+/**************************************/
+D205Processor.prototype.setTimingToggle = function setTimingToggle(cycle) {
+    /* Sets the timing toggle to the value of "cycle" and updates the timing
+    statistics */
+    var drumTime;
+
+    if (this.togTiming != cycle) {
+        drumTime = performance.now()*D205Processor.wordsPerMilli;
+        if (cycle) {
+            this.togTiming = 1;         // Set Fetch
+            this.executeTime += drumTime;
+        } else {
+            this.togTiming = 0;         // Set Execute
+            this.executeTime -= drumTime;
+        }
+    }
+};
+
+/**************************************/
+D205Processor.prototype.setOverflow = function setOverflow(overflow) {
+    /* Sets the overflow toggle to the value of "overflow" and updates the
+    timing statistics */
+    var drumTime;
+
+    if (this.stopOverflow != overflow) {
+        drumTime = performance.now()*D205Processor.wordsPerMilli;
+        if (overflow) {
+            this.stopOverflow = 1;
+            this.overflowTime -= drumTime;
+        } else {
+            this.stopOverflow = 0;
+            this.overflowTime += drumTime;
+        }
+    }
+};
+
+/**************************************/
+D205Processor.prototype.startMemoryTiming = function startMemoryTiming(drumTime) {
+    /* Starts the necessary timers for the memory toggles to aid in their
+    display on the panels */
+
+    if (this.memMain)   {this.memMainTime -= drumTime}
+    if (this.memRWM)    {this.memRWMTime -= drumTime};
+    if (this.memRWL)    {this.memRWLTime -= drumTime};
+    if (this.memWDBL)   {this.memWDBLTime -= drumTime};
+    if (this.memACTION) {this.memACTIONTime -= drumTime};
+    if (this.memACCESS) {this.memACCESSTime -= drumTime};
+    if (this.memLM)     {this.memLMTime -= drumTime};
+    if (this.memL4)     {this.memL4Time -= drumTime};
+    if (this.memL5)     {this.memL5Time -= drumTime};
+    if (this.memL6)     {this.memL6Time -= drumTime};
+    if (this.memL7)     {this.memL7Time -= drumTime};
+};
+
+/**************************************/
+D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
+    /* Stops the active timers for the memory toggles to aid in their
+    display on the panels and reset the corresponding toggle */
+    var drumTime = performance.now()*D205Processor.wordsPerMilli;
+
+    if (this.memMain)   {
+        this.memMAIN = 0;
+        this.memMainTime +- drumTime;
+    }
+    if (this.memRWM)    {
+        this.memRWM = 0;
+        this.memRWMTime +- drumTime;
+    };
+    if (this.memRWL)    {
+        this.memRWL = 0;
+        this.memRWLTime +- drumTime;
+    };
+    if (this.memWDBL)   {
+        this.memWDBL = 0;
+        this.memWDBLTime +- drumTime;
+    };
+    if (this.memACTION) {
+        this.memACTION = 0;
+        this.memACTIONTime +- drumTime;
+    };
+    if (this.memACCESS) {
+        this.memACCESS = 0;
+        this.memACCESSTime +- drumTime;
+    };
+    if (this.memLM)     {
+        this.memLM = 0;
+        this.memLMTime +- drumTime;
+    };
+    if (this.memL4)     {
+        this.memL4 = 0;
+        this.memL4Time +- drumTime;
+    };
+    if (this.memL5)     {
+        this.memL5 = 0;
+        this.memL5Time +- drumTime;
+    };
+    if (this.memL6)     {
+        this.memL6 = 0;
+        this.memL6Time +- drumTime;
+    };
+    if (this.memL7)     {
+        this.memL7 = 0;
+        this.memL7Time +- drumTime;
+    };
+};
+
+/**************************************/
+D205Processor.prototype.fetchStats = function fetchStats(stats) {
+    /* Sets the timing statistics into the object passed by the caller */
+    var drumTime = performance.now()*D205Processor.wordsPerMilli;
+
+    stats.drumTime = drumTime;
+
+    stats.procTime = this.procTime;
+    while (stats.procTime < 0) {stats.procTime += drumTime}
+
+    stats.executeTime = this.executeTime;
+    while (stats.executeTime < 0) {stats.executeTime += drumTime}
+
+    stats.overflowTime = this.overflowTime;
+    while (stats.overflowTime < 0) {stats.overflowTime += drumTime}
+
+    stats.memMAINTime = this.memMAINTime;
+    while (this.memMainTime < 0)   {this.memMainTime += drumTime}
+    stats.memRWMTime = this.memRWMTime;
+    while (this.memRWMTime < 0)    {this.memRWMTime += drumTime};
+    stats.memRWLTime = this.memRWLTime;
+    while (this.memRWLTime < 0)    {this.memRWLTime += drumTime};
+    stats.memWDBLTime = this.memWDBLTime;
+    while (this.memWDBLTime < 0)   {this.memWDBLTime += drumTime};
+    stats.memACTIONTime = this.memACTIONTime;
+    while (this.memACTIONTime < 0) {this.memACTIONTime += drumTime};
+    stats.memACCESSTime = this.memACCESSTime;
+    while (this.memACCESSTime < 0) {this.memACCESSTime += drumTime};
+    stats.memLMTime = this.memLMTime;
+    while (this.memLMTime < 0)     {this.memLMTime += drumTime};
+    stats.memL4Time = this.memL4Time;
+    while (this.memL4Time < 0)     {this.memL4Time += drumTime};
+    stats.memL5Time = this.memL5Time;
+    while (this.memL5Time < 0)     {this.memL5Time += drumTime};
+    stats.memL6Time = this.memL6Time;
+    while (this.memL6Time < 0)     {this.memL6Time += drumTime};
+    stats.memL7Time = this.memL7Time;
+    while (this.memL7Time < 0)     {this.memL7Time += drumTime};
+};
+
 
 /***********************************************************************
 *   Bit and Field Manipulation Functions                               *
@@ -508,7 +678,7 @@ D205Processor.prototype.integerAdd = function integerAdd() {
         break;
     case 1:
         am += (sign-1)*0x10000000000;
-        this.stopOverflow = 1;
+        this.setOverflow(1);
         break;
     default: // sign is 9
         // reverse the sign toggle and recomplement the result (virtually adding to the zeroed dm)
@@ -600,7 +770,7 @@ D205Processor.prototype.integerExtract = function integerExtract() {
         am += sign*0x10000000000;
     } else if (adder == 1) {
         am += (sign-1)*0x10000000000;
-        this.stopOverflow = 1;
+        this.setOverflow(1);
     }
 
     // Set toggles for display purposes and return the result
@@ -721,7 +891,7 @@ D205Processor.prototype.integerDivide = function integerDivide() {
             rm += rd;                   // accumulate the quotient digit
             this.togDIVALARM = 0;
         } else {
-            this.stopOverflow = 1;
+            this.setOverflow(1);
             am = rm = 0;
             break;                      // out of for loop
         }
@@ -828,7 +998,7 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
             // exponent inserted back into it. Since the A register gets reassembled
             // below, we need to set up the mantissa and exponent so the reconstruct
             // will effectively do nothing.
-            this.stopOverflow = 1;
+            this.setOverflow(1);
             sign = 0;                   // per 205 FP Handbook
             ae = (am - am%0x100000000)/0x100000000;
             am %= 0x100000000;
@@ -893,7 +1063,7 @@ D205Processor.prototype.floatingMultiply = function floatingMultiply() {
     } else {
         ae = this.bcdAdd(ae, de);
         if (ae >= 0x150) {
-            this.stopOverflow = 1;
+            this.setOverflow(1);
             sign = 0;
             this.A = am;
             this.R = 0;
@@ -1017,7 +1187,7 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
     } else if (dm == 0) {
         this.A = this.R = sign = 0;     // divide by zero
         this.togDIVALARM = 1;           // for display only
-        this.stopOverflow = 1;
+        this.setOverflow(1);
     } else {
         // Add the exponent bias to the dividend exponent and check for underflow
         ae = this.bcdAdd(ae, 0x50);
@@ -1032,7 +1202,7 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
             // Subtract the exponents and check for overflow
             ae = this.bcdAdd(de, ae, 1, 1);
             if (ae > 0x99) {
-                this.stopOverflow = 1;
+                this.setOverflow(1);
                 sign = 0;
                 this.A = am;
                 this.R = rm;
@@ -1111,9 +1281,7 @@ D205Processor.prototype.readMemoryFinish = function readMemoryFinish() {
     function. Note: the word has already been stored in D by readMemory() */
 
     this.scheduler = 0;
-    this.memACCESS = this.memACTION = 0;
-    this.memMAIN = this.memLM = 0;
-    this.memL4 = this.memL5 = this.memL6 = this.memL7 = 0;
+    this.stopMemoryTiming();
     this.successor();
 };
 
@@ -1157,6 +1325,7 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
     this.procTime += latency+1;         // emulated time at end of drum access
     this.memACTION = 1;
+    this.startMemoryTiming(drumTime);
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.readMemoryFinish);
@@ -1169,9 +1338,7 @@ D205Processor.prototype.writeMemoryFinish = function writeMemoryFinish(clearA) {
     memory control toggles, and calls the current successor function */
 
     this.scheduler = 0;
-    this.memACCESS = this.memACTION = 0;
-    this.memMAIN = this.memLM = 0; this.memRWM = this.memRWL = this.memWDBL = 0;
-    this.memL4 = this.memL5 = this.memL6 = this.memL7 = 0;
+    this.stopMemoryTiming();
     if (clearA) {
         this.A = 0;
     }
@@ -1219,6 +1386,7 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
     this.procTime += latency+1;         // emulated time at end of drum access
     this.memACTION = 1;
+    this.startMemoryTiming(drumTime);
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, clearA);
@@ -1276,6 +1444,7 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
                D205Processor.trackSize)%D205Processor.trackSize;
     this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
     this.memACTION = 1;
+    this.startMemoryTiming(drumTime);
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
@@ -1333,9 +1502,19 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
                D205Processor.trackSize)%D205Processor.trackSize;
     this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
     this.memACTION = 1;
+    this.startMemoryTiming(drumTime);
     this.successor = successor;
     this.scheduler = setCallback("MEM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
+};
+
+/**************************************/
+D205Processor.prototype.searchMemoryFinish = function searchMemoryFinish() {
+    /* Handles completion of a search memory operation and resets the memory
+    toggle and timing state */
+
+    this.stopMemoryTiming();
+    this.executionComplete();
 };
 
 /**************************************/
@@ -1368,9 +1547,13 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     var found = false;                  // true if matching word found
     var x = 0;                          // iteration control
 
-    addr = D205Processor.bcdBinary(this.CADDR % 0x4000);
-    this.memACCESS = this.memACTION = this.memMAIN = this.memLM = 1;
+    if (!this.memACCESS) {
+        drumTime = performance.now()*D205Processor.wordsPerMilli;
+        this.memACCESS = this.memACTION = this.memMAIN = this.memLM = 1;
+        this.startMemoryTiming(drumTime);
+    }
 
+    addr = D205Processor.bcdBinary(this.CADDR % 0x4000);
     do {
         dWord = this.bcdAdd(aWord, this.D % 0x10000000000, 1, 1); // effectively abs(D)-abs(A)
         if (dWord == 0) {
@@ -1382,7 +1565,7 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
         } else if (addr < 3999) {
             this.D = this.MM[++addr];
         } else {
-            this.stopOverflow = 1;
+            this.setOverflow(1);
             break;                      // out of do loop -- end of main memory
         }
     } while (++x < D205Processor.trackSize);
@@ -1392,11 +1575,9 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     if (found) {
         this.A = this.D;
         this.R = this.CADDR*0x1000000 + this.R%0x1000000;
-        this.memACCESS = this.memACTION = this.memMAIN = this.memLM = 0;
-        this.successor = this.executeComplete;
+        this.successor = this.searchMemoryFinish;
     } else if (this.stopOverflow) {
-        this.memACCESS = this.memACTION = this.memMAIN = this.memLM = 0;
-        this.successor = this.executeComplete;
+        this.successor = this.searchMemoryFinish;
     } else {
         this.successor = searchMemory;
     }
@@ -1508,7 +1689,7 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
             this.procTime += 2;
             this.togTF = 0;             // for display only
             this.togSTART = 1-((sign >>> 1) & 0x01); // whether to continue in input mode
-            this.togTiming = 0;         // Execute mode
+            this.setTimingToggle(0);    // Execute mode
             this.togCOUNT = 1;
             this.togBATOAIN = 0;
             this.togADDAB = 1;          // for display only
@@ -1541,7 +1722,7 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
         } else {
             // D-sign is 0, 1, 2, 3: store word, possibly modified by B
             this.procTime += 3;
-            this.togTiming = 1;         // Fetch mode
+            this.setTimingToggle(1);    // Fetch mode
             this.togCOUNT = this.togBTOAIN;
             this.togBTOAIN = 1;
             this.togADDAB = 1;          // for display only
@@ -1651,7 +1832,7 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
     this.procTime += 4;                 // minimum alpha for all orders is 4
     if (this.cswSkip && (breakDigit & 0x08)) {
         if (!this.sswLockNormal) {
-            this.togTiming = 1;         // stay in Fetch to skip this instruction
+            this.setTimingToggle(1);    // stay in Fetch to skip this instruction
         }
         if (breakDigit & 0x01) {
             this.togCST = 1;            // halt the processor
@@ -1683,7 +1864,7 @@ D205Processor.prototype.fetch = function fetch() {
     if (this.togSTART) {
         this.inputReadDigit();          // we're still executing a Console input command
     } else {
-        this.togTiming = 0;             // next cycle will be Execute by default
+        this.setTimingToggle(0);        // next cycle will be Execute by default
         this.SHIFT = 0x15;              // for display only
         this.SHIFTCONTROL = 0x05;       // for display only
         // shift control address into operand address and initiate read
@@ -1797,8 +1978,8 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
     case 0x73:          //---------------- OSGD Overflow on Sign Difference
         this.procTime += 2;
         this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // for display, mostly
-        this.stopOverflow = this.togSIGN ^
-                (((this.D - this.D%0x10000000000)/0x10000000000) & 0x01);
+        this.setOverflow(this.togSIGN ^
+                (((this.D - this.D%0x10000000000)/0x10000000000) & 0x01));
         this.D = 0;
         break;
 
@@ -1914,7 +2095,7 @@ D205Processor.prototype.execute = function execute() {
     this.togZCT = 0;                    // for display only
     this.togT0 = 1;                     // for display only, leave it on for execute cycle
     if (!this.sswLockNormal) {
-        this.togTiming = 1;             // next cycle will be Fetch by default
+        this.setTimingToggle(1);        // next cycle will be Fetch by default
     }
 
     if ((this.COP & 0xF8) == 0x08) {    // if STOP (08) operator or
@@ -1987,8 +2168,8 @@ D205Processor.prototype.execute = function execute() {
             this.D = 0;
             this.integerAdd();                          // clears the sign digit, among other things
             if (this.A) {
-                this.togTiming = 0;                     // stay in Execute
-                this.stopOverflow = 1;                  // set overflow
+                this.setTimingToggle(0);                // stay in Execute
+                this.setOverflow(1);                    // set overflow
                 this.COP = 0x28;                        // make into a CC
                 this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
             }
@@ -2106,8 +2287,8 @@ D205Processor.prototype.execute = function execute() {
             this.SHIFT = 0x19;                          // for display only
             if (x < 10) {
             } else {
-                this.togTiming = 0;                     // stay in Execute
-                this.stopOverflow = 1;                  // set overflow
+                this.setTimingToggle(0);                // stay in Execute
+                this.setOverflow(1);                    // set overflow
                 this.COP = 0x28;                        // make into a CC
                 this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
             }
@@ -2159,8 +2340,8 @@ D205Processor.prototype.execute = function execute() {
                 this.B = 0x9999;
             } else {
                 this.B = this.bcdAdd(this.B, 0x9999) % 0x10000; // add -1
-                this.togTiming = 0;                     // stay in Execute
-                this.stopOverflow = 1;                  // set overflow
+                this.setTimingToggle(0);                // stay in Execute
+                this.setOverflow(1);                    // set overflow
                 this.COP = 0x28;                        // make into a CC
                 this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
             }
@@ -2175,7 +2356,7 @@ D205Processor.prototype.execute = function execute() {
             // Add round-off (as the carry bit) to absolute value of A.
             this.A = this.bcdAdd(this.A%0x10000000000, 0, 0, (this.R < 0x5000000000 ? 0 : 1));
             if (this.A >= 0x10000000000) {
-                this.stopOverflow = 1;                  // overflow occurred
+                this.setOverflow(1);                    // overflow occurred
                 this.A -= 0x10000000000;                // remove the overflow bit
             }
             this.A += this.togSIGN*0x10000000000;       // restore the sign bit in A
@@ -2197,7 +2378,7 @@ D205Processor.prototype.execute = function execute() {
                 this.SHIFTCONTROL = 0x04;               // no -- set for display only
             } else {
                 this.procTime += 2;
-                this.stopOverflow = 0;                  // reset overflow and do the branch
+                this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x07;               // for display only
                 this.CCONTROL = this.CADDR;             // copy address to control counter
@@ -2212,7 +2393,7 @@ D205Processor.prototype.execute = function execute() {
                 this.SHIFTCONTROL = 0x04;               // for display only
             } else {
                 this.procTime += 2;
-                this.stopOverflow = 0;                  // reset overflow and do the branch
+                this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x07;               // for display only
                 this.R = this.CCONTROL*0x1000000;       // save current control counter
@@ -2275,7 +2456,7 @@ D205Processor.prototype.execute = function execute() {
                 this.executeComplete();
             } else {
                 this.procTime += 4;
-                this.stopOverflow = 0;                  // reset overflow and do the branch
+                this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x0F;               // for display only
                 this.CCONTROL = this.CADDR%0x100 + 0x7000;  // set control to loop-7 address
@@ -2291,7 +2472,7 @@ D205Processor.prototype.execute = function execute() {
                 this.executeComplete();
             } else {
                 this.procTime += 4;
-                this.stopOverflow = 0;                  // reset overflow and do the branch
+                this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x0F;               // for display only
                 this.R = this.CCONTROL*0x1000000;       // save current control counter
@@ -2382,7 +2563,7 @@ D205Processor.prototype.start = function start() {
         if (this.togTiming && !this.sswLockNormal) {
             this.fetch();
         } else {
-            this.togTiming = 0;
+            this.setTimingToggle(0);
             this.execute();
         }
     }
@@ -2417,16 +2598,13 @@ D205Processor.prototype.powerUp = function powerUp() {
 /**************************************/
 D205Processor.prototype.powerDown = function powerDown() {
     /* Powers down the system */
-    var e;
 
     if (this.poweredOn) {
         this.stop();
         this.clear();
+        this.executeTime = 0;
+        this.fetchTime = 0;
         this.poweredOn = 0;
-        for (e in this.devices) {
-            this.devices[e].shutDown();
-            delete this.devices[e];
-        }
     }
 };
 
