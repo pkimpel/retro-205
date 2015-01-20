@@ -263,7 +263,6 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
         case "ContBtn":
             if (ready) {
                 this.p.cctContinuous = 1;
-                this.p.togTiming = 0;   // to Execute
                 this.p.start();
             }
             break;

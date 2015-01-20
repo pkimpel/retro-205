@@ -83,6 +83,7 @@ window.addEventListener("load", function() {
 
         window.applicationCache.addEventListener("checking", function(ev) {
             document.getElementById("StatusMsg").textContent = "Checking for emulator update...";
+            clearStatusMsg(15);
         });
         window.applicationCache.addEventListener("noupdate", function(ev) {
             document.getElementById("StatusMsg").textContent = "Emulator version is current.";
@@ -94,10 +95,12 @@ window.addEventListener("load", function() {
         });
         window.applicationCache.addEventListener("downloading", function(ev) {
             document.getElementById("StatusMsg").textContent = "Initiating download for emulator update...";
+            clearStatusMsg(15);
         });
         window.applicationCache.addEventListener("progress", function(ev) {
             var text = (ev.loaded && ev.total ? ev.loaded.toString() + "/" + ev.total.toString() : "Unknown number of");
             document.getElementById("StatusMsg").textContent = text + " resources downloaded thus far...";
+            clearStatusMsg(15);
         });
         window.applicationCache.addEventListener("updateready", function(ev) {
             document.getElementById("StatusMsg").textContent = "Emulator update completed. Reload this page to activate the new version.";
@@ -108,7 +111,7 @@ window.addEventListener("load", function() {
             clearStatusMsg(15);
         });
         window.applicationCache.addEventListener("error", function(ev) {
-            document.getElementById("StatusMsg").textContent = "Unable to check for emulator update.";
+            document.getElementById("StatusMsg").textContent = "Browser reported error during emulator version check.";
             clearStatusMsg(15);
         });
     }
