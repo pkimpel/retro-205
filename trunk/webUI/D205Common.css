@@ -13,24 +13,24 @@
 
 @font-face {
     font-family: "DejaVuSansMonoBookWeb";
-    src: url("./resources/DejaVuSansMono-webfont.ttf") format("truetype"),
-         url("./resources/DejaVuSansMono-webfont.woff") format("woff");
+    src: url("./resources/DejaVuSansMono-webfont.woff") format("woff"),
+         url("./resources/DejaVuSansMono-webfont.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: "DejaVuSansWeb";
-    src: url("./resources/DejaVuSans-webfont.ttf") format("truetype"),
-         url("./resources/DejaVuSans-webfont.woff") format("woff");
+    src: url("./resources/DejaVuSans-webfont.woff") format("woff"),
+         url("./resources/DejaVuSans-webfont.ttf") format("truetype");
     font-weight: normal;
     font-style: normal;
 }
 
 @font-face {
     font-family: "DejaVuSansWeb";
-    src: url("./resources/DejaVuSans-Bold-webfont.ttf") format("truetype"),
-         url("./resources/DejaVuSans-Bold-webfont.woff") format("woff");
+    src: url("./resources/DejaVuSans-Bold-webfont.woff") format("woff"),
+         url("./resources/DejaVuSans-Bold-webfont.ttf") format("truetype");
     font-weight: bold;
     font-style: normal;
 }
