@@ -110,7 +110,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.03a";
+D205Processor.version = "0.03b";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -198,7 +198,7 @@ D205Processor.prototype.clear = function clear() {
     this.memL6 = 0;                     // 6000 loop access
     this.memL7 = 0;                     // 7000 loop access
 
-    // Memory control toggles
+    // Memory control timers
     this.memMAINTime = 0;
     this.memRWMTime = 0;
     this.memRWLTime = 0;
@@ -211,7 +211,7 @@ D205Processor.prototype.clear = function clear() {
     this.memL6Time = 0;
     this.memL7Time = 0;
 
-    // Statistics control
+    // Statistics timers
     this.executeTime = 0;               // Total time togTiming==0
     this.overflowTime = 0;              // Total time stopOverflow==1
     this.setTimingToggle(0);            // set to Execute initially; initalize executeTime
@@ -388,47 +388,47 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
 
     if (this.memMain)   {
         this.memMAIN = 0;
-        this.memMainTime +- drumTime;
+        this.memMainTime += drumTime;
     }
     if (this.memRWM)    {
         this.memRWM = 0;
-        this.memRWMTime +- drumTime;
+        this.memRWMTime += drumTime;
     };
     if (this.memRWL)    {
         this.memRWL = 0;
-        this.memRWLTime +- drumTime;
+        this.memRWLTime += drumTime;
     };
     if (this.memWDBL)   {
         this.memWDBL = 0;
-        this.memWDBLTime +- drumTime;
+        this.memWDBLTime += drumTime;
     };
     if (this.memACTION) {
         this.memACTION = 0;
-        this.memACTIONTime +- drumTime;
+        this.memACTIONTime += drumTime;
     };
     if (this.memACCESS) {
         this.memACCESS = 0;
-        this.memACCESSTime +- drumTime;
+        this.memACCESSTime += drumTime;
     };
     if (this.memLM)     {
         this.memLM = 0;
-        this.memLMTime +- drumTime;
+        this.memLMTime += drumTime;
     };
     if (this.memL4)     {
         this.memL4 = 0;
-        this.memL4Time +- drumTime;
+        this.memL4Time += drumTime;
     };
     if (this.memL5)     {
         this.memL5 = 0;
-        this.memL5Time +- drumTime;
+        this.memL5Time += drumTime;
     };
     if (this.memL6)     {
         this.memL6 = 0;
-        this.memL6Time +- drumTime;
+        this.memL6Time += drumTime;
     };
     if (this.memL7)     {
         this.memL7 = 0;
-        this.memL7Time +- drumTime;
+        this.memL7Time += drumTime;
     };
 };
 
@@ -449,27 +449,37 @@ D205Processor.prototype.fetchStats = function fetchStats(stats) {
     while (stats.overflowTime < 0) {stats.overflowTime += drumTime}
 
     stats.memMAINTime = this.memMAINTime;
-    while (this.memMainTime < 0)   {this.memMainTime += drumTime}
+    while (stats.memMainTime < 0)   {stats.memMainTime += drumTime}
+
     stats.memRWMTime = this.memRWMTime;
-    while (this.memRWMTime < 0)    {this.memRWMTime += drumTime};
+    while (stats.memRWMTime < 0)    {stats.memRWMTime += drumTime};
+
     stats.memRWLTime = this.memRWLTime;
-    while (this.memRWLTime < 0)    {this.memRWLTime += drumTime};
+    while (stats.memRWLTime < 0)    {stats.memRWLTime += drumTime};
+
     stats.memWDBLTime = this.memWDBLTime;
-    while (this.memWDBLTime < 0)   {this.memWDBLTime += drumTime};
+    while (stats.memWDBLTime < 0)   {stats.memWDBLTime += drumTime};
+
     stats.memACTIONTime = this.memACTIONTime;
-    while (this.memACTIONTime < 0) {this.memACTIONTime += drumTime};
+    while (stats.memACTIONTime < 0) {stats.memACTIONTime += drumTime};
+
     stats.memACCESSTime = this.memACCESSTime;
-    while (this.memACCESSTime < 0) {this.memACCESSTime += drumTime};
+    while (stats.memACCESSTime < 0) {stats.memACCESSTime += drumTime};
+
     stats.memLMTime = this.memLMTime;
-    while (this.memLMTime < 0)     {this.memLMTime += drumTime};
+    while (stats.memLMTime < 0)     {stats.memLMTime += drumTime};
+
     stats.memL4Time = this.memL4Time;
-    while (this.memL4Time < 0)     {this.memL4Time += drumTime};
+    while (stats.memL4Time < 0)     {stats.memL4Time += drumTime};
+
     stats.memL5Time = this.memL5Time;
-    while (this.memL5Time < 0)     {this.memL5Time += drumTime};
+    while (stats.memL5Time < 0)     {stats.memL5Time += drumTime};
+
     stats.memL6Time = this.memL6Time;
-    while (this.memL6Time < 0)     {this.memL6Time += drumTime};
+    while (stats.memL6Time < 0)     {stats.memL6Time += drumTime};
+
     stats.memL7Time = this.memL7Time;
-    while (this.memL7Time < 0)     {this.memL7Time += drumTime};
+    while (stats.memL7Time < 0)     {stats.memL7Time += drumTime};
 };
 
 

@@ -32,25 +32,31 @@
     text-align:         center;
     font-size:          85%;
     color:              blue}
+#InfoTable {
+    margin-top:         0;
+    width:              100%}
 #CenteredBody {
-    margin-top:         80px;
+    margin-top:         50px;
     text-align:         center}
+#D205Image {
+    box-shadow:         12px 12px 12px gray;
+    max-width:          75%}
 #StartUpBtn {
-    margin-top:         1em;
+    margin-top:         2em;
     background-color:   #246;
     color:              white;
     font-family:        DejaVuSansWeb, sans-serif;
-    font-weight:        bold;
+    font-weight:        normal;
     font-size:          12pt;
-    border-radius:      8px;
+    width:              auto;
+    height:             auto;
+    padding:            0.5em;
+    border-radius:      12px;
     border:             2px solid #999}
 #StartUpBtn[disabled] {
     background-color:   #468;
     color:              #999;
     border-color:       #666}
-#InfoTable {
-    margin-top:         0;
-    width:              100%}
 #PageFooter {
     position:           absolute;
     font-size:          75%;
@@ -91,14 +97,16 @@
 </table>
 
 <div id=CenteredBody>
-    <img src="./resources/BRL61-burroughs-204.jpg"
+    <img id=D205Image src="./resources/BRL61-burroughs-204.jpg"
          alt="ElectroData 204 System at Detroit Arsenal, ca. 1961">
     <br>
-    <button id=StartUpBtn>Start the Emulator</button>
+    <button id=StartUpBtn>
+        Start the Emulator
+    </button>
 </div>
 
 <div id=PageFooter>
-    <i>(You can minimize this window, but please do not close it while the emulator is running)</i>
+    <i>(Note: Closing or minimizing this window may cause the emulator to run very slowly)</i>
 </div>
 </body>
 </html>
