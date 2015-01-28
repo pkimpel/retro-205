@@ -15,6 +15,7 @@
 window.addEventListener("load", function() {
     var devices = {};                   // hash of I/O devices for the Processor
     var p;                              // the Processor object
+    var statusMsgTimer = 0;             // status message timer control cookie
 
     /**************************************/
     function systemShutDown() {
@@ -44,8 +45,13 @@ window.addEventListener("load", function() {
     function clearStatusMsg(inSeconds) {
         /* Delays for "inSeconds" seconds, then clears the StatusMsg element */
 
-        setTimeout(function(ev) {
+        if (statusMsgTimer) {
+            clearTimeout(statusMsgTimer);
+        }
+
+        statusMsgTimer = setTimeout(function(ev) {
             document.getElementById("StatusMsg").textContent = "";
+            statusMsgTimer = 0;
         }, inSeconds*1000);
     }
 
@@ -54,20 +60,22 @@ window.addEventListener("load", function() {
         /* Checks whether this browser can support the necessary stuff */
         var missing = "";
 
-        if (!window.JSON) {missing += ", JSON"}
         if (!window.ArrayBuffer) {missing += ", ArrayBuffer"}
         if (!window.DataView) {missing += ", DataView"}
         if (!window.Blob) {missing += ", Blob"}
         if (!window.File) {missing += ", File"}
         if (!window.FileReader) {missing += ", FileReader"}
         if (!window.FileList) {missing += ", FileList"}
+        if (!window.JSON) {missing += ", JSON"}
+        if (!window.localStorage) {missing += ", window.localStorage"}
         if (!window.postMessage) {missing += ", window.postMessage"}
         if (!(window.performance && "now" in performance)) {missing += ", performance.now"}
 
         if (missing.length == 0) {
             return true;
         } else {
-            alert("The emulator cannot run...\nyour browser does not support the following features:\n\n" +
+            alert("The emulator cannot run...\n" +
+                "your browser does not support the following features:\n\n" +
                 missing.substring(2));
             return false;
         }
@@ -76,9 +84,9 @@ window.addEventListener("load", function() {
     /***** window.onload() outer block *****/
 
     document.getElementById("StartUpBtn").disabled = true;
+    document.getElementById("EmulatorVersion").textContent = D205Processor.version;
     if (checkBrowser()) {
         document.getElementById("StartUpBtn").disabled = false;
-        document.getElementById("EmulatorVersion").textContent = D205Processor.version;
         document.getElementById("StartUpBtn").addEventListener("click", systemStartup);
 
         window.applicationCache.addEventListener("checking", function(ev) {

@@ -1,0 +1,181 @@
+1 PPL SYM   NUMERICWORD OP    ADDR  PP L REMARKS
+1                  1000 START            EASY ASSEMBLER.                       1000
+      PROC     1   6005 CRD              READ INPUT CARD             0 0010 44 6005
+                   1600 BF6              MAKE TWO COPIES        1001 0 0000 26 1600
+                   6012 CAD              IS THE OP CODE         1002 0 0000 64 6012
+                        CNZ   OP            SYMBOLIC.           1003 0 0000 04 0000
+      ADDR         6011 CAD              IS THE ADDRESS         1004 0 0000 64 6011
+                        CNZ   SYMBL         SYMBOLIC.           1005 0 0000 04 0000
+                   6009 CAD              IS THE ADDRESS         1006 0 0000 64 6009
+                        CNZ   NUMAD      N+ N- NF OR NB.        1007 0 0000 04 0000
+      FLAG              SRT                                     1008 0 0000 13 0000
+      LOCAT        6017 CAD              IS THE LOCATION        1009 0 0000 64 6017
+                        CNZ   SLOC          SYMBOLIC.           1010 0 0000 04 0000
+                   6018 CAD              IS THE LOCATION        1011 0 0000 64 6018
+                        CNZ   NLOC       A PROGRAM POINT        1012 0 0000 04 0000
+      FINIS        1613 CAA                                     1013 0 0000 66 1613
+                      4 SRT              SYNTHESIZE             1014 0 0000 13 0004
+                   1608 CAD              INSTRUCTION.           1015 0 0000 64 1608
+                        CNZ         1F   CHECK HSL TAG          1016 0 0000 04 0000
+    2              1614 CAD              TACK ON                1017 0 0000 64 1614
+                      2 SRT              OPERATION CODE.        1018 0 0000 13 0002
+                        BUN   HSLF                              1019 0 0000 20 0000
+    1                 1 SLT              INSERT                 1020 0 0000 14 0001
+                   6008 CAD              HSL TAG DIGIT          1021 0 0000 64 6008
+                      1 SRT                                     1022 0 0000 13 0001
+                        BUN         2B                          1023 0 0000 20 1017
+      OP                ADD   SEVEN      LOOK UP                1024 0 0000 74 0000
+                        CUR   TABLE      SYMBOLIC OPCODE        1025 0 0000 21 0000
+                   8421 HLT              HALT IF                1026 0 0000 08 8421
+                        BUN   PROC       UNDEFINED.             1027 0 0000 20 1000
+                   1614 STA              BUT IF DEFINED         1028 0 0000 12 1614
+                      2 SRT              CHECK FOR              1029 0 0000 13 0002
+                   1614 CNZ              PSUDO OPERATION        1030 0 0000 04 1614
+                        BUN   ADDR                              1031 0 0000 20 1004
+      END               CAD         3F   SET UP                 1032 0 0000 64 0000
+                        STA   PROC       TO FINISH OFF.         1033 0 0000 12 1000
+      START             CAD         2F   CALCULATE              1034 0 0000 64 0000
+                        STC   FLAG       ADDRESS                1035 0 0000 02 1008
+                        BUN   ADDR       EQUIVALENT.            1036 0 0000 20 1004
+    5                   CAD         1F                          1037 0 0000 64 0000
+                        STA   FLAG                              1038 0 0000 12 1008
+                   1613 CAD              CHANGE LOCATION        1039 0 0000 64 1613
+                   6002 STA              COUNTER                1040 0 0000 12 6002
+                   6003 ADD              AND INSERT             1041 0 0000 74 6003
+                   6000 STA              TRANSFER               1042 0 0000 12 6000
+                   6004 CAD              INSTRUCTION.           1043 0 0000 64 6004
+                        BUN   PUNCH                             1044 0 0000 20 0000
+    1                   SRT                                     1045 0 0000 13 0000
+    3                   CUB   PLOAD                             1046 0 0000 30 0000
+    2                   BUN         5B                          1047 0 0000 20 1037
+      SYMBL             CUR   TABLE      LOOK SYMBOL UP.        1048 0 0000 21 1025
+            1      1900 STC              IF UNDEFINED.          1049 1 0000 02 1900
+                        BUN   LOOP7      DEFINE IT.             1050 0 0000 20 0000
+                        OSD         7+   IF DEFINED AND         1051 0 0000 73 1058
+                        BOF   LOOP7      FORWARD GO TO          1052 0 0000 28 1050
+      EQ           6013 ADD              SPECIAL REOUTINE       1053 0 0000 74 6013
+                   1613 STA              OTHERWISE SET          1054 0 0000 12 1613
+                        BUN   FLAG       EQUIVALENT.            1055 0 0000 20 1008
+      SLOC              CUR   TABLE      LOOK FOR SYMBOL        1056 0 0000 21 1048
+            1      1900 STC                                     1057 1 0000 02 1900
+                        BUN   A3         UNDEFINED LOC.         1058 0 0000 20 0000
+                        OSD         7-                          1059 0 0000 73 1052
+                        BOF   A3         DEFINED LOC.           1060 0 0000 28 1058
+                   6017 CAD              HALT IF SYMBL          1061 0 0000 64 6017
+                   9669 HLT              OCCURS TWICE           1062 0 0000 08 9669
+                        BUN   PROC       IN LOCATION            1063 0 0000 20 1000
+      A3                STA   TEMP                              1064 0 0000 12 0000
+                   6002 CAD              IF FORWARD             1065 0 0000 64 6002
+            1      2900 STA              REFERENCE WAS          1066 1 0000 12 2900
+      A2                CAD   TEMP       MADE.  MAKE            1067 0 0000 64 1064
+                        CNZ   A1         NEW TABLE ENTRY        1068 0 0000 04 0000
+                        BUN   FINIS                             1069 0 0000 20 1013
+      NLOC         6018 LDB              PROGRAM POINT          1070 0 0000 72 6018
+            1      3950 CAD              LOCATION.              1071 1 0000 64 3950
+                        STA   TEMP       UNDEFINE               1072 0 0000 12 1067
+                   6002 CAD              FORWARD P.P.           1073 0 0000 64 6002
+            1      3900 STC              DEFINE BACKWARD        1074 1 0000 02 3900
+            1      3950 STA                                     1075 1 0000 12 3950
+                        BUN   A2                                1076 0 0000 20 1067
+      HALT              CAD   TRANS      PUNCH FINAL            1077 0 0000 64 0000
+                   7006 STA              CARD AND               1078 0 0000 12 7006
+              21   7000 CWR              STOP                   1079 0 0210 54 7000
+                   1111 HLT              UNCONDITIONALLY        1080 0 0000 08 1111
+                        BUN         1-                          1081 0 0000 20 1080
+                   1810 START                                                  1810
+                   6002 CAD              N+                     1810 0 0000 64 6002
+                   6010 ADD                                     1811 0 0000 74 6010
+                        BUN   EQ                                1812 0 0000 20 1053
+                   1820 START                                                  1820
+                   6002 CAD              N-                     1820 0 0000 64 6002
+                   6010 SUB                                     1821 0 0000 75 6010
+                        BUN   EQ                                1822 0 0000 20 1053
+                   1842 START                                                  1842
+                   6010 LDB              NB                     1842 0 0000 72 6010
+            1      3900 CAD                                     1843 1 0000 64 3900
+                        BUN   EQ                                1844 0 0000 20 1053
+                   1846 START                                                  1846
+                   6010 CAD              NF                     1846 0 0000 64 6010
+                        ADD   FUDGE      PROCESS                1847 0 0000 74 0000
+                        STA   TEMP       LIKE                   1848 0 0000 12 1072
+                        LDB   TEMP       SYMBOL                 1849 0 0000 72 1848
+            1      2900 CAD                                     1850 1 0000 64 2900
+                        BUN   LOOP7                             1851 0 0000 20 1052
+                   1708 START                                                  1708
+      PLOAD     1  6002 CAD              PUNCH LOADING          1708 0 0001 64 6002
+                   7000 ADD              ROUTINE.               1709 0 0000 74 7000
+                   7000 STA              FIRST CARD             1710 0 0000 12 7000
+                   7002 EXT              LOADS B BOX            1711 0 0000 63 7002
+                   7002 STA                                     1712 0 0000 12 7002
+                   7006 CSU                                     1713 0 0000 65 7006
+                   7001 STA                                     1714 0 0000 12 7001
+              21   7000 CWR                                     1715 0 0210 54 7000
+                        CAD         3F 7                        1716 0 7000 64 0000
+                        ADD   PLACE                             1717 0 0000 74 0000
+                      4 SRT                                     1718 0 0000 13 0004
+                        BUN         1F                          1719 0 0000 20 0000
+                        LDB                                     1720 0 0000 72 0000
+             4     0000 LDB                                     1721 0 4000 72 0000
+      SIGN6  11112 1111                  SGN CHGED TO 6         1722 0 1111 20 1111
+      TRANS          15 BUN                                     1723 0 0000 20 0015
+    3                23                                         1724 0 0000 00 0023
+                                                                1725 0 0000 00 0000
+               1   0000 CRD                                     1726 0 0010 44 0000
+             7667  0005                                         1727 0 7667 00 0005
+    1                   CAD   TOFIX                             1728 0 0000 64 0000
+                      4 SLT                                     1729 0 0000 14 0004
+                        STA   TOFIX                             1730 0 0000 12 1728
+                   1740 BT4                                     1731 0 0000 34 1740
+                   6004 CAD                                     1732 0 0000 64 6004
+                        BUN         4F 4                        1733 0 4000 20 0000
+                   1740 START                                                  1740
+    3                10 SRT              LOOP TO                1740 0 0000 13 0010
+                   7007 LDB              PUNCH THE              1741 0 0000 72 7007
+                        CAD         1F 4 LOADING ROUTINE        1742 0 4000 64 0000
+                   6004 SUB                                     1743 0 0000 75 6004
+                        STA         1F 4                        1744 0 4000 12 1742
+    1       1      7555 CAD                                     1745 1 0000 64 1755
+            1      7000 STA                                     1746 1 0000 12 7000
+                        DBB         1B 4                        1747 0 0000 22 4745
+                   7005 CAD                                     1748 0 0000 64 7005
+                        CNZ         2+ 4                        1749 0 0000 04 4751
+                        BUN   HALT                              1750 0 0000 20 1077
+                   7006 CAD                                     1751 0 0000 64 7006
+                   6004 ADD                                     1752 0 0000 74 6004
+                   7006 STA                                     1753 0 0000 12 7006
+              21   7000 CWR                                     1754 0 0210 54 7000
+                     10 SLT              AFTER FIRST            1755 0 0000 14 0010
+    4                   SUB   ONE        SIX CARDS,             1756 0 0000 75 0010
+                        CNZ         3B 4 DUMP FORWARD           1757 0 0000 04 4740
+                        CAD         8F   REFERENCE TABLE        1758 0 0000 64 0000
+                        STA         1B 4                        1759 0 0000 12 4745
+    8       1      0000 CAD                                     1760 1 0000 64 0000
+                   1761 START                                                  1761
+            1      0001 CAD              LOADING ROUTINE        1761 1 0000 64 0001
+            2      0030 STA              CLEANS UP              1762 2 0000 12 0030
+            2      0029 EXT              FORWARD                1763 2 0000 63 0029
+            2      0031 SUB              REFERENCES.            1764 2 0000 75 0031
+                      9 SRT                                     1765 0 0000 13 0009
+            2      0021 CNZ                                     1766 2 0000 04 0021
+                      1 SRT                                     1767 0 0000 13 0001
+            2      0030 CAD                                     1768 2 0000 64 0030
+                     10 SLT                                     1769 0 0000 14 0010
+            1      0001 STC                                     1770 1 0000 02 0001
+            2      0030 LDB                                     1771 2 0000 72 0030
+            2      0000 DBB                                     1772 2 0000 22 0000
+            2      0015 CAD                                     1773 2 0000 64 0015
+            2      0028 SUB                                     1774 2 0000 75 0028
+            2      0015 STA                                     1775 2 0000 12 0015
+      TOFIX 2      0064                                         1776 2 0000 00 0064
+            2      0030 STA                                     1777 2 0000 12 0030
+                      4 SRT                                     1778 0 0000 13 0004
+            2      0031 STA                                     1779 2 0000 12 0031
+            2      0020 CNZ                                     1780 2 0000 04 0010
+                   1221 HLT                                     1781 0 0000 08 1221
+            2      0032 STC                                     1782 2 0000 02 0032
+                      6 SLT                                     1783 0 0000 14 0006
+            2      0027 EXT                                     1784 2 0000 63 0027
+            2      0032 ADD                                     1785 2 0000 74 0032
+                      7 SRT                                     1786 0 0000 13 0007
+            2      0007 BUN                                     1787 2 0000 20 0007
+             1111111110                                         1788 0 1111 11 1110
