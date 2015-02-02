@@ -139,7 +139,7 @@ ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
 ColoredLamp.prototype.set = function set(state) {
     /* Changes the visible state of the lamp according to the low-order
     bit of "state" */
-    var newState = (state <= 0 ? 0 : Math.min(Math.round(state*ColoredLamp.lampLevels + 0.5), ColoredLamp.lampLevels));
+    var newState = Math.max(Math.min(Math.round(state*ColoredLamp.lampLevels + 0.4999), ColoredLamp.lampLevels), 0);
 
     if (this.state != newState) {       // the state has changed
         this.state = newState;

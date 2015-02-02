@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/webUI D205SetCallback.js
 ************************************************************************
-* Copyright (c) 2013,2014, Nigel Williams and Paul Kimpel.
+* Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************

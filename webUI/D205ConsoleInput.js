@@ -74,6 +74,7 @@ D205ConsoleInput.prototype.PRTapeSupplyBar_onclick = function PRTapeSupplyBar_on
             this.bufLength = 0;
             this.bufIndex = 0;
             this.tapeSupplyBar.value = 0;
+            this.tapeView.value = "";
             this.$$("PRFileSelector").value = null;     // reset the control
         }
     }
