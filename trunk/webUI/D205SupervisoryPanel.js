@@ -47,8 +47,8 @@ function D205SupervisoryPanel(p, systemShutdown) {
 
 /**************************************/
 D205SupervisoryPanel.displayRefreshPeriod = 50;   // milliseconds
-D205SupervisoryPanel.offSwitch = "./resources/ToggleDown.png";
-D205SupervisoryPanel.onSwitch = "./resources/ToggleUp.png";
+D205SupervisoryPanel.offSwitchClass = "./resources/ToggleDown.png";
+D205SupervisoryPanel.onSwitchClass = "./resources/ToggleUp.png";
 
 /**************************************/
 D205SupervisoryPanel.prototype.$$ = function $$(e) {
@@ -216,7 +216,7 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
 
     p.fetchStats(this.stats);
     elapsed = this.stats.drumTime - this.lastStats.drumTime;
-    eLevel = this.timeToLevel("executeTime", elapsed);
+    eLevel = (p.stopIdle ? 1-p.togTiming : this.timeToLevel("executeTime", elapsed));
 
     this.regA.update(p.A);
     this.regB.update(p.B);
@@ -569,7 +569,7 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
 
 /**************************************/
 D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
-    /* Initializes the line printer window and user interface */
+    /* Initializes the Supervisory Panel window and user interface */
     var adderDiv;
     var body;
     var box;
@@ -764,22 +764,22 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     // Switches & Knobs
 
     this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
     this.pulseSourceSwitch.set(prefs.pulseSourceSwitch);
     this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
     this.wordContSwitch.set(prefs.wordContSwitch);
     this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob",
         prefs.frequencyKnob, [-60, -30, 0, 30, 60]);
 
     this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
     this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
     this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
     this.lockNormalSwitch.set(this.p.sswLockNormal = prefs.lockNormalSwitch);
     this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch",
-            D205SupervisoryPanel.offSwitch, D205SupervisoryPanel.onSwitch);
+            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
     this.stepContinuousSwitch.set(this.p.sswStepContinuous = prefs.stepContinuousSwitch);
 
     // Events

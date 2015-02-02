@@ -1,0 +1,61 @@
+/***********************************************************************
+* retro-205/emulator D205CardatronControl.css
+************************************************************************
+* Copyright (c) 2015, and Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* ElectroData/Burroughs Datatron 205 emulator Cardatron Control style sheet.
+************************************************************************
+* 2015-02-01  P.Kimpel
+*   Original version, from D205ControlConsole.css
+***********************************************************************/
+
+#readerBody {
+    height:             100%;
+    min-height:         100%;
+    overflow:           hidden;
+    padding:            0}
+
+#PanelSurface {
+    position:           absolute;
+    top:                0;
+    bottom:             0;
+    left:               0;
+    right:              0;
+    margin:             4px}
+
+#ClearBtn {
+    top:                8px;
+    right:              8px}
+#ClearBtnCaption {
+    top:                44px;
+    right:              8px;
+    width:              32px}
+
+#OutputUnitLamp {
+    top:                8px;
+    left:               8px}
+    
+#UnitDesignate4Lamp {
+    top:                8px;
+    left:               40px}
+#UnitDesignate2Lamp {
+    top:                8px;
+    left:               72px}
+#UnitDesignate1Lamp {
+    top:                8px;
+    left:               104px}
+
+#RelayDesignate8Lamp {
+    top:                40px;
+    left:               8px}
+#RelayDesignate4Lamp {
+    top:                40px;
+    left:               40px}
+#RelayDesignate2Lamp {
+    top:                40px;
+    left:               72px}
+#RelayDesignate1Lamp {
+    top:                40px;
+    left:               104px}

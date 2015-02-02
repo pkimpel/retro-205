@@ -56,7 +56,9 @@ BODY.deviceBody {
     font-size:          7pt;
     overflow:           hidden;
     margin:             0;
-    padding:            0}
+    padding:            0;
+    background-color:   #246;
+    color:              white}
     
 H1 {
     margin-top:         2em;
@@ -90,7 +92,7 @@ INPUT[type=text] {
 
 DIV.caption {
     position:           absolute;
-    z-index:            +1;
+    z-index:            1;
     font-size:          5pt;
     font-weight:        bold;
     line-height:        100%;
@@ -98,7 +100,7 @@ DIV.caption {
 
 DIV.neonLamp {
     position:           absolute;
-    z-index:            +1;
+    z-index:            1;
     width:              16px;
     height:             16px;
     font-size:          4px;
@@ -206,18 +208,18 @@ DIV.greenLit {
     
 DIV.coloredLampTopCaption {
     position:           absolute;
-    width:              64px;
+    width:              80px;
     top:                -13px;
-    left:               -20px;
+    left:               -28px;
     line-height:        100%;
     font-size:          5pt;
     font-weight:        bold;
     text-align:         center}
 DIV.coloredLampBottomCaption {
     position:           absolute;
-    width:              64px;
+    width:              80px;
     bottom:             -15px;
-    left:               -20px;
+    left:               -28px;
     font-size:          5pt;
     font-weight:        bold;
     text-align:         center}
@@ -279,7 +281,7 @@ DIV.panelDiv {
 
 DIV.panelCaption {
     position:           absolute;
-    z-index:            +1;
+    z-index:            1;
     text-align:         center;
     height:             5px;
     bottom:             1px;
@@ -289,7 +291,7 @@ DIV.panelCaption {
 
 DIV.boxCaption {
     position:           absolute;
-    z-index:            +2;
+    z-index:            2;
     width:              100%;
     top:                -12px;
     left:               -3px;
@@ -369,6 +371,47 @@ CANVAS.blackControlKnob1 {
     width:              64px;
     height:             64px;
     font-size:          4px}
+
+BUTTON.large {
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          8pt;
+    font-weight:        normal;
+    line-height:        120%;
+    width:              60px;
+    height:             40px;
+    padding-left:       0;
+    padding-right:      0;
+    border:             1px solid #DDD;
+    border-radius:      4px}
+
+BUTTON.greenButton {
+    background-color:   #060;
+    color:              white}
+
+BUTTON.redButton {
+    background-color:   #900;
+    color:              white}
+
+BUTTON.blackButton {
+    background-color:   black;
+    color:              #999}
+
+BUTTON.blackLit {
+    color:              white}
+
+BUTTON.greenLit {
+    color:              black;
+    background-color:   #0F0}
+
+BUTTON.redLit {
+    color:              black;
+    background-color:   #F00}
+
+BUTTON.blackBorder {
+    border:             1px solid black}
+
+BUTTON.silverBorder {
+    border:             1px solid #DDD}
 
 .annunciator {
     visibility:         hidden;

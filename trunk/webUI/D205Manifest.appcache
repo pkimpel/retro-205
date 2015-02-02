@@ -1,8 +1,9 @@
 CACHE MANIFEST
-# retro-205 emulator 0.03b, 2015-01-27 21:20
+# retro-205 emulator 0.03c, 2015-02-01 19:00
 
 CACHE:
 ../emulator/D205Processor.js
+D205.css
 D205.html
 D205.js
 D205Common.css

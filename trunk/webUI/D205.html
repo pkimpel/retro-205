@@ -21,49 +21,7 @@
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css">
 <link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
-
-<style>
-#VersionDiv {
-    position:           absolute;
-    top:                4px;
-    right:              4px;
-    text-align:         right}
-#StatusMsg {
-    text-align:         center;
-    font-size:          85%;
-    color:              blue}
-#InfoTable {
-    margin-top:         0;
-    width:              100%}
-#CenteredBody {
-    margin-top:         50px;
-    text-align:         center}
-#D205Image {
-    box-shadow:         12px 12px 12px gray;
-    max-width:          75%}
-#StartUpBtn {
-    margin-top:         2em;
-    background-color:   #246;
-    color:              white;
-    font-family:        DejaVuSansWeb, sans-serif;
-    font-weight:        normal;
-    font-size:          12pt;
-    width:              auto;
-    height:             auto;
-    padding:            0.5em;
-    border-radius:      12px;
-    border:             2px solid #999}
-#StartUpBtn[disabled] {
-    background-color:   #468;
-    color:              #999;
-    border-color:       #666}
-#PageFooter {
-    position:           absolute;
-    font-size:          75%;
-    bottom:             4px;
-    text-align:         center;
-    width:              100%}
-</style>
+<link id=homeStyleSheet rel=stylesheet type="text/css" href="D205.css">
 
 <script src="./D205PanelUtil.js"></script>      <!-- must be first -->
 <script src="./D205Util.js"></script>
@@ -76,7 +34,10 @@
 
 <script src="./D205ConsoleOutput.js"></script>
 <script src="./D205ConsoleInput.js"></script>
-
+<!--
+<script src="./D205CardatronInput.js"></script>
+<script src="./D205CardatronControl.js"></script>
+-->
 <script src="./D205.js"></script>
 </head>
 

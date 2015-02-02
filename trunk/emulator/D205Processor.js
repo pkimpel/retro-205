@@ -90,17 +90,20 @@ function D205Processor(devices) {
 
     // Context-bound routines
     this.boundExecuteComplete = D205Processor.bindMethod(this, D205Processor.prototype.executeComplete);
-    this.boundOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.outputSignDigit);
-    this.boundOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.outputNumberDigit);
-    this.boundOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.outputFinished);
-    this.boundInputReadDigit = D205Processor.bindMethod(this, D205Processor.prototype.inputReadDigit);
-    this.boundInputReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.inputReceiveDigit);
-    this.boundInputSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.inputSingleDigit);
+    this.boundConsoleOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputSignDigit);
+    this.boundConsoleOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputNumberDigit);
+    this.boundConsoleOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputFinished);
+    this.boundConsoleReadDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReadDigit);
+    this.boundConsoleReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveDigit);
+    this.boundConsoleReceiveSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveSingleDigit);
 
     // Processor throttling control
     this.scheduler = 0;                 // Current setCallback token
     this.procStart = 0;                 // Javascript time that the processor started running, ms
     this.procTime = 0;                  // Total processor running time, ms
+
+    // External switches [used by EXC (71)]
+    this.externalSwitch = [0, 0, 0, 0, 0, 0, 0, 0];
 
     this.clear();                       // Create and initialize the processor state
 
@@ -110,7 +113,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.03b";
+D205Processor.version = "0.03c";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -167,6 +170,7 @@ D205Processor.prototype.clear = function clear() {
     this.COP = 0;                       // copy of C register op code (2 digits)
     this.CADDR = 0;                     // copy of C register operand address (4 digits)
     this.CCONTROL = 0;                  // copy of C register control address (4 digits)
+    this.CEXTRA = 0;                    // high-order four digits of instruction word + sign
 
     // Adder registers
     this.ADDER = 0;                     // The adder
@@ -231,6 +235,7 @@ D205Processor.prototype.clearControlToggles = function clearControlToggles() {
     so leave them as is */
 
     this.togADDER =                     // Adder toggle
+    this.togBTOAIN = 0;                 // B-to-A, Input toggle
     this.togDPCTR =                     // Digit-pulse toggle: on during decimal-correct, off during complement
     this.togDELTABDIV =                 // Delta-B, divide toggle
     this.togCOMPL =                     // Complement toggle
@@ -254,7 +259,6 @@ D205Processor.prototype.clearControl = function clearControl() {
 
     // Toggles (flip-flops)
     this.clearControlToggles();         // the standard set
-    this.togBTOAIN = 0;                 // B-to-A, Input toggle
     this.togSTART = 0;                  // Input control: Start toggle
     this.togTF = 0;                     // Input control: FINISH pulse toggle
     this.togTC1 = 0;                    // Input control: clock pulse toggle (from input device)
@@ -354,7 +358,7 @@ D205Processor.prototype.setOverflow = function setOverflow(overflow) {
         drumTime = performance.now()*D205Processor.wordsPerMilli;
         if (overflow) {
             this.stopOverflow = 1;
-            this.overflowTime -= drumTime;
+            this.overflowTime -= drumTime - 1;
         } else {
             this.stopOverflow = 0;
             this.overflowTime += drumTime;
@@ -1603,7 +1607,7 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
 ***********************************************************************/
 
 /**************************************/
-D205Processor.prototype.outputSignDigit = function outputSignDigit() {
+D205Processor.prototype.consoleOutputSignDigit = function consoleOutputSignDigit() {
     /* Outputs the sign digit for a PTW (03) command and sets up to output the
     first number digit. If the Shift Counter is already at 19, terminates the
     output operation */
@@ -1615,18 +1619,18 @@ D205Processor.prototype.outputSignDigit = function outputSignDigit() {
         this.A = w*0x10 + d;            // rotate A+sign left one
         if (this.SHIFT == 0x19) {       // if the shift counter is already 19, we're done
             this.togOK = this.togPO1 = 0; // for display only
-            this.outputFinished();
+            this.consoleOutputFinished();
         } else {
             this.togOK = 1-this.togOK;  // for dislay only
             this.togPO2 = 1;            // for display only
             this.togDELAY = 0;          // for display only
-            this.console.writeSignDigit(d, this.boundOutputNumberDigit);
+            this.console.writeSignDigit(d, this.boundConsoleOutputNumberDigit);
         }
     }
 };
 
 /**************************************/
-D205Processor.prototype.outputNumberDigit = function outputNumberDigit() {
+D205Processor.prototype.consoleOutputNumberDigit = function consoleOutputNumberDigit() {
     /* Outputs a numeric digit for a PTW (03) command and sets up to output the
     next number digit. If the Shift Counter is already at 19, terminates the
     output operation and sends a Finish signal */
@@ -1639,18 +1643,18 @@ D205Processor.prototype.outputNumberDigit = function outputNumberDigit() {
         this.togDELAY = 1-this.togDELAY;// for display only
         if (this.SHIFT == 0x19) {       // if the shift counter is already 19, we're done
             d = (this.CADDR - this.CADDR%0x1000)/0x1000;
-            this.console.writeFinish(d, this.boundOutputFinished);
+            this.console.writeFinish(d, this.boundConsoleOutputFinished);
         } else {
             d = (this.A - w)/0x10000000000; // get the digit
             this.A = w*0x10 + d;        // rotate A+sign left one
             this.SHIFT = this.bcdAdd(this.SHIFT, 1);
-            this.console.writeNumberDigit(d, this.boundOutputNumberDigit);
+            this.console.writeNumberDigit(d, this.boundConsoleOutputNumberDigit);
         }
     }
 };
 
 /**************************************/
-D205Processor.prototype.outputFinished = function outputFinished() {
+D205Processor.prototype.consoleOutputFinished = function consoleOutputFinished() {
     /* Handles the final cycle of an I/O operation and restores this.procTime */
 
     if (this.togOK || this.togPO1) {    // if false, we've probably been cleared
@@ -1664,16 +1668,16 @@ D205Processor.prototype.outputFinished = function outputFinished() {
 };
 
 /**************************************/
-D205Processor.prototype.inputReadDigit = function inputReadDigit() {
+D205Processor.prototype.consoleReadDigit = function consoleReadDigit() {
     // Solicits the next input digit from the Control Console */
 
     this.togTF = 0;                     // for display only, reset finish pulse
     this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-    this.console.readDigit(this.boundInputReceiveDigit);
+    this.console.readDigit(this.boundConsoleReceiveDigit);
 };
 
 /**************************************/
-D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
+D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit) {
     /* Handles an input digit coming from the Control Console keyboard or
     paper-tape reader. Negative values indicate a finish pulse; otherwise
     the digit is data read from the device. Data digits are rotated into
@@ -1687,7 +1691,7 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
         this.togTC1 = 1-this.togTC1;    // for display only
         this.togTC2 = 1-this.togTC2;    // for display only
         this.D = (this.D % 0x10000000000)*0x10 + digit;
-        this.inputReadDigit();
+        this.consoleReadDigit();
     } else {
         this.togTF = 1;
         this.togTC1 = this.togTC2 = 0;  // for display only
@@ -1701,13 +1705,13 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
             this.togSTART = 1-((sign >>> 1) & 0x01); // whether to continue in input mode
             this.setTimingToggle(0);    // Execute mode
             this.togCOUNT = 1;
-            this.togBATOAIN = 0;
+            this.togBTOAIN = 0;
             this.togADDAB = 1;          // for display only
             this.togADDER = 1;          // for display only
             this.togDPCTR = 1;          // for display only
             this.togCLEAR = 1-(sign & 0x01);
             this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // display only
-            sign &= 0x80;
+            sign &= 0x08;
 
             // Increment the destination address (except on the first word)
             this.SHIFTCONTROL = 0x01;   // for display only
@@ -1762,13 +1766,38 @@ D205Processor.prototype.inputReceiveDigit = function inputReceiveDigit(digit) {
             word = this.A % 0x10000000000;
             sign = (((this.A - word)/0x10000000000) & 0x0E) | (sign & 0x01);
             this.A = sign*0x10000000000 + word;
-            this.writeMemory(this.boundInputReadDigit, false);
+            this.writeMemory(this.boundConsoleReadDigit, false);
         }
     }
 };
 
 /**************************************/
-D205Processor.prototype.inputSingleDigit = function inputSingleDigit(digit) {
+D205Processor.prototype.setExternalSwitches = function setExternalSwitches() {
+    /* Sets the eight external switches from the most-significant digits of
+    the D register */
+    var d;                              // current D-register digit
+    var w = this.D % 0x10000000000;     // working copy of D word
+    var x;                              // digit index
+
+    for (x=7; x>=0; --x) {
+        d = (w - w%0x1000000000)/0x1000000000;
+        w = (w%0x1000000000)*0x10;
+        switch (d%0x04) {
+        case 1:                         // open the switch
+            this.externalSwitch[x] = 0;
+            break;
+        case 2:                         // close the switch
+            this.externalSwitch[x] = 1;
+            break;
+        case 3:                         // complement the switch
+            this.externalSwitch[x] = 1 - this.externalSwitch[x];
+            break;
+        } // switch
+    } // for x
+};
+
+/**************************************/
+D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingleDigit(digit) {
     /* Handles a single input digit coming from the Control Console keyboard
     or paper-tape reader, as in the case of Digit Add (10). Negative values
     indicate a finish pulse, which is ignored, and causes another digit to be
@@ -1778,7 +1807,7 @@ D205Processor.prototype.inputSingleDigit = function inputSingleDigit(digit) {
     var word;                           // register word less sign
 
     if (digit < 0) {                    // ignore finish pulse and just re-solicit
-        this.console.readDigit(this.boundInputSingleDigit);
+        this.console.readDigit(this.boundConsoleReceiveSingleDigit);
     } else {
         this.procTime += performance.now()*D205Processor.wordsPerMilli + 4; // restore time after I/O
         this.togSTART = 0;
@@ -1814,7 +1843,7 @@ D205Processor.prototype.transferDtoC = function transferDtoC() {
     this.CCONTROL = this.bcdAdd(addr, 0x0001) % 0x10000;// bump the control address modulo 10000
 
     addr = this.D % 0x1000000;                          // get the opcode and address digits from D
-    this.D = (this.D - addr)/0x1000000;                 // shift D right six digits
+    this.CEXTRA = this.D = (this.D - addr)/0x1000000;   // shift D right six digits & save what's left
     if (this.togCLEAR) {                                // check for B modification
         addr = this.bcdAdd(addr, 0);                    // if no B mod, add 0 (this is actually the way it worked)
     } else {
@@ -1831,15 +1860,16 @@ D205Processor.prototype.transferDtoC = function transferDtoC() {
 D205Processor.prototype.fetchComplete = function fetchComplete() {
     /* Second phase of the Fetch cycle, called after the word is read from
     memory into D */
-    var breakDigit = ((this.D%0x10000000 - this.D%0x1000000)/0x1000000) & 0x0F;
+    var breakDigit;                     // breakpoint digit from D4
 
     this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01;
+    this.transferDtoC();
+    this.procTime += 4;                 // minimum alpha for all orders is 4
+    breakDigit = this.CEXTRA % 0x10;
     if (this.cswBreakpoint & breakDigit) { // check for breakpoint stop
         this.togBKPT = 1;               // prepare to halt after this instruction
     }
 
-    this.transferDtoC();
-    this.procTime += 4;                 // minimum alpha for all orders is 4
     if (this.cswSkip && (breakDigit & 0x08)) {
         if (!this.sswLockNormal) {
             this.setTimingToggle(1);    // stay in Fetch to skip this instruction
@@ -1872,7 +1902,7 @@ D205Processor.prototype.fetch = function fetch() {
 
     this.togT0 = 0;                     // for display only, leave it off for fetch cycle
     if (this.togSTART) {
-        this.inputReadDigit();          // we're still executing a Console input command
+        this.consoleReadDigit();          // we're still executing a Console input command
     } else {
         this.setTimingToggle(0);        // next cycle will be Execute by default
         this.SHIFT = 0x15;              // for display only
@@ -1970,7 +2000,7 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         break;
 
     case 0x71:          //---------------- EXC  External Control
-        // at present, EXC is effectively a no op
+        this.setExternalSwitches();
         break;
 
     case 0x72:          //---------------- SB   Set B
@@ -2128,7 +2158,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x00:      //---------------- PTR  Paper-tape/keyboard read
             this.D = 0;
             this.togSTART = 1;
-            this.inputReadDigit();
+            this.consoleReadDigit();
             break;
 
         case 0x01:      //---------------- CIRA Circulate A
@@ -2165,9 +2195,9 @@ D205Processor.prototype.execute = function execute() {
                 d = (this.CADDR%0x1000 - this.CADDR%0x100)/0x100;
                 if (d) {                                // if C8 is not zero, output it first as the format digit
                     this.togOK = this.togDELAY = 1;     // for display only
-                    this.console.writeFormatDigit(d, this.boundOutputSignDigit);
+                    this.console.writeFormatDigit(d, this.boundConsoleOutputSignDigit);
                 } else {
-                    this.outputSignDigit();
+                    this.consoleOutputSignDigit();
                 }
             }
             break;
@@ -2208,9 +2238,9 @@ D205Processor.prototype.execute = function execute() {
                 d = (this.CADDR%0x1000 - this.CADDR%0x100)/0x100;
                 if (d) {                                // if C8 is not zero, output it as the format digit
                     this.togOK = this.togDELAY = 1;
-                    this.console.writeFormatDigit(d, this.boundOutputFinished);
+                    this.console.writeFormatDigit(d, this.boundConsoleOutputFinished);
                 } else {
-                    this.outputFinished();
+                    this.consoleOutputFinished();
                 }
             }
             break;
@@ -2222,7 +2252,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x10:      //---------------- DAD  Digit Add from keyboard to A
             this.togSTART = 1;
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-            this.console.readDigit(this.boundInputSingleDigit);
+            this.console.readDigit(this.boundConsoleReceiveSingleDigit);
             break;
 
         case 0x11:      //---------------- BA   B to A transfer
