@@ -229,7 +229,7 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.regCarry.update(p.CT);
 
     this.cardaTronTWA.set(p.togTWA);
-    this.cardaTronBIO.set(p.togBIO);
+    this.cardaTron3IO.set(p.tog3IO);
 
     this.overflowLamp.set(p.poweredOn && this.timeToLevel("overflowTime", elapsed));
     this.sectorLamp.set(p.stopSector);
@@ -317,9 +317,9 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             p.togTWA ^= 1;
             this.cardaTronTWA.set(p.togTWA);
             break;
-        case "BIO":
-            p.togBIO ^= 1;
-            this.cardaTronBIO.set(p.togBIO);
+        case "3IO":
+            p.tog3IO ^= 1;
+            this.cardaTron3IO.set(p.tog3IO);
             break;
         case "CTL":
             switch (bit) {
@@ -472,10 +472,10 @@ D205SupervisoryPanel.prototype.clear_Click = function Clear_Click(ev) {
             this.p.stopControl = 0;
             break;
         case "ExecuteBtn":
-            this.p.togTiming = 0;
+            this.p.setTimingToggle(0);
             break;
         case "FetchBtn":
-            this.p.togTiming = 1 - this.p.sswLockNormal;
+            this.p.setTimingToggle(1 - this.p.sswLockNormal);
             break;
         }
         this.updatePanel();
@@ -608,8 +608,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.cardaTronTWA = new NeonLamp(adderDiv, cx, cy, "TWA");
     this.cardaTronTWA.setCaption("CARDATRON CONTROL");
     this.cardaTronTWA.setCaption("TWA", true);
-    this.cardaTronBIO = new NeonLamp(adderDiv, cx, cy+PanelRegister.vSpacing, "BIO");
-    this.cardaTronBIO.setCaption("BIO", true);
+    this.cardaTron3IO = new NeonLamp(adderDiv, cx, cy+PanelRegister.vSpacing, "3IO");
+    this.cardaTron3IO.setCaption("3IO", true);
 
     // Carry Control
     this.regCarry = new PanelRegister(this.$$("CarryPanel"), 5, 5, "CT_", null);
@@ -819,14 +819,16 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("AdderPanel").addEventListener("click", this.boundLamp_Click);
     this.$$("CarryPanel").addEventListener("click", this.boundLamp_Click);
     this.$$("TWA").addEventListener("click", this.boundLamp_Click);
-    this.$$("BIO").addEventListener("click", this.boundLamp_Click);
+    this.$$("3IO").addEventListener("click", this.boundLamp_Click);
 
     this.$$("EmulatorVersion").textContent = D205Processor.version;
 
     // Power on the system by default...
-    this.p.powerUp();
-    this.powerLamp.set(1);
-    this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+    setCallback(this.mnemonic, this, 2000, function() {
+        this.p.powerUp();
+        this.powerLamp.set(1);
+        this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+    });
 };
 
 /**************************************/

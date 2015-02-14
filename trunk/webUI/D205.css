@@ -58,7 +58,7 @@ H1 {
     width:              auto;
     height:             auto;
     padding:            0.5em;
-    border-radius:      12px;
+    border-radius:      16px;
     border:             2px solid #999}
 #StartUpBtn[disabled] {
     background-color:   #468;
