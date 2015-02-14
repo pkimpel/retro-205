@@ -34,22 +34,25 @@ function D205CardatronControl(mnemonic) {
         D205Util.bindMethod(this, D205CardatronControl.prototype.cardatronOnLoad));
 
     // Set up the I/O devices
-    this.unit = [
-            null,                               // no unit 0
-            new D205CardatronInput("CI1", 1),   // input unit 1
-            null,                               // unused unit 2/6
-            null,                               // unused unit 3/5
-            null,                               // unused unit 4/4
-            null,                               // unused unit 5/3
-            null,                               // unused unit 6/2
-            null];                              // unused unit 7/1
+    this.inputUnit = [
+            null,                               // no inputUnit 0
+            new D205CardatronInput("CI1", 1),   // inputUnit 1
+            null,                               // inputUnit 2
+            null,                               // inputUnit 3
+            null,                               // inputUnit 4
+            null,                               // inputUnit 5
+            null,                               // inputUnit 6
+            null];                              // inputUnit 7
+    this.outputUnit = [
+            null,                               // no outputUnit 0
+            null,                               // outputUnit 1
+            null,                               // outputUnit 2
+            null,                               // outputUnit 3
+            null,                               // outputUnit 4
+            null,                               // outputUnit 5
+            null,                               // outputUnit 6
+            null];                              // outputUnit 7
 }
-
-/**************************************/
-D205CardatronControl.slowRefreshPeriod = 1000;    // milliseconds
-D205CardatronControl.displayRefreshPeriod = 50;   // milliseconds
-D205CardatronControl.offSwitchClass = "./resources/ToggleDown.png";
-D205CardatronControl.onSwitchClass = "./resources/ToggleUp.png";
 
 /**************************************/
 D205CardatronControl.prototype.$$ = function $$(e) {
@@ -60,22 +63,35 @@ D205CardatronControl.prototype.$$ = function $$(e) {
 D205CardatronControl.prototype.clear = function clear() {
     /* Initializes (and if necessary, creates) the panel state */
 
-    this.lastStartState = 0;            // last state of Processor.togSTART
-    this.digitSender = null;            // reference to keyboard callback function
+    // nothing at present...
 };
 
 /**************************************/
-D205CardatronInput.prototype.ClearBtn_onClick = function ClearBtn_onClick(ev) {
+D205CardatronControl.prototype.setUnitDesignateLamps = function setUnitDesignateLamps(unit) {
+    /* Sets the UD lamps on the panel from the low-order three bits of "unit" */
+
+    this.unitDesignate1Lamp.set(unit & 0x01);
+    this.unitDesignate2Lamp.set((unit >>> 1) & 0x01);
+    this.unitDesignate4Lamp.set((unit >>> 2) & 0x01);
+};
+
+/**************************************/
+D205CardatronControl.prototype.setRelayDesignateLamps = function setRelayDesignateLamps(mask) {
+    /* Sets the RD lamps on the panel from the low-order four bits of "mask" */
+
+    this.relayDesignate1Lamp.set(mask & 0x01);
+    this.relayDesignate2Lamp.set((mask >>> 1) & 0x01);
+    this.relayDesignate4Lamp.set((mask >>> 2) & 0x01);
+    this.relayDesignate8Lamp.set((mask >>> 3) & 0x01);
+};
+
+/**************************************/
+D205CardatronControl.prototype.ClearBtn_onClick = function ClearBtn_onClick(ev) {
     /* Handle the click event for the CLEAR button */
 
     this.outputUnitLamp.set(0);
-    this.unitDesignate1Lamp.set(0);
-    this.unitDesignate2Lamp.set(0);
-    this.unitDesignate4Lamp.set(0);
-    this.relayDesignate1Lamp.set(0);
-    this.relayDesignate2Lamp.set(0);
-    this.relayDesignate4Lamp.set(0);
-    this.relayDesignate8Lamp.set(0);
+    this.setUnitDesignateLamps(0);
+    this.setRelayDesignateLamps(0);
 };
 
 /**************************************/
@@ -121,25 +137,74 @@ D205CardatronControl.prototype.cardatronOnLoad = function cardatronOnLoad() {
 
     this.window.addEventListener("beforeunload", D205CardatronControl.prototype.beforeUnload);
     this.$$("ClearBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205CardatronInput.prototype.ClearBtn_onClick));
+            D205Util.bindMethod(this, D205CardatronControl.prototype.ClearBtn_onClick));
 };
 
 /**************************************/
-D205CardatronControl.prototype.readDigit = function readDigit(digitSender) {
-    /* Initiates the read of a digit from one of the Console input devices.
-    For the paper-tape readers, attempts to read the digit immediately. For
-    the keyboard, stashes the callback function and waits for a keyboard event */
+D205CardatronControl.prototype.inputInitiate = function inputInitiate(unitNr, kDigit, digitSender) {
+    /* Initiates the read from one of the Cardatron input devices */
 
-    switch (this.inputKnob.position) {
-    case 0:                             // mechanical reader
-    case 1:                             // optical reader
-        this.consoleIn.readTapeDigit(this.inputKnob.position, digitSender);
-        break;
-    case 2:                             // keyboard
-        this.digitSender = digitSender;
-        this.window.focus();
-        break;
-    } // switch inputKnob
+    this.outputUnitLamp.set(0);
+    this.setRelayDesignateLamps(0);
+    if (!this.inputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        digitSender(-1);                // just terminate the I/O
+    } else {
+        this.setUnitDesignateLamps(unitNr);
+        this.inputUnit[unitNr].inputInitiate(kDigit, digitSender);
+    }
+};
+
+/**************************************/
+D205CardatronControl.prototype.inputDigit = function inputDigit(unitNr, digitSender) {
+    /* Reads the next digit from the Cardatron input device */
+
+    if (!this.inputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        digitSender(-1);                // just terminate the I/O
+    } else {
+        this.inputUnit[unitNr].inputDigit(digitSender);
+    }
+};
+
+/**************************************/
+D205CardatronControl.prototype.inputStop = function inputStop(unitNr) {
+    /* Terminates data transfer from the Cardatron input device */
+
+    this.setUnitDesignateLamps(0);
+    if (!this.inputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+    } else {
+        this.inputUnit[unitNr].inputStop();
+    }
+};
+
+/**************************************/
+D205CardatronControl.prototype.inputReadyInterrogate = function inputReadyInterrogate(unitNr) {
+    /* Interrogates the ready status of a Cardatron input device */
+
+    if (!this.inputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        return false;
+    } else {
+        return this.inputUnit[unitNr].inputReadyInterrogate();
+    }
+};
+
+/**************************************/
+D205CardatronControl.prototype.inputFormatInitiate = function inputFormatInitiate(
+        unitNr, kDigit, signalOK, signalFinished) {
+    /* Initiates loading a format band for one of the Cardatron input devices */
+
+    this.outputUnitLamp.set(0);
+    this.setRelayDesignateLamps(0);
+    if (!this.inputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        signalFinished();               // just terminate the I/O
+    } else {
+        this.setUnitDesignateLamps(unitNr);
+        this.inputUnit[unitNr].inputFormatInitiate(kDigit, signalOK, signalFinished);
+    }
 };
 
 /**************************************/
@@ -167,11 +232,20 @@ D205CardatronControl.prototype.shutDown = function shutDown() {
     /* Shuts down the panel */
     var x;
 
-    if (this.unit) {
-        for (x=this.unit.length-1; x>=0; --x) {
-            if (this.unit[x]) {
-                this.unit[x].shutDown();
-                this.unit[x] = null;
+    if (this.inputUnit) {
+        for (x=this.inputUnit.length-1; x>=0; --x) {
+            if (this.inputUnit[x]) {
+                this.inputUnit[x].shutDown();
+                this.inputUnit[x] = null;
+            }
+        }
+    }
+
+    if (this.outputUnit) {
+        for (x=this.outputUnit.length-1; x>=0; --x) {
+            if (this.outputUnit[x]) {
+                this.outputUnit[x].shutDown();
+                this.outputUnit[x] = null;
             }
         }
     }

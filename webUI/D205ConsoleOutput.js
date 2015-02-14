@@ -58,7 +58,7 @@ D205ConsoleOutput.offSwitch = "./resources/ToggleDown.png";
 D205ConsoleOutput.midSwitch = "./resources/ToggleMid.png";
 D205ConsoleOutput.onSwitch = "./resources/ToggleUp.png";
 
-D205ConsoleOutput.cardaTronXlate = [        // translate internal CardaTron code to ANSI
+D205ConsoleOutput.cardatronXlate = [        // translate internal Cardatron code to ANSI
         " ", "?", "?", ".", "¤", "?", "?", "?", "?", "?",       // 00-09
         "&", "?", "?", "$", "*", "?", "?", "?", "?", "?",       // 10-19
         "-", "/", "?", ",", "%", "?", "?", "?", "?", "?",       // 20-29
@@ -582,7 +582,7 @@ D205ConsoleOutput.prototype.writeNumberDigit = function writeNumberDigit(outputU
             if (this.alphaLock) {
                 this.alphaLock = 0;
                 charCode = this.alphaFirstDigit*10 + digit;
-                this.flexChar(D205ConsoleOutput.cardaTronXlate[charCode]);
+                this.flexChar(D205ConsoleOutput.cardatronXlate[charCode]);
                 delay = 62;
             } else {
                 this.alphaLock = 1;

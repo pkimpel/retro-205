@@ -62,9 +62,11 @@ function D205Processor(devices) {
     /* Constructor for the 205 Processor module object */
 
     // Emulator control
-    this.poweredOn = 0;                 // System is powered on and initialized
-    this.devices = devices;             // Hash of I/O device objects
+    this.cardatron = null;              // Reference to Cardatron Control Unit
     this.console = null;                // Reference to Control Console for I/O
+    this.devices = devices;             // Hash of I/O device objects
+    this.ioReceiver = null;             // Current I/O output digit-receiver function
+    this.poweredOn = 0;                 // System is powered on and initialized
     this.successor = null;              // Current delayed-action successor function
 
     // Memory
@@ -93,9 +95,14 @@ function D205Processor(devices) {
     this.boundConsoleOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputSignDigit);
     this.boundConsoleOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputNumberDigit);
     this.boundConsoleOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputFinished);
-    this.boundConsoleReadDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReadDigit);
+    this.boundConsoleInputDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleInputDigit);
     this.boundConsoleReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveDigit);
     this.boundConsoleReceiveSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveSingleDigit);
+    this.boundCardatronOutputWordReady = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWordReady);
+    this.boundCardatronOutputDigit= D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputDigit);
+    this.boundCardatronOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputFinished);
+    this.boundCardatronInputDigit = D205Processor.bindMethod(this, D205Processor.prototype.cardatronInputDigit);
+    this.boundCardatronReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.cardatronReceiveDigit);
 
     // Processor throttling control
     this.scheduler = 0;                 // Current setCallback token
@@ -113,7 +120,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.03c";
+D205Processor.version = "0.03d";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -277,7 +284,11 @@ D205Processor.prototype.clearControl = function clearControl() {
 
     // Cardatron toggles
     this.togTWA = 0;                    // Cardatron: TWA toggle
-    this.togBIO = 0;                    // Cardatron: BIO toggle
+    this.tog3IO = 0;                    // Cardatron: 3IO toggle
+
+    // I/O globals
+    this.kDigit = 0;                    // variant/format digits from upper part of instruction
+    this.selectedUnit = 0;              // unit number
 };
 
 /***********************************************************************
@@ -1668,7 +1679,7 @@ D205Processor.prototype.consoleOutputFinished = function consoleOutputFinished()
 };
 
 /**************************************/
-D205Processor.prototype.consoleReadDigit = function consoleReadDigit() {
+D205Processor.prototype.consoleInputDigit = function consoleInputDigit() {
     // Solicits the next input digit from the Control Console */
 
     this.togTF = 0;                     // for display only, reset finish pulse
@@ -1681,8 +1692,8 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
     /* Handles an input digit coming from the Control Console keyboard or
     paper-tape reader. Negative values indicate a finish pulse; otherwise
     the digit is data read from the device. Data digits are rotated into
-    the D register; finish pulses are handled according to the sign of the
-    D register */
+    the D register; finish pulses are handled according to the sign digit
+    in the D register */
     var sign;                           // register sign digit
     var word;                           // register word less sign
 
@@ -1691,7 +1702,7 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
         this.togTC1 = 1-this.togTC1;    // for display only
         this.togTC2 = 1-this.togTC2;    // for display only
         this.D = (this.D % 0x10000000000)*0x10 + digit;
-        this.consoleReadDigit();
+        this.consoleInputDigit();
     } else {
         this.togTF = 1;
         this.togTC1 = this.togTC2 = 0;  // for display only
@@ -1721,6 +1732,7 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
             }
 
             // Shift D5-D10 into C1-C6, modify by B as necessary, and execute
+            this.CEXTRA = (this.D - word%0x1000000)/0x1000000;
             this.D = sign*0x100000 + (word - word%0x1000000)/0x1000000;
             if (this.togCLEAR) {
                 word = this.bcdAdd(word%0x1000000, 0);
@@ -1731,7 +1743,6 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
             this.C = word*0x10000 + this.CCONTROL; // put C back together
             this.CADDR = word % 0x10000;
             this.COP = (word - this.CADDR)/0x10000;
-            this.togBTOAIN = 0;
             this.execute();
         } else {
             // D-sign is 0, 1, 2, 3: store word, possibly modified by B
@@ -1766,7 +1777,213 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
             word = this.A % 0x10000000000;
             sign = (((this.A - word)/0x10000000000) & 0x0E) | (sign & 0x01);
             this.A = sign*0x10000000000 + word;
-            this.writeMemory(this.boundConsoleReadDigit, false);
+            this.writeMemory(this.boundConsoleInputDigit, false);
+        }
+    }
+};
+
+/**************************************/
+D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingleDigit(digit) {
+    /* Handles a single input digit coming from the Control Console keyboard
+    or paper-tape reader, as in the case of Digit Add (10). Negative values
+    indicate a finish pulse, which is ignored, and causes another digit to be
+    solicited from the Console; otherwise the digit is (virtually) moved to
+    the D register and then (actually) added to the A register */
+    var sign;                           // register sign digit
+    var word;                           // register word less sign
+
+    if (digit < 0) {                    // ignore finish pulse and just re-solicit
+        this.console.readDigit(this.boundConsoleReceiveSingleDigit);
+    } else {
+        this.procTime += performance.now()*D205Processor.wordsPerMilli + 4; // restore time after I/O
+        this.togSTART = 0;
+        this.D = digit;
+        this.integerAdd();
+        this.executeComplete();
+    }
+};
+
+/**************************************/
+D205Processor.prototype.cardatronOutputWordReady = function cardatronOutputWordReady() {
+    /* Successor function for readMemory that sets up the next word of output
+    and calls the current ioReceiver function to output the first digit */
+    var d;                              // first digit to be sent
+    var w;                              // local copy of A
+
+    if (this.tog3IO) {                  // if false, we've probably been cleared
+        w = this.A = this.D;            // move D with the memory word to A
+        d = w % 0x10;                   // get the first digit
+        this.A = (w-d)/0x10 + d*0x10000000000;      // rotate A right
+        this.SHIFT = 0x09;              // initialize digit counter (accounting for this digit)
+        this.ioReceiver(d, this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
+    }
+};
+
+/**************************************/
+D205Processor.prototype.cardatronOutputDigit = function cardatronOutputDigit(receiver) {
+    /* Outputs a numeric digit to the Cardatron Control unit and sets up to
+    output the next number digit. If the Shift Counter is already at 19,
+    initiates a read of the next word from memory */
+    var d;                              // next digit to be sent
+    var w;                              // local copy of A
+
+    if (this.tog3IO) {                  // if false, we've probably been cleared
+        if (this.SHIFT < 0x19) {        // if the shift counter < 19, send the next digit
+            w = this.A;
+            d = w % 0x10;
+            this.A = (w-d)/0x10 + d*0x10000000000;      // rotate A right
+            this.SHIFT = this.bcdAdd(this.SHIFT, 1);
+            receiver(d, this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
+        } else {                        // fetch the next word
+            // Increment the source address (except on the first word)
+            this.SHIFTCONTROL = 0x01;   // for display only
+            this.SHIFT = 0x15;          // for display only
+            if (this.togCOUNT) {
+                this.CADDR = this.bcdAdd(this.CADDR, 1)%0x10000;
+            } else {
+                this.togCOUNT = 1;
+            }
+            this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
+            this.ioReceiver = receiver;
+            this.readMemory(this.boundCardatronOutputWordReady);
+        }
+    }
+};
+
+/**************************************/
+D205Processor.prototype.cardatronOutputFinished = function cardatronOutputFinished() {
+    /* Handles the final cycle of an I/O operation and restores this.procTime */
+
+    if (this.tog3IO) {                  // if false, we've probably been cleared
+        this.tog3IO = 0;                // for display only
+        this.stopIdle = 0;              // turn IDLE lamp back off now that we're done
+        this.procTime += performance.now()*D205Processor.wordsPerMilli;
+        this.executeComplete();
+    }
+};
+
+/**************************************/
+D205Processor.prototype.cardatronInputDigit = function cardatronInputDigit() {
+    // Solicits the next input digit from the Control Cardatron */
+
+    this.togTF = 0;                     // for display only, reset finish pulse
+    this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+    this.cardatron.inputDigit(this.selectedUnit, this.boundCardatronReceiveDigit);
+};
+
+/**************************************/
+D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(digit) {
+    /* Handles an input digit coming from the Cardatron input unit. Negative
+    values for the digit indicate the last digit was previously sent and the
+    I/O is finished. Data digits are rotated into the D register; one a full
+    word is  accumulated, it is handled according to the sign digit in the
+    D register. Note that a full word is not processed until the first digit
+    for the next word is received. Any partial word received at the end of the
+    I/O is abandoned */
+    var sign;                           // register sign digit
+    var word;                           // register word less sign
+
+    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+    if (digit < 0) {
+        // Last digit received -- finished with the I/O
+        this.tog3IO = 0;                // for display only
+        this.togTF = 0;                 // for display only
+        this.executeComplete();
+    } else if (this.SHIFT < 0x19) {
+        // Shift this digit into D and request the next digit
+        this.D = this.D/0x10 + digit*0x10000000000;
+        this.SHIFT = this.bcdAdd(this.SHIFT, 1);
+        this.cardatronInputDigit();
+    } else {
+        // Full word accumulated -- process it and start the next word
+        this.togTF = 1;                 // for display only
+        word = this.D%0x10000000000;
+        sign = (this.D - word)/0x10000000000; // get D-sign
+
+        if (sign & 0x04) {
+            // D-sign is 4, 5, 6, 7: execute the word as an instruction
+            this.procTime += 2;
+            this.togTF = 0;             // for display only
+            this.togSTART = 1-((sign >>> 1) & 0x01); // whether to continue in input mode
+            this.setTimingToggle(0);    // Execute mode
+            this.togCOUNT = 0;
+            this.togBTOAIN = 0;
+            this.togADDAB = 1;          // for display only
+            this.togADDER = 1;          // for display only
+            this.togDPCTR = 1;          // for display only
+            this.togCLEAR = ((this.kDigit & 0x08) ? 1 : 1-(sign & 0x01));
+            this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // display only
+
+            // Shift D5-D10 into C1-C6, modify by B as necessary, and execute
+            if (this.togCLEAR) {
+                word = this.bcdAdd(word%0x1000000, 0);
+            } else {
+                word = this.bcdAdd(word%0x1000000, this.B) % 0x1000000;
+            }
+            this.C = word*0x10000 + this.CCONTROL; // put C back together
+            this.CEXTRA = (this.D - word%0x1000000)/0x1000000;
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            // do not set this.selectedUnit from the word -- keep the same unit
+            this.CADDR = word % 0x10000;
+            this.COP = (word - this.CADDR)/0x10000;
+            if (sign & 0x02) {          // sign-6 or -7
+                this.tog3IO = 0;        // for display only
+                this.togTF = 0;         // for display only
+                this.cardatron.inputStop(this.selectedUnit);
+                this.execute();
+            } else {                    // sign-4 or -5
+                /* It's not exactly clear what should happen at this point. The
+                documentation states that a sign-4 or -5 word coming from a Cardatron
+                input unit can only contain a CDR (44) instruction, which is sensible,
+                since sign-4/5 words are generally used to change the destination memory
+                address for the data transfer, and the Cardatron presumably still had
+                words to transfer. What it doesn't say is what happened if the sign-4/5
+                word contained something else. My guess is that either the Processor
+                ignored any other op code and proceeded as if it had been a CDR, or more
+                likely, things went to hell in a handbasket. The latter is a little
+                difficult to emulate, especially since we don't know which hell or
+                handbasket might be involved, so we'll assume the former, and just
+                continue requesting digits from the Cardatron */
+                this.SHIFT = 0x09;      // reset shift counter for next word
+                this.D = digit*0x10000000000; // clear D and shift in the first digit
+                this.cardatronInputDigit();
+            }
+        } else {
+            // D-sign is 0, 1, 2, 3, 8, 9: store word, possibly modified by B
+            this.procTime += 3;
+            this.setTimingToggle(1);    // Fetch mode
+            this.togCOUNT = this.togBTOAIN;
+            this.togBTOAIN = 1;
+            this.togADDAB = 1;          // for display only
+            this.togADDER = 1;          // for display only
+            this.togDPCTR = 1;          // for display only
+            this.togSIGN = sign & 0x01;
+            if (this.kDigit & 0x08) {
+                this.togCLEAR = 1;
+            } else {
+                this.togCLEAR = 1-((sign >>> 1) & 0x01);
+                sign &= 0x0D;
+            }
+
+            // Increment the destination address (except on the first word)
+            this.SHIFTCONTROL = 0x01;   // for display only
+            this.SHIFT = 0x15;          // for display only
+            if (this.togCOUNT) {
+                this.CADDR = this.bcdAdd(this.CADDR, 1)%0x10000;
+            }
+            this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
+
+            // Modify the word by B as necessary and store it
+            if (this.togCLEAR) {
+                word = this.bcdAdd(word, 0);
+            } else {
+                word = this.bcdAdd(word, this.B);
+            }
+
+            this.A = sign*0x10000000000 + word%0x10000000000;
+            this.SHIFT = 0x09;          // reset shift counter for next word
+            this.D = digit*0x10000000000; // start accumulating the next word
+            this.writeMemory(this.boundCardatronInputDigit, false);
         }
     }
 };
@@ -1790,31 +2007,10 @@ D205Processor.prototype.setExternalSwitches = function setExternalSwitches() {
             this.externalSwitch[x] = 1;
             break;
         case 3:                         // complement the switch
-            this.externalSwitch[x] = 1 - this.externalSwitch[x];
+            this.externalSwitch[x] = 1 - (this.externalSwitch[x] % 0x01);
             break;
         } // switch
     } // for x
-};
-
-/**************************************/
-D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingleDigit(digit) {
-    /* Handles a single input digit coming from the Control Console keyboard
-    or paper-tape reader, as in the case of Digit Add (10). Negative values
-    indicate a finish pulse, which is ignored, and causes another digit to be
-    solicited from the Console; otherwise the digit is (virtually) moved to
-    the D register and then (actually) added to the A register */
-    var sign;                           // register sign digit
-    var word;                           // register word less sign
-
-    if (digit < 0) {                    // ignore finish pulse and just re-solicit
-        this.console.readDigit(this.boundConsoleReceiveSingleDigit);
-    } else {
-        this.procTime += performance.now()*D205Processor.wordsPerMilli + 4; // restore time after I/O
-        this.togSTART = 0;
-        this.D = digit;
-        this.integerAdd();
-        this.executeComplete();
-    }
 };
 
 
@@ -1902,7 +2098,11 @@ D205Processor.prototype.fetch = function fetch() {
 
     this.togT0 = 0;                     // for display only, leave it off for fetch cycle
     if (this.togSTART) {
-        this.consoleReadDigit();          // we're still executing a Console input command
+        if (this.tog3IO) {
+            this.cardatronInputDigit(); // we're still executing a Cardatron input command
+        } else {
+            this.consoleInputDigit();   // we're still executing a Console input command
+        }
     } else {
         this.setTimingToggle(0);        // next cycle will be Execute by default
         this.SHIFT = 0x15;              // for display only
@@ -2158,7 +2358,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x00:      //---------------- PTR  Paper-tape/keyboard read
             this.D = 0;
             this.togSTART = 1;
-            this.consoleReadDigit();
+            this.consoleInputDigit();
             break;
 
         case 0x01:      //---------------- CIRA Circulate A
@@ -2245,7 +2445,7 @@ D205Processor.prototype.execute = function execute() {
             }
             break;
 
-        // 0x08:        //---------------- STOP [was handled above]
+        // 0x08:        //---------------- HALT [was handled above]
 
         // 0x09:        //---------------- (no op)
 
@@ -2535,17 +2735,37 @@ D205Processor.prototype.execute = function execute() {
         // 0x43:        //---------------- (no op)
 
         case 0x44:      //---------------- CDR  Card Read (Cardatron)
-            this.executeComplete();
+            this.D = 0;
+            this.tog3IO = 1;                            // for display only
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+            this.SHIFT = 0x08;                          // prepare to receive 11 digits
+            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+            this.cardatron.inputInitiate(this.selectedUnit, this.kDigit, this.boundCardatronReceiveDigit);
             break;
 
         case 0x45:      //---------------- CDRI Card Read Interrogate
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+            if (this.cardatron.inputReadyInterrogate(this.selectedUnit)) {
+                this.R = this.CCONTROL*0x1000000;
+                this.setTimingToggle(0);                // stay in Execute
+                this.setOverflow(1);                    // set overflow
+                this.COP = 0x28;                        // make into a CC
+                this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
+            }
             this.executeComplete();
             break;
 
         case 0x46-0x47: //---------------- (no op)
 
         case 0x48:      //---------------- CDRF Card Read Format
-            this.executeComplete();
+            this.tog3IO = 1;                            // for display only
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+            this.SHIFT = 0x19;                          // start at beginning of a word
+            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+            this.cardatron.inputFormatInitiate(this.selectedUnit, this.kDigit,
+                    this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
             break;
 
         // 0x49:        //---------------- (no op)
@@ -2632,6 +2852,7 @@ D205Processor.prototype.powerUp = function powerUp() {
         this.clear();
         this.poweredOn = 1;
         this.console = this.devices.ControlConsole;
+        this.cardatron = this.devices.CardatronControl;
     }
 };
 
@@ -2645,6 +2866,8 @@ D205Processor.prototype.powerDown = function powerDown() {
         this.executeTime = 0;
         this.fetchTime = 0;
         this.poweredOn = 0;
+        this.cardatron = null;
+        this.console = null;
     }
 };
 
