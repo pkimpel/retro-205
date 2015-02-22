@@ -824,7 +824,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("EmulatorVersion").textContent = D205Processor.version;
 
     // Power on the system by default...
-    setCallback(this.mnemonic, this, 2000, function() {
+    setCallback(this.mnemonic, this, 4000, function() {
         this.p.powerUp();
         this.powerLamp.set(1);
         this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);

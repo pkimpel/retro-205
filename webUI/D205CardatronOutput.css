@@ -1,0 +1,101 @@
+/***********************************************************************
+* retro-205/emulator D205CardatronOutput.css
+************************************************************************
+* Copyright (c) 2015, Paul Kimpel.
+* Licensed under the MIT License, 
+*       see http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* Datatron 205 emulator Cardatron Output Unit web interface style sheet.
+************************************************************************
+* 2015-02-15  P.Kimpel
+*   Original version, from D205CardatronInput.css.
+***********************************************************************/
+
+#writerBody {
+    height:             100%;
+    min-height:         100%;
+    overflow:           hidden;
+    padding:            0}
+
+#CODiv {
+    position:           absolute;
+    top:                0px;
+    bottom:             0px;
+    left:               0px;
+    right:              0px;}
+
+#COStopBtn {
+    position:           absolute;
+    top:                8px;
+    left:               8px}
+
+#COStartBtn {
+    position:           absolute;
+    top:                8px;
+    left:               76px}
+
+#COEndOfPaperBtn {
+    position:           absolute;
+    top:                8px;
+    left:               144px}
+
+#COFormFeedBtn {
+    position:           absolute;
+    line-height:        100%;
+    top:                8px;
+    left:               212px}
+
+#ClearBtn {
+    top:                8px;
+    left:               288px}
+#ClearBtnCaption {
+    top:                44px;
+    left:               288px;
+    width:              32px}
+       
+#StartMachineLamp {
+    top:                4px;
+    left:               336px}
+#FormatSelect4Lamp {
+    top:                4px;
+    left:               368px}
+#FormatSelect2Lamp {
+    top:                4px;
+    left:               400px}
+#FormatSelect1Lamp {
+    top:                4px;
+    left:               432px}
+ 
+#COOptionsDiv {
+    position:           absolute;
+    top:                4px;
+    right:              8px;
+    width:              auto}
+
+#COPaperMeter {
+    position:           absolute;
+    top:                32px;
+    left:               336px;
+    right:              0;
+    width:              calc(100% - 346px);
+    height:             18px;
+    border:             1px solid white}
+
+#COPaperMeterCaption {
+    position:           absolute;
+    top:                35px;
+    right:              18px;
+    z-index:            1;
+    height:             12px;
+    color:              black;
+    font-weight:        bold}
+
+#COPaperFrame {
+    position:           absolute;
+    top:                56px;
+    bottom:             8px;
+    left:               8px;
+    right:              8px;
+    width:              calc(100% - 18px);
+    height:             calc(100% - 66px);
+    border:             1px solid black}

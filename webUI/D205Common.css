@@ -37,8 +37,8 @@
 
 HTML {
     height:             100%}
-    
-BODY {    
+
+BODY {
     font-family:        DejaVuSansWeb, sans-serif;
     font-size:          10pt;
     background-color:   white;
@@ -59,7 +59,7 @@ BODY.deviceBody {
     padding:            0;
     background-color:   #246;
     color:              white}
-    
+
 H1 {
     margin-top:         2em;
     margin-bottom:      1em;
@@ -109,13 +109,13 @@ DIV.neonLamp {
     background-image:   radial-gradient(circle, #999, #333)}
 DIV.neonLit {
     background-image:   radial-gradient(circle, #F93, #F93, #999)}
-    
+
 DIV.neonLampTopCaption {
     position:           absolute;
     width:              32px;
     top:                -13px;
     left:               -8px;
-    line-height:        100%;        
+    line-height:        100%;
     font-size:          6px;
     text-align:         center}
 DIV.neonLampBottomCaption {
@@ -205,7 +205,7 @@ DIV.greenLit5 {
     background-image:   radial-gradient(circle, #0E0, #0D0, #080)}
 DIV.greenLit {
     background-image:   radial-gradient(circle, #0F0, #0E0, #090)}
-    
+
 DIV.coloredLampTopCaption {
     position:           absolute;
     width:              80px;
@@ -223,7 +223,7 @@ DIV.coloredLampBottomCaption {
     font-size:          5pt;
     font-weight:        bold;
     text-align:         center}
-    
+
 DIV.toggleSwitchTopCaption {
     position:           absolute;
     width:              64px;
@@ -241,7 +241,7 @@ DIV.toggleSwitchBottomCaption {
     font-size:          5pt;
     font-weight:        bold;
     text-align:         center}
-    
+
 DIV.blackControlKnobTopCaption {
     position:           absolute;
     width:              64px;
@@ -259,7 +259,7 @@ DIV.blackControlKnobBottomCaption {
     font-size:          5pt;
     font-weight:        bold;
     text-align:         center}
-    
+
 DIV.panelSurface {
     position:           relative;
     background-color:   #246;
@@ -284,7 +284,6 @@ DIV.panelCaption {
     z-index:            1;
     text-align:         center;
     height:             5px;
-    bottom:             1px;
     border-left:        1px solid white;
     border-right:       1px solid white;
     border-top:         1px solid white}
@@ -385,11 +384,11 @@ BUTTON.large {
     border-radius:      4px}
 
 BUTTON.greenButton {
-    background-color:   #060;
+    background-image:   radial-gradient(circle, #030, #060);
     color:              white}
 
 BUTTON.redButton {
-    background-color:   #900;
+    background-image:   radial-gradient(circle, #600, #900);
     color:              white}
 
 BUTTON.blackButton {
@@ -401,11 +400,11 @@ BUTTON.blackLit {
 
 BUTTON.greenLit {
     color:              black;
-    background-color:   #0F0}
+    background-image:   radial-gradient(circle, #0F0, #0F0, #0C0)}
 
 BUTTON.redLit {
     color:              black;
-    background-color:   #F00}
+    background-image:   radial-gradient(circle, #F00, #F00, #C00)}
 
 BUTTON.blackBorder {
     border:             1px solid black}

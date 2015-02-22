@@ -35,23 +35,23 @@ function D205CardatronControl(mnemonic) {
 
     // Set up the I/O devices
     this.inputUnit = [
-            null,                               // no inputUnit 0
-            new D205CardatronInput("CI1", 1),   // inputUnit 1
-            null,                               // inputUnit 2
-            null,                               // inputUnit 3
-            null,                               // inputUnit 4
-            null,                               // inputUnit 5
-            null,                               // inputUnit 6
-            null];                              // inputUnit 7
+            null,                                       // no input unit 0
+            new D205CardatronInput("CI1", 1),           // input unit 1
+            null,                                       // input unit 2
+            null,                                       // input unit 3
+            null,                                       // input unit 4
+            null,                                       // input unit 5
+            null,                                       // input unit 6
+            null];                                      // input unit 7
     this.outputUnit = [
-            null,                               // no outputUnit 0
-            null,                               // outputUnit 1
-            null,                               // outputUnit 2
-            null,                               // outputUnit 3
-            null,                               // outputUnit 4
-            null,                               // outputUnit 5
-            null,                               // outputUnit 6
-            null];                              // outputUnit 7
+            null,                                       // no output unit 0
+            new D205CardatronOutput("CO1", 1, false),   // output unit 1
+            new D205CardatronOutput("CO2", 2, true),    // output unit 2
+            null,                                       // output unit 3
+            null,                                       // output unit 4
+            null,                                       // output unit 5
+            null,                                       // output unit 6
+            null];                                      // output unit 7
 }
 
 /**************************************/
@@ -208,23 +208,47 @@ D205CardatronControl.prototype.inputFormatInitiate = function inputFormatInitiat
 };
 
 /**************************************/
-D205CardatronControl.prototype.writeFormatDigit = function writeFormatDigit(formatDigit, successor) {
-    this.consoleOut.writeFormatDigit(this.outputKnob.position, formatDigit, successor);
+D205CardatronControl.prototype.outputInitiate = function outputInitiate(
+        unitNr, kDigit, tDigit, signalOK, signalFinished) {
+    /* Initiates writing to one of the Cardatron output devices */
+
+    this.outputUnitLamp.set(1);
+    this.setRelayDesignateLamps(tDigit);
+    if (!this.outputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        signalFinished();               // just terminate the I/O
+    } else {
+        this.setUnitDesignateLamps(unitNr);
+        this.outputUnit[unitNr].outputInitiate(kDigit, tDigit, signalOK, signalFinished);
+    }
 };
 
 /**************************************/
-D205CardatronControl.prototype.writeSignDigit = function writeSignDigit(signDigit, successor) {
-    this.consoleOut.writeSignDigit(this.outputKnob.position, signDigit, successor);
+D205CardatronControl.prototype.outputReadyInterrogate = function outputReadyInterrogate(unitNr) {
+    /* Interrogates the ready status of a Cardatron output device */
+
+    if (!this.outputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        return false;
+    } else {
+        return this.outputUnit[unitNr].outputReadyInterrogate();
+    }
 };
 
 /**************************************/
-D205CardatronControl.prototype.writeNumberDigit = function writeNumberDigit(digit, successor) {
-    this.consoleOut.writeNumberDigit(this.outputKnob.position, digit, successor);
-};
+D205CardatronControl.prototype.outputFormatInitiate = function outputFormatInitiate(
+        unitNr, kDigit, signalOK, signalFinished) {
+    /* Initiates loading a format band for one of the Cardatron output devices */
 
-/**************************************/
-D205CardatronControl.prototype.writeFinish = function writeFinish(controlDigit, successor) {
-    this.consoleOut.writeFinish(this.outputKnob.position, controlDigit, successor);
+    this.outputUnitLamp.set(1);
+    this.setRelayDesignateLamps(0);
+    if (!this.outputUnit[unitNr]) {
+        // ?? what happens if the unitNr is invalid? Halt?
+        signalFinished();               // just terminate the I/O
+    } else {
+        this.setUnitDesignateLamps(unitNr);
+        this.outputUnit[unitNr].outputFormatInitiate(kDigit, signalOK, signalFinished);
+    }
 };
 
 /**************************************/

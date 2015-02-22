@@ -17,7 +17,7 @@
     overflow:           hidden;
     padding:            0}
 
-#CRDiv {
+#CIDiv {
     position:           absolute;
     top:                0;
     bottom:             0;
@@ -25,12 +25,12 @@
     right:              0;
     margin:             4px}
 
-#CRStopBtn {
+#CIStopBtn {
     position:           absolute;
     top:                8px;
     left:               8px}
 
-#CRStartBtn {
+#CIStartBtn {
     position:           absolute;
     top:                8px;
     left:               76px}
@@ -82,25 +82,25 @@
     right:              8px;
     width:              32px}
 
-#CRStackerDiv {
+#CIStackerDiv {
     position:           absolute;
     top:                58px;
     left:               8px;
     right:              8px;
     bottom:             auto}
 
-#CRFileSelector {
+#CIFileSelector {
     width:              100%;
     color:              white;
     border:             1px solid white}
 
-#CRHopperBar {
+#CIHopperBar {
     margin-top:         4px;
     width:              100%;
     height:             16px;
     border:             1px solid white}
 
-#CRHopperCaption {
+#CIHopperCaption {
     position:           absolute;
     right:              4px;
     top:                30px;
@@ -109,7 +109,7 @@
     color:              black;
     font-weight:        bold}
 
-#CROutHopperFrame {
+#CIOutHopperFrame {
     margin-top:         4px;
     width:              100%;
     height:             35px;

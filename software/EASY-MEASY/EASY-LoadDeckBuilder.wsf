@@ -1,0 +1,177 @@
+<package>
+<job id="EASY-LoadDeckBuilder">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 EASY-LoadDeckBuilder.wsf
+' Copyright (c) 2015, Paul Kimpel, 
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to generate a 205 card-load deck from the list/punch output
+' of Donald Knuth's EASY assembler. 
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of assembler output list/punch file (required).
+'   Name of resulting load-deck file (optional - by default will have name of 
+'       name of list/punch file with "-Load.card" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-02-19  P.Kimpel
+'   Original version, cloned from HQ\SecretProgrammer\CatTextFiles.wsf
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-Load.card"
+Const addrIndex = 62
+
+Dim args
+Dim asmFile
+Dim asmName
+Dim fso
+Dim loadFile
+Dim loadName
+Dim stamp
+
+'---------------------------------------
+Function Pic9n(byVal v, byVal digits)
+  'Formats "v" as "digits" number of digits with leading zeros
+  Dim s, length
+
+  s = CStr(Abs(v))
+  length = Len(s)
+  If length < digits Then
+    Pic9n = String(digits-length, "0") & s
+  ElseIf length > digits Then
+    Pic9n = Right(s, digits)
+  Else
+    Pic9n = s
+  End If
+End Function
+
+'---------------------------------------
+Function PicZn(byVal v, byVal chars)
+  'Formats "v" as length "chars", right-justified with leading spaces
+  Dim s, length
+
+  s = CStr(v)
+  length = Len(s)
+  If length < chars Then
+    PicZn = Space(chars-length) & s
+  ElseIf length > chars Then
+    PicZn = Right(s, chars)
+  Else
+    PicZn = s
+  End If
+End Function
+
+'---------------------------------------
+Sub WriteCard(byVal card)
+  'Fills out the card image with sufficient spaces and "666" for format
+  'control in columns 1-3, then writes the image.
+  
+  While Len(card) < 66
+    card = "           " & card
+  Wend
+  
+  While Len(card) < 77
+    card = " " & card
+  Wend
+  
+  loadFile.WriteLine "666" & card
+End Sub
+
+'---------------------------------------
+Sub BuildLoadfile
+  'Creates the card-load file from the assembler output file.
+  Dim addr
+  Dim addrField
+  Dim card
+  Dim lastAddr
+  Dim line
+  Dim word
+  Dim wordCount
+  
+  card = ""
+  lastAddr = -2
+  wordCount = 0
+  
+  While Not asmFile.AtEndOfStream
+    line = asmFile.ReadLine
+    If Len(line) >= addrIndex + 18 Then
+      addrField = Mid(line, addrIndex, 4)
+      If IsNumeric(addrField) Then
+        addr = CInt(addrField)
+        word = Mid(line, addrIndex+5, 1) & Mid(line, addrIndex+7, 4) & _
+               Mid(line, addrIndex+12, 2) & Mid(line, addrIndex+15, 4)
+        If lastAddr+1 = addr Then
+          If wordCount >= 6 Then
+            card = "6081044" & addrField & card
+            WriteCard card
+            card = ""
+            wordCount = 0
+          End If
+        Else
+          If wordCount < 5 Then
+            card = "4081044" & addrField & card
+            wordCount = wordCount + 1
+          Else
+            card = "6081044" & addrField & card
+            WriteCard card
+            card = ""
+            wordCount = 0
+          End If
+        End If
+        
+        card = word & card
+        wordCount = wordCount + 1
+        lastAddr = addr
+      End If
+    End If
+  Wend
+  
+  WriteCard card
+End Sub
+
+'---------------------------------------------------------------
+
+stamp = Now()
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the assembler output file."
+  WScript.Quit 9
+Else  
+  asmName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    loadName = Trim(args.Item(1))
+  Else
+    loadName = fso.BuildPath(fso.GetParentFolderName(asmName), fso.GetBaseName(asmName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(asmName) Then
+  MsgBox "Assembler output file does not exist: " & vbCrLf & asmName
+Else
+  Set asmFile = fso.OpenTextFile(asmName, ForReading, False)
+  Set loadFile = fso.CreateTextFile(loadName, True)
+  BuildLoadFile
+  loadFile.Close
+  Set loadFile = Nothing
+  asmFile.Close
+  Set asmFile = Nothing
+  MsgBox "Program load file created: " & vbCrLf & loadName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+</script>
+</job>
+</package>
