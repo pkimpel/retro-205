@@ -120,7 +120,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.03d";
+D205Processor.version = "0.03e";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -1614,7 +1614,7 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
 };
 
 /***********************************************************************
-*   I/O Module                                                         *
+*   Console I/O Module                                                 *
 ***********************************************************************/
 
 /**************************************/
@@ -1803,6 +1803,10 @@ D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingl
     }
 };
 
+/***********************************************************************
+*   Cardatron I/O Module                                               *
+***********************************************************************/
+
 /**************************************/
 D205Processor.prototype.cardatronOutputWordReady = function cardatronOutputWordReady() {
     /* Successor function for readMemory that sets up the next word of output
@@ -1987,6 +1991,10 @@ D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(d
         }
     }
 };
+
+/***********************************************************************
+*   External Control Module                                            *
+***********************************************************************/
 
 /**************************************/
 D205Processor.prototype.setExternalSwitches = function setExternalSwitches() {
@@ -2738,14 +2746,14 @@ D205Processor.prototype.execute = function execute() {
             this.D = 0;
             this.tog3IO = 1;                            // for display only
             this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             this.SHIFT = 0x08;                          // prepare to receive 11 digits
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
             this.cardatron.inputInitiate(this.selectedUnit, this.kDigit, this.boundCardatronReceiveDigit);
             break;
 
         case 0x45:      //---------------- CDRI Card Read Interrogate
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             if (this.cardatron.inputReadyInterrogate(this.selectedUnit)) {
                 this.R = this.CCONTROL*0x1000000;
                 this.setTimingToggle(0);                // stay in Execute
@@ -2761,7 +2769,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x48:      //---------------- CDRF Card Read Format
             this.tog3IO = 1;                            // for display only
             this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             this.SHIFT = 0x19;                          // start at beginning of a word
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
             this.cardatron.inputFormatInitiate(this.selectedUnit, this.kDigit,
@@ -2783,17 +2791,37 @@ D205Processor.prototype.execute = function execute() {
         // 0x53:        //---------------- (no op)
 
         case 0x54:      //---------------- CDW  Card Write (Cardatron)
-            this.executeComplete();
+            this.tog3IO = 1;                            // for display only
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+            this.SHIFT = 0x19;                          // start at beginning of a word
+            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+            this.cardatron.outputInitiate(this.selectedUnit, this.kDigit, (this.CEXTRA >>> 12) & 0x0F,
+                    this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
             break;
 
         case 0x55:      //---------------- CDWI Card Write Interrogate
             this.executeComplete();
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+            if (this.cardatron.outputReadyInterrogate(this.selectedUnit)) {
+                this.R = this.CCONTROL*0x1000000;
+                this.setTimingToggle(0);                // stay in Execute
+                this.setOverflow(1);                    // set overflow
+                this.COP = 0x28;                        // make into a CC
+                this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
+            }
             break;
 
         // 0x56-0x57:   //---------------- (no op)
 
         case 0x58:      //---------------- CDWF Card Write Format
-            this.executeComplete();
+            this.tog3IO = 1;                            // for display only
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+            this.SHIFT = 0x19;                          // start at beginning of a word
+            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+            this.cardatron.outputFormatInitiate(this.selectedUnit, this.kDigit,
+                    this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
             break;
 
         // 0x59:        //---------------- (no op)
