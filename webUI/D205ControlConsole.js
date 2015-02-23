@@ -159,6 +159,7 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
     var elapsed;
     var eLevel;
     var p = this.p;                     // local copy of Processor object
+    var startState = p.togSTART && !p.tog3IO;
 
     p.fetchStats(this.stats);
     elapsed = this.stats.drumTime - this.lastStats.drumTime;
@@ -182,12 +183,12 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
     this.notReadyLamp.set((p.sswLockNormal || p.sswStepContinuous) && p.poweredOn);
     this.continuousLamp.set((p.sswStepContinuous || p.cctContinuous) && p.poweredOn);
 
-    if (p.togSTART != this.lastStartState) {
-        this.lastStartState = p.togSTART;
+    if (startState != this.lastStartState) {
+        this.lastStartState = startState;
         this.$$("TapeReaderLamp").className = "annunciator";
         this.$$("KeyboardLamp").className = "annunciator";
-         if (p.togSTART) {
-           switch (this.inputKnob.position) {
+        if (startState) {
+            switch (this.inputKnob.position) {
             case 0:                     // mechanical reader
             case 1:                     // optical reader
                 this.$$("TapeReaderLamp").className = "annunciator annunciatorLit";

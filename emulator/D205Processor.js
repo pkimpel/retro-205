@@ -684,15 +684,15 @@ D205Processor.prototype.integerAdd = function integerAdd() {
     in A and clearing D. All values are BCD with the sign in the 11th digit
     position. Sets the Overflow and Forbidden-Combination stops as necessary */
     var am = this.A % 0x10000000000;    // augend mantissa
-    var aSign = ((this.A - am)/0x10000000000) & 0x01;
+    var aSign = ((this.A - am)/0x10000000000);
     var compl;                          // complement addition required
     var dm = this.D % 0x10000000000;    // addend mantissa
-    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
+    var dSign = ((this.D - dm)/0x10000000000);
     var sign = dSign;                   // local copy of sign toggle
 
     this.togADDER = 1;                  // for display only
     this.togDPCTR = 1;                  // for display only
-    compl = (aSign^dSign);
+    compl = (aSign^dSign) & 0x01;
     am = this.bcdAdd(am, dm, compl, compl);
 
     // Now examine the resulting sign (still in the adder) to see if we have overflow
@@ -741,9 +741,9 @@ D205Processor.prototype.integerExtract = function integerExtract() {
     var carry;                          // local copy of carry toggle (CT 1)
     var ct;                             // local copy of carry register (CT 1-16)
     var dd;                             // current pattern (D) digit;
-    var dm = this.D % 0x10000000000;    // pattern mantissa
-    var dSign = ((this.D - dm)/0x10000000000) & 0x01;
-    var sign = aSign & dSign;           // local copy of sign toggle
+    var dm = this.D;                    // pattern mantissa
+    var dSign = ((this.D - this.D%0x10000000000)/0x10000000000);
+    var sign = aSign & dSign & 0x01;    // local copy of sign toggle
     var x;                              // digit counter
 
     this.togCLEAR = 1;                  // for display only
@@ -1731,8 +1731,11 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
                 this.CCONTROL = this.bcdAdd(this.CADDR, 1)%0x10000;
             }
 
-            // Shift D5-D10 into C1-C6, modify by B as necessary, and execute
             this.CEXTRA = (this.D - word%0x1000000)/0x1000000;
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            // do not set this.selectedUnit from the word -- keep the same unit
+
+            // Shift D5-D10 into C1-C6, modify by B as necessary, and execute
             this.D = sign*0x100000 + (word - word%0x1000000)/0x1000000;
             if (this.togCLEAR) {
                 word = this.bcdAdd(word%0x1000000, 0);
@@ -1918,6 +1921,10 @@ D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(d
             this.togCLEAR = ((this.kDigit & 0x08) ? 1 : 1-(sign & 0x01));
             this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // display only
 
+            this.CEXTRA = (this.D - word%0x1000000)/0x1000000;
+            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+            // do not set this.selectedUnit from the word -- keep the same unit
+
             // Shift D5-D10 into C1-C6, modify by B as necessary, and execute
             if (this.togCLEAR) {
                 word = this.bcdAdd(word%0x1000000, 0);
@@ -1925,9 +1932,6 @@ D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(d
                 word = this.bcdAdd(word%0x1000000, this.B) % 0x1000000;
             }
             this.C = word*0x10000 + this.CCONTROL; // put C back together
-            this.CEXTRA = (this.D - word%0x1000000)/0x1000000;
-            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            // do not set this.selectedUnit from the word -- keep the same unit
             this.CADDR = word % 0x10000;
             this.COP = (word - this.CADDR)/0x10000;
             if (sign & 0x02) {          // sign-6 or -7
@@ -2175,30 +2179,27 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
 
     case 0x64:          //---------------- CAD  Clear and Add A
         this.procTime += 3;
-        this.A = 0;
-        this.integerAdd();
+        this.A = this.bcdAdd(0, this.D);
+        this.D = 0;
         break;
 
     case 0x65:          //---------------- CSU  Clear and Subtract A
         this.procTime += 3;
         // Complement the D sign -- any sign overflow will be ignored by integerAdd
-        this.A = 0;
-        this.D += 0x10000000000;
-        this.integerAdd();
+        this.A = this.bcdAdd(0, this.bitFlip(this.D, 40));
+        this.D = 0;
         break;
 
     case 0x66:          //---------------- CADA Clear and Add Absolute
         this.procTime += 3;
-        this.A = 0;
-        this.D %= 0x10000000000;
-        this.integerAdd();
+        this.A = this.bcdAdd(0, this.bitReset(this.D, 40));
+        this.D = 0;
         break;
 
     case 0x67:          //---------------- CSUA Clear and Subtract Absolute
         this.procTime += 3;
-        this.A = 0;
-        this.D = this.D%0x10000000000 + 0x10000000000;
-        this.integerAdd();
+        this.A = this.bcdAdd(0, this.bitSet(this.D, 40));
+        this.D = 0;
         break;
 
     // 0x68-0x69:       //---------------- (no op)
@@ -2238,20 +2239,19 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
 
     case 0x75:          //---------------- SU   Subtract
         this.procTime += 3;
-        // Complement the D sign -- any sign overflow will be ignored by integerAdd
-        this.D += 0x10000000000;
+        this.D = this.bitFlip(this.D, 40);              // complement the D sign
         this.integerAdd();
         break;
 
     case 0x76:          //---------------- ADA  Add Absolute
         this.procTime += 3;
-        this.D %= 0x10000000000;                        // clear the D-sign digit
+        this.D = this.bitReset(this.D, 40);             // clear the D sign
         this.integerAdd();
         break;
 
     case 0x77:          //---------------- SUA  Subtract Absolute
         this.procTime += 3;
-        this.D = this.D%0x10000000000 + 0x10000000000; // set the sign bit
+        this.D = this.bitSet(this.D, 40);               // set the D sign
         this.integerAdd();
         break;
 

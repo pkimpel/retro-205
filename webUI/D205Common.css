@@ -284,6 +284,7 @@ DIV.panelCaption {
     z-index:            1;
     text-align:         center;
     height:             5px;
+    font-size:          5pt;
     border-left:        1px solid white;
     border-right:       1px solid white;
     border-top:         1px solid white}
@@ -299,7 +300,7 @@ DIV.boxCaption {
 
 SPAN.panelSpan {
     position:           relative;
-    top:                -6px;
+    top:                -1em;
     font-size:          5pt;
     font-weight:        bold;
     padding-left:       2px;
@@ -308,6 +309,7 @@ SPAN.panelSpan {
 
 DIV.panelRegCaption {
     position:           absolute;
+    font-size:          7pt;
     font-weight:        normal;
     text-align:         center;
     height:             5px;
@@ -318,7 +320,7 @@ DIV.panelRegCaption {
 
 SPAN.panelRegSpan {
     position:           relative;
-    top:                -7px;
+    top:                -1em;
     font-size:          7pt;
     padding-left:       2px;
     padding-right:      2px;
