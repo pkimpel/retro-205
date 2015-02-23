@@ -36,7 +36,7 @@ function D205CardatronControl(mnemonic) {
     // Set up the I/O devices
     this.inputUnit = [
             null,                                       // no input unit 0
-            new D205CardatronInput("CI1", 1),           // input unit 1
+            new D205CardatronInput("CR1", 1),           // input unit 1
             null,                                       // input unit 2
             null,                                       // input unit 3
             null,                                       // input unit 4
@@ -45,8 +45,8 @@ function D205CardatronControl(mnemonic) {
             null];                                      // input unit 7
     this.outputUnit = [
             null,                                       // no output unit 0
-            new D205CardatronOutput("CO1", 1, false),   // output unit 1
-            new D205CardatronOutput("CO2", 2, true),    // output unit 2
+            new D205CardatronOutput("CP1", 1, false),   // output unit 1
+            new D205CardatronOutput("LP2", 2, true),    // output unit 2
             null,                                       // output unit 3
             null,                                       // output unit 4
             null,                                       // output unit 5
