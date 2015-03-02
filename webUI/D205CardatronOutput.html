@@ -32,24 +32,28 @@
 <div id=CODiv class=devicePanel>
     <button id=COStartBtn       class="large greenButton">START</button>
     <button id=COStopBtn        class="large redButton">STOP</button>
-    <button id=COEndOfPaperBtn  class="large redButton">END OF<br>PAPER</button>
-    <button id=COFormFeedBtn    class="large redButton">SKIP<br>TO<br>HEADING</button>
+    <button id=COEndOfSupplyBtn class="large redButton">END OF<br>SUPPLY</button>
+    <button id=COFeedSupplyBtn  class="large redButton"
+            title="Triple-click to feed paper or empty hopper"
+            >FEED<br>SUPPLY</button>
 
     <div id=ClearBtn class=redButton1>&nbsp;</div>
     <div id=ClearBtnCaption class=caption>CLEAR</div>
 
     <div id=COOptionsDiv>
-      <input id=COGreenbarCheck type=checkbox value=1 checked>
-      <label for=COGreenbarCheck class="annunciator annunciatorLit">GREENBAR</label>
-      &nbsp;&nbsp;
+      <span id=COGreenbarSpan>
+          <input id=COGreenbarCheck type=checkbox value=1 checked>
+          <label for=COGreenbarCheck class="annunciator annunciatorLit">GREENBAR</label>
+          &nbsp;&nbsp;
+      </span>
       <input id=COAlgolGlyphsCheck type=checkbox value=1 checked>
       <label for=COAlgolGlyphsCheck class="annunciator annunciatorLit">ALGOL GLYPHS</label>
     </div>
 
-    <meter id=COPaperMeter min=0 max=100 low=10 value=100></meter>
-    <label id=COPaperMeterCaption for=COPaperMeter>PAPER REMAINING</label>
+    <meter id=COSupplyMeter min=0 max=100 low=10 value=100></meter>
+    <label id=COSupplyMeterCaption for=COSupplyMeter>SUPPLY REMAINING</label>
 
-    <iframe id=COPaperFrame class=paper scrolling=auto src="./D205FramePaper.html"></iframe>
+    <iframe id=COSupplyFrame class=paper scrolling=auto src="./D205FramePaper.html"></iframe>
 </div>
 
 </body>

@@ -21,20 +21,22 @@ function D205CardatronOutput(mnemonic, unitIndex, isPrinter) {
     var h = screen.availHeight*0.25;    // window height
     var left = 0;                       // (temporary window x-offset)
     var tks = D205CardatronOutput.trackSize;
-    var w = (isPrinter ? 820 : 650);    // window width
+    var w = (isPrinter ? 840 : 560);    // window width
     var x;
 
     this.mnemonic = mnemonic;           // Unit mnemonic
     this.unitIndex = unitIndex;         // Output unit number
     this.isPrinter = isPrinter;         // Whether printer (true) or punch (false)
     this.lineWidth = (isPrinter ? 120 : 80);
+    this.linesPerMinute = (isPrinter ? 150 : 100); // IBM 407=150 LPM, IBM 523=100 CPM
 
     this.timer = 0;                     // setCallback() token
     this.useAlgolGlyphs = false;        // format for special Algol chars
-    this.useGreenbar = isPrinter;       // format "greenbar" shading on the paper
+    this.useGreenbar = isPrinter;       // format "greenbar" shading on the paper (printer only)
+    this.isGreenbarCapable = isPrinter; // whether to use greenbar <pre> groups
     this.lpi = 6;                       // lines/inch (actually, lines per greenbar group, should be even)
-    this.boundOutputFormatDigit = D205Util.bindMethod(this, D205CardatronOutput.prototype.outputFormatDigit);
-    this.boundOutputDigit = D205Util.bindMethod(this, D205CardatronOutput.prototype.outputDigit);
+    this.boundOutputFormatWord = D205Util.bindMethod(this, D205CardatronOutput.prototype.outputFormatWord);
+    this.boundOutputWord = D205Util.bindMethod(this, D205CardatronOutput.prototype.outputWord);
 
     this.clear();
 
@@ -60,22 +62,21 @@ function D205CardatronOutput(mnemonic, unitIndex, isPrinter) {
     }
     this.doc = null;
     this.barGroup = null;               // current greenbar line group
-    this.paperDoc = null;               // the content document for the paper frame
-    this.paper = null;                  // the "paper" we print on
-    this.endOfPaper = null;             // dummy element used to control scrolling
-    this.paperMeter = null;             // <meter> element showing amount of paper remaining
+    this.supplyDoc = null;              // the content document for the supply frame
+    this.supply = null;                 // the "paper" or "cards" we print/punch on
+    this.endOfSupply = null;            // dummy element used to control scrolling
+    this.supplyMeter = null;            // <meter> element showing amount of paper/card supply remaining
     this.window = window.open("../webUI/D205CardatronOutput.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
             ",left=" + (screen.availWidth - (7-unitIndex)*24) +
             ",top=" + (screen.availHeight - h - (7-unitIndex)*24));
     this.window.addEventListener("load",
-            D205Util.bindMethod(this, D205CardatronOutput.prototype.printerOnLoad), false);
+            D205Util.bindMethod(this, D205CardatronOutput.prototype.deviceOnLoad), false);
 }
 
 /**************************************/
 
-D205CardatronOutput.prototype.linesPerMinute = 150;     // IBM Type 407 tabulator
-D205CardatronOutput.prototype.maxPaperLines = 150000;   // maximum printer scrollback (about a box of paper)
+D205CardatronOutput.prototype.maxSupplyLines = 150000;  // maximum output scrollback (about a box of paper)
 D205CardatronOutput.prototype.rtrimRex = /\s+$/;        // regular expression for right-trimming lines
 D205CardatronOutput.prototype.theColorGreen = "#CFC";   // for greenbar shading
 
@@ -83,7 +84,7 @@ D205CardatronOutput.trackSize = 316;     // digits
 D205CardatronOutput.digitTime = 60/21600/D205CardatronOutput.trackSize;
                                         // one digit time, about 8.8 µs at 21600rpm
 D205CardatronOutput.digitsPerMilli = 0.001/D205CardatronOutput.digitTime;
-                                        // digit times per millisecond: 113.4
+                                        // digit times per millisecond: 113.8
 
 // Translate info band zone & numeric digits to ASCII character codes.
 // See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 2.
@@ -108,6 +109,7 @@ D205CardatronOutput.prototype.outputXlate = [
 // each column is indexed by the PREVIOUS numeric digit from the info band.
 // See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 12.
 D205CardatronOutput.prototype.zoneXlate = [
+        //0 1  2  3  4  5  6  7  8  9
         [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],         // zone digit 0
         [1, 0, 0, 2, 2, 0, 0, 0, 0, 0],         // zone digit 1
         [2, 4, 0, 4, 4, 0, 0, 0, 0, 0],         // zone digit 2
@@ -129,8 +131,8 @@ D205CardatronOutput.prototype.clear = function clear() {
     this.writeRequested = false;        // Processor has initiated a write, waiting for buffer
     this.togNumeric = false;            // current digit came from zone (false) or numeric (true) punches
 
-    this.paperLeft = this.maxPaperLines;// lines remaining in paper supply
-    this.formFeedCount = 0;             // counter for triple-formfeed => rip paper
+    this.supplyLeft = this.maxSupplyLines; // lines/cards remaining in output supply
+    this.feedSupplyCount = 0;           // counter for triple-formfeed => rip paper/empty hopper
     this.groupLinesLeft = 0;            // lines remaining in current greenbar group
     this.topOfForm = false;             // start new page flag
     this.pendingSpaceBefore = -1;       // pending carriage control (eat the initial space-before)
@@ -139,7 +141,6 @@ D205CardatronOutput.prototype.clear = function clear() {
     this.pendingParams = null;          // stashed pending function parameters
     this.kDigit = 0;                    // stashed reload-format band number
     this.tDigit = 0;                    // stashed Tab Select relay digit
-    this.digitCount = 0;                // digit within word being returned (sign=10)
     this.lastNumericDigit = 0;          // last numeric digit encountered
     this.infoIndex = 0;                 // 0-relative offset into info band on drum
     this.selectedFormat = 0;            // currently-selected format band
@@ -178,10 +179,10 @@ D205CardatronOutput.prototype.ClearBtn_onClick = function ClearBtn_onClick(ev) {
 };
 
 /**************************************/
-D205CardatronOutput.prototype.setPrinterReady = function setPrinterReady(ready) {
-    /* Controls the ready-state of the line printer */
+D205CardatronOutput.prototype.setDeviceReady = function setDeviceReady(ready) {
+    /* Controls the ready-state of the printer/punch */
 
-    this.formFeedCount = 0;
+    this.feedSupplyCount = 0;
     if (ready && !this.ready) {
         D205Util.addClass(this.$$("COStartBtn"), "greenLit")
         D205Util.removeClass(this.$$("COStopBtn"), "redLit");
@@ -194,15 +195,15 @@ D205CardatronOutput.prototype.setPrinterReady = function setPrinterReady(ready) 
 };
 
 /**************************************/
-D205CardatronOutput.prototype.ripPaper = function ripPaper(ev) {
-    /* Handles an event to clear the "paper" from the printer */
+D205CardatronOutput.prototype.ripSupply = function ripSupply(ev) {
+    /* Handles an event to clear the suply from the printer/punch */
 
-    this.formFeedCount = 0;
-    if (this.window.confirm("Do you want to clear the \"paper\" from the printer?")) {
-        D205Util.removeClass(this.$$("COEndOfPaperBtn"), "redLit");
-        this.paperMeter.value = this.paperLeft = this.maxPaperLines;
-        while (this.paper.firstChild) {
-            this.paper.removeChild(this.paper.firstChild);
+    this.feedSupplyCount = 0;
+    if (this.window.confirm("Do you want to clear the output from the device?")) {
+        D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
+        this.supplyMeter.value = this.supplyLeft = this.maxSupplyLines;
+        while (this.supply.firstChild) {
+            this.supply.removeChild(this.supply.firstChild);
         }
     }
 };
@@ -214,26 +215,28 @@ D205CardatronOutput.prototype.appendLine = function appendLine(text) {
     highlighting */
     var feed = "\n";
 
-    if (this.groupLinesLeft <= 0) {
-        // Start the green half of a greenbar group
-        this.barGroup = this.doc.createElement("pre");
-        this.paper.appendChild(this.barGroup);
-        this.groupLinesLeft = this.lpi;
-        if (!this.atTopOfForm) {
-            this.barGroup.className = "paper greenBar";
-        } else {
-            this.atTopOfForm = false;
-            this.barGroup.className = "paper greenBar topOfForm";
+    if (this.isGreenbarCapable) {
+        if (this.groupLinesLeft <= 0) {
+            // Start the green half of a greenbar group
+            this.barGroup = this.doc.createElement("pre");
+            this.supply.appendChild(this.barGroup);
+            this.groupLinesLeft = this.lpi;
+            if (!this.atTopOfForm) {
+                this.barGroup.className = "paper greenBar";
+            } else {
+                this.atTopOfForm = false;
+                this.barGroup.className = "paper greenBar topOfForm";
+            }
+        } else if (this.groupLinesLeft*2 == this.lpi) {
+            // Start the white half of a greenbar group
+            this.barGroup = this.doc.createElement("pre");
+            this.supply.appendChild(this.barGroup);
+            this.barGroup.className = "paper whiteBar";
+        } else if (this.groupLinesLeft == 1) {
+            feed = "";                  // no linefeed at end of a bar group
+        } else if ((this.groupLinesLeft-1)*2 == this.lpi) {
+            feed = "";                  // ditto
         }
-    } else if (this.groupLinesLeft*2 == this.lpi) {
-        // Start the white half of a greenbar group
-        this.barGroup = this.doc.createElement("pre");
-        this.paper.appendChild(this.barGroup);
-        this.barGroup.className = "paper whiteBar";
-    } else if (this.groupLinesLeft == 1) {
-        feed = "";                      // no linefeed at end of a bar group
-    } else if ((this.groupLinesLeft-1)*2 == this.lpi) {
-        feed = "";                      // ditto
     }
 
     this.barGroup.appendChild(this.doc.createTextNode(text + feed));
@@ -242,8 +245,8 @@ D205CardatronOutput.prototype.appendLine = function appendLine(text) {
 
 /**************************************/
 D205CardatronOutput.prototype.printLine = function printLine(text, spaceBefore) {
-    /* Prints one line to the "paper", handling carriage control and greenbar
-    group completion. For now, SPACE 0 (overprintng) is treated as single-spacing */
+    /* Prints one line to the output, handling carriage control and greenbar
+    group completion. For now, SPACE 0 (overprinting) is treated as single-spacing */
     var lines = 0;
 
     if (spaceBefore < 0) {              // skip to channel 1
@@ -256,17 +259,17 @@ D205CardatronOutput.prototype.printLine = function printLine(text, spaceBefore) 
         lines = spaceBefore;
         while (lines > 1) {
             --lines;
-            --this.paperLeft;
+            --this.supplyLeft;
             this.appendLine("\xA0");
         }
     }
 
     this.appendLine(text || "\xA0");
-    if (this.paperLeft > 0) {
-        this.paperMeter.value = this.paperLeft -= lines;
+    if (this.supplyLeft > 0) {
+        this.supplyMeter.value = this.supplyLeft -= lines;
     } else {
-        this.setPrinterReady(false);
-        D205Util.addClass(this.$$("COEndOfPaperBtn"), "redLit");
+        this.setDeviceReady(false);
+        D205Util.addClass(this.$$("COEndOfSupplyBtn"), "redLit");
     }
 };
 
@@ -278,7 +281,6 @@ D205CardatronOutput.prototype.finishWrite = function finishWrite() {
     this.bufferReady = true;
     this.startMachineLamp.set(0);
     this.setFormatSelectLamps(0);
-    this.endOfPaper.scrollIntoView();
     if (this.writeRequested) {
         this.writeRequested = false;
         this.pendingCall.apply(this, this.pendingParams);
@@ -297,6 +299,8 @@ D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
     var lx = this.lineBuffer.length;    // line image character index: start at end
     var nu = true;                      // numeric toggle: start as numeric
     var x = 0;                          // info/format band digit index
+
+    this.startMachineLamp.set(1);
 
     // Map buffer drum digits to ASCII character codes
     for (x=0; x<fmax; ++x) {
@@ -360,7 +364,8 @@ D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
         break;
     }
 
-    setCallback(this.mnemonic, this, 60000/D205CardatronOutput.linesPerMinute, this.finishWrite);
+    this.endOfSupply.scrollIntoView();
+    setCallback(this.mnemonic, this, 60000/this.linesPerMinute, this.finishWrite);
 };
 
 /**************************************/
@@ -369,11 +374,11 @@ D205CardatronOutput.prototype.setAlgolGlyphs = function setAlgolGlyphs(makeItPre
 
     if (makeItPretty) {
         if (!this.useAlgolGlyphs) {
-            D205Util.xlateDOMTreeText(this.paper, D205Util.xlateASCIIToAlgol);
+            D205Util.xlateDOMTreeText(this.supply, D205Util.xlateASCIIToAlgol);
         }
     } else {
         if (this.useAlgolGlyphs) {
-            D205Util.xlateDOMTreeText(this.paper, D205Util.xlateAlgolToASCII);
+            D205Util.xlateDOMTreeText(this.supply, D205Util.xlateAlgolToASCII);
         }
     }
     this.$$("COAlgolGlyphsCheck").checked = makeItPretty;
@@ -382,14 +387,14 @@ D205CardatronOutput.prototype.setAlgolGlyphs = function setAlgolGlyphs(makeItPre
 
 /**************************************/
 D205CardatronOutput.prototype.setGreenbar = function setGreenbar(useGreen) {
-    /* Controls the display of "greenbar" shading on the paper */
+    /* Controls the display of "greenbar" shading on the output */
     var rule = null;
     var rules = null;
     var sheet;
-    var ss = this.paperDoc.styleSheets;
+    var ss = this.supplyDoc.styleSheets;
     var x;
 
-    // First, find the embedded style sheet for the paper frame.
+    // First, find the embedded style sheet for the output frame.
     for (x=ss.length-1; x>=0; --x) {
         sheet = ss[x];
         if (sheet.ownerNode.id == "PaperFrameStyles") {
@@ -413,9 +418,9 @@ D205CardatronOutput.prototype.setGreenbar = function setGreenbar(useGreen) {
 D205CardatronOutput.prototype.COStartBtn_onClick = function COStartBtn_onClick(ev) {
     /* Handle the click event for the START button */
 
-    if (!this.ready && this.paperLeft > 0) {
-        this.formFeedCount = 0;
-        this.setPrinterReady(true);
+    if (!this.ready && this.supplyLeft > 0) {
+        this.feedSupplyCount = 0;
+        this.setDeviceReady(true);
     }
 };
 
@@ -424,37 +429,38 @@ D205CardatronOutput.prototype.COStopBtn_onClick = function COStopBtn_onClick(ev)
     /* Handle the click event for the STOP button */
 
     if (this.ready) {
-        this.formFeedCount = 0;
-        this.setPrinterReady(false);
+        this.feedSupplyCount = 0;
+        this.setDeviceReady(false);
     }
 };
 
 /**************************************/
-D205CardatronOutput.prototype.COFormFeedBtn_onClick = function COFormFeedBtn_onClick(ev) {
+D205CardatronOutput.prototype.COFeedSupplyBtn_onClick = function COFeedSupplyBtn_onClick(ev) {
     /* Handle the click event for the Skip To Heading button */
 
     if (!this.ready) {
         this.printLine("", -1);
-        this.endOfPaper.scrollIntoView();
-        if (++this.formFeedCount >= 3) {
-            this.ripPaper();
+        this.endOfSupply.scrollIntoView();
+        if (++this.feedSupplyCount >= 3) {
+            this.ripSupply();
         }
     }
 };
 
 /**************************************/
-D205CardatronOutput.prototype.COEndOfPaperBtn_onClick = function COEndOfPaperBtn_onClick(ev) {
-    /* Handle the click event for the End Of Paper button. If the printer is in
-    and end-of-paper condition, this will make the printer ready, but it will
-    still be in an EOP condition. The next time a print line is received, the
-    EOP condition will force it not-ready again. You can print only one line
-    at a time (presumably to the end of the current page). The EOP condition can
-    be cleared by clicking Skip To Heading three times to "rip" the paper */
+D205CardatronOutput.prototype.COEndOfSupplyBtn_onClick = function COEndOfSupplyBtn_onClick(ev) {
+    /* Handle the click event for the End Of Supply button. If the printer/punch
+    is in and end-of-supply condition, this will make the printer/punch ready,
+    but it will still be in an EOS condition. The next time a print/punch line
+    is received, the EOS condition will force it not-ready again. You can print/
+    punch only one line at a time (presumably to the end of the current page).
+    The EOS condition can be cleared by clicking Supply Feed three times to "rip"
+    the paper or empty the punch hopper */
 
-    if (this.paperLeft <= 0 && !this.ready) {
-        this.formFeedCount = 0;
-        D205Util.removeClass(this.$$("COEndOfPaperBtn"), "redLit");
-        this.setPrinterReady(true);
+    if (this.supplyLeft <= 0 && !this.ready) {
+        this.feedSupplyCount = 0;
+        D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
+        this.setDeviceReady(true);
     }
 };
 
@@ -483,26 +489,32 @@ D205CardatronOutput.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205CardatronOutput.prototype.printerOnLoad = function printerOnLoad() {
-    /* Initializes the line printer window and user interface */
+D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
+    /* Initializes the printer/punch window and user interface */
     var body;
     var de;
     var newChild;
 
     this.doc = this.window.document;
     de = this.doc.documentElement;
-    this.doc.title = "retro-205 Cardatron Output " + this.mnemonic;
+    this.doc.title = "retro-205 Cardatron " +
+            (this.isPrinter ? "Printer " : "Punch ") + this.mnemonic;
 
     body = this.$$("CODiv");
-    this.paperDoc = this.$$("COPaperFrame").contentDocument;
-    this.paper = this.paperDoc.getElementById("Paper");
-    this.endOfPaper = this.paperDoc.getElementById("EndOfPaper");
-    this.paperMeter = this.$$("COPaperMeter");
+    this.supplyDoc = this.$$("COSupplyFrame").contentDocument;
+    this.supply = this.supplyDoc.getElementById("Paper");
+    this.endOfSupply = this.supplyDoc.getElementById("EndOfPaper");
+    this.supplyMeter = this.$$("COSupplyMeter");
 
-    newChild = this.paperDoc.createElement("div");
-    newChild.id = this.paper.id;
-    this.paper.parentNode.replaceChild(newChild, this.paper);
-    this.paper = newChild;
+    newChild = this.supplyDoc.createElement("div");
+    newChild.id = this.supply.id;
+    this.supply.parentNode.replaceChild(newChild, this.supply);
+    this.supply = newChild;
+    if (!this.isGreenbarCapable) {
+        this.barGroup = this.doc.createElement("pre");
+        this.barGroup.className = "paper";
+        this.supply.appendChild(this.barGroup);
+    }
 
     this.startMachineLamp = new NeonLamp(body, null, null, "StartMachineLamp");
     this.startMachineLamp.setCaption("SM", true);
@@ -516,10 +528,10 @@ D205CardatronOutput.prototype.printerOnLoad = function printerOnLoad() {
 
     this.setAlgolGlyphs(this.useAlgolGlyphs);
     this.setGreenbar(this.useGreenbar);
-    this.paperMeter.max = this.maxPaperLines;
-    this.paperMeter.low = this.maxPaperLines*0.1;
-    this.paperMeter.value = this.paperLeft = this.maxPaperLines;
-    this.setPrinterReady(true);
+    this.supplyMeter.max = this.maxSupplyLines;
+    this.supplyMeter.low = this.maxSupplyLines*0.1;
+    this.supplyMeter.value = this.supplyLeft = this.maxSupplyLines;
+    this.setDeviceReady(true);
 
     this.window.addEventListener("beforeunload",
             D205CardatronOutput.prototype.beforeUnload, false);
@@ -527,10 +539,10 @@ D205CardatronOutput.prototype.printerOnLoad = function printerOnLoad() {
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COStopBtn_onClick), false);
     this.$$("COStartBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COStartBtn_onClick), false);
-    this.$$("COEndOfPaperBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205CardatronOutput.prototype.COEndOfPaperBtn_onClick), false);
-    this.$$("COFormFeedBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205CardatronOutput.prototype.COFormFeedBtn_onClick), false);
+    this.$$("COEndOfSupplyBtn").addEventListener("click",
+            D205Util.bindMethod(this, D205CardatronOutput.prototype.COEndOfSupplyBtn_onClick), false);
+    this.$$("COFeedSupplyBtn").addEventListener("click",
+            D205Util.bindMethod(this, D205CardatronOutput.prototype.COFeedSupplyBtn_onClick), false);
     this.$$("COAlgolGlyphsCheck").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COAlgolGlyphsCheck_onClick), false);
     this.$$("ClearBtn").addEventListener("click",
@@ -539,6 +551,7 @@ D205CardatronOutput.prototype.printerOnLoad = function printerOnLoad() {
     if (!this.isPrinter) {
         this.$$("COGreenbarCheck").disabled = true;
     } else {
+        this.$$("COGreenbarSpan").style.display = "inline";
         this.$$("COGreenbarCheck").addEventListener("click",
                 D205Util.bindMethod(this, D205CardatronOutput.prototype.COGreenbarCheck_onClick), false);
     }
@@ -548,103 +561,114 @@ D205CardatronOutput.prototype.printerOnLoad = function printerOnLoad() {
 };
 
 /**************************************/
-D205CardatronOutput.prototype.outputDigit = function outputDigit(
-        d, signalOK, signalFinished) {
-    /* Receives the next info band digit from the Processor and stores it under
-    control of the selected format band. signalOK is the callback function to
-    request the next digit from the Processor; signalFinished is the callback
+D205CardatronOutput.prototype.outputWord = function outputWord(
+        word, requestNextWord, signalFinished) {
+    /* Receives the next info band word from the Processor and stores its digits
+    under control of the selected format band. requestNextWord is the callback function
+    to request the next word from the Processor; signalFinished is the callback
     function to tell the Processor we are done with data transfer */
     var band;                           // local copy of format band
-    var done = false;                   // loop control
+    var d;                              // current digit
+    var eod;                            // done with current digit
+    var eow = false;                    // done with current word
     var drumAddr;                       // buffer drum address
     var info = this.info;               // local reference to info band
+    var ix = this.infoIndex;            // current info/format band index
+    var lastNumeric = this.lastNumericDigit;
     var latency = 0;                    // drum latency for first digit of a word
-    var x = this.infoIndex;             // current info/format band index
+    var nu = this.togNumeric;           // numeric vs. zone digit toggle
+    var x = 0;                          // word-digit index
 
     band = this.formatBand[this.selectedFormat];
-    if (this.digitCount == 0) {
-        // For the first digit of a word, note the current buffer drum digit address
-        drumAddr = (performance.now()*D205CardatronOutput.digitsPerMilli) % D205CardatronOutput.trackSize;
-        latency = (x - drumAddr + D205CardatronOutput.trackSize) % D205CardatronOutput.trackSize;
-    }
+    // For the first digit of a word, note the current buffer drum digit address
+    drumAddr = (performance.now()*D205CardatronOutput.digitsPerMilli) % D205CardatronOutput.trackSize;
+    latency = (ix - drumAddr + D205CardatronOutput.trackSize) % D205CardatronOutput.trackSize;
 
+    // Loop through the digits in the word, processing each one
     do {
-        if (x >= info.length) {
-            done = true;
-        } else {
-            // Translate the current digit
-            switch (band[x]) {
-            case 0:                     // insert 0 digit
-                this.togNumeric = !this.togNumeric;
-                info[x] = this.lastNumericDigit = 0;
-                ++x;
-                // we are not done yet...
-                break;
-            case 1:                     // translate zone/numeric digit
-                if (this.togNumeric) {
-                    // Numeric digit: straight translation except for 3-8 and 4-8 punches
-                    this.togNumeric = false;    // next is a zone digit
-                    info[x] = this.lastNumericDigit = d;
-                } else {
-                    // Zone digit: requires special handling in the sign-digit position
-                    this.togNumeric = true;     // next is a numeric digit
-                    if (this.digitCount < 10) {
-                        // If the prior numeric digit was 3 or 4 AND this zone is 0-3,
-                        // store an 11 or 12 for the numeric digit to indicate a 3-8 or 4-8 punch.
-                        if (d < 4) {
-                            if (x > 0 && (this.lastNumericDigit == 3 || this.lastNumericDigit == 4)) {
-                                info[x-1] = this.lastNumericDigit+8;
-                            }
-                        }
-                        info[x] = this.zoneXlate[d][this.lastNumericDigit];
-                    } else {
-                        // For a zone digit in the sign position, store a 5 (+) or 6 (-)
-                        // so that the sign will be printed/punched as a zone 11/12.
-                        info[x] = (d & 0x01) + 5;
-                    }
-                }
-                ++x;
-                done = true;
-                break;
-            case 2:                     // translate numerically
-                this.togNumeric = true; // next is forced to be another numeric digit
-                info[x] = this.lastNumericDigit = d;
-                ++x;
-                done = true;
-                break;
-            default:                    // (3) delete the digit -- store nothing
-                ++x;
-                done = true;
-                break;
-            } // switch band[x]
-        }
-    } while (!done);
+        eod = false;
+        d = word % 0x10;
+        word = (word-d)/0x10;
 
-    if (x >= info.length) {
-        // At end of info band -- finish the data transfer and start the I/O
+        // Loop through the format band digits until the current word-digit is consumed
+        do {
+            if (ix >= info.length) {
+                eow = eod = true;
+            } else {
+                // Translate the current digit
+                switch (band[ix]) {
+                case 0:                 // insert 0 digit
+                    nu = !nu;
+                    info[ix] = lastNumeric = 0;
+                    ++ix;
+                    // we are not done with the current word-digit yet...
+                    break;
+                case 1:                 // translate zone/numeric digit
+                    if (nu) {
+                        // Numeric digit: straight translation except for 3-8 and 4-8 punches
+                        nu = false;             // next is a zone digit
+                        info[ix] = lastNumeric = d;
+                    } else {
+                        // Zone digit: requires special handling in the sign-digit position
+                        // and if the corresponding numeric digit came from a 3-8 or 4-8 punch
+                        nu = true;              // next is a numeric digit
+                        if (x < 10) {
+                            // If the prior numeric digit was 3 or 4 AND this zone is 0-3,
+                            // store an 11 or 12 for the numeric digit to indicate a 3-8 or 4-8 punch.
+                            if (d < 4) {
+                                if (ix > 0 && (lastNumeric == 3 || lastNumeric == 4)) {
+                                    info[ix-1] = lastNumeric+8;
+                                }
+                            }
+                            info[ix] = this.zoneXlate[d][lastNumeric];
+                        } else {
+                            // For a zone digit in the sign position, store a 5 (+) or 6 (-)
+                            // so that the sign will be printed/punched as a zone 11/12.
+                            info[ix] = (d & 0x01) + 5;
+                        }
+                    }
+                    ++ix;
+                    eod = true;
+                    break;
+                case 2:                 // translate numerically
+                    nu = true;                  // next is forced to be another numeric digit
+                    info[ix] = lastNumeric = d;
+                    ++ix;
+                    eod = true;
+                    break;
+                default:                // (3) delete the digit -- store nothing
+                    ++ix;
+                    eod = true;
+                    break;
+                } // switch band[ix]
+            }
+        } while (!eod);
+
+        if (x < 10) {
+            ++x;
+        } else {
+            eow = true;
+        }
+    } while (!eow);
+
+    this.lastNumericDigit = lastNumeric;
+    this.togNumeric = nu;
+    this.infoIndex = ix;
+    if (ix < info.length) {
+        // Delay requesting the next word for the amount of time until buffer drum was in position
+        setCallback(this.mnemonic, this, latency/D205CardatronOutput.digitsPerMilli,
+                requestNextWord, this.boundOutputWord);
+        // requestNextWord(this.boundOutputWord);  // until we get the timing fixed
+    } else {
+        // At end of info band -- finish the data transfer and start the I/O to the device
         this.initiateWrite();
         signalFinished();
-    } else {
-        this.infoIndex = x;
-        if (this.digitCount < 10) {
-            ++this.digitCount;
-        } else {
-            this.digitCount = 0;        // end of word
-        }
-
-        if (latency == 0) {
-            signalOK(this.boundOutputDigit);
-        } else {
-            // For the first digit of the word, delay until buffer drum was in position
-            setCallback(this.mnemonic, this, latency/D205CardatronOutput.digitsPerMilli,
-                   signalOK, this.boundOutputDigit);
-        }
     }
 };
 
 /**************************************/
 D205CardatronOutput.prototype.outputInitiate = function outputInitiate(
-        kDigit, tDigit, signalOK, signalFinished) {
+        kDigit, tDigit, requestNextWord, signalFinished) {
     /* Initiates a write to the buffer drum on this unit. kDigit is the
     second numeric digit from the instruction word containing the format number.
     tDigit is the first numeric digit from the instruction word and sets the
@@ -661,31 +685,29 @@ D205CardatronOutput.prototype.outputInitiate = function outputInitiate(
         8 = same as 0
         9 = same as 1
     Carriage control is ignored for punch devices and always set to single spacing.
-    signalOK is the callback function that will request the next digit from the
+    requestNextWord is the callback function that will request the next word from the
     processor. signalFinished is the callback function that tells the Processor
     we're done. If the buffer is not ready, simply sets the writeRequested flag
-    and exits after stashing kDigit and the callbacks */
+    and exits after stashing kDigit, tDigit, and the callbacks */
 
     if (!this.bufferReady) {
         this.writeRequested = true;     // wait for the buffer to be emptied
         this.pendingCall = outputInitiate;
-        this.pendingParams = [kDigit, tDigit, signalOK, signalFinished];
+        this.pendingParams = [kDigit, tDigit, requestNextWord, signalFinished];
     } else if (kDigit > 9) {
         signalFinished();
     } else {
         this.kDigit = kDigit;
         this.tDigit = (this.isPrinter ? tDigit : 0);
         this.selectedFormat = ((kDigit >>> 1) & 0x07) + 1;
-        this.startMachineLamp.set(1);
         this.setFormatSelectLamps(this.selectedFormat);
-        this.digitCount = 0;
         this.togNumeric = true;
         this.lastNumericDigit = 0;
         this.bufferReady = false;
         this.clearInfoBand();
         setCallback(this.mnemonic, this,
                 D205CardatronOutput.trackSize/D205CardatronOutput.digitsPerMilli*2.5,
-                signalOK, this.boundOutputDigit); // request the first data digit
+                requestNextWord, this.boundOutputWord); // request the first data word
     }
 };
 
@@ -698,11 +720,11 @@ D205CardatronOutput.prototype.outputReadyInterrogate = function outputReadyInter
 
 /**************************************/
 D205CardatronOutput.prototype.outputFormatInitiate = function outputFormatInitiate(
-        kDigit, signalOK, signalFinished) {
+        kDigit, requestNextWord, signalFinished) {
     /* Initiates the loading of a format band on this unit. kDigit is the
     second numeric digit from the instruction word, the low-order bit is ignored
-    and the remaining three bits indicate the format band to be loaded. signalOK
-    is the callback function that will trigger the Processor to send the next digit.
+    and the remaining three bits indicate the format band to be loaded. requestNextWord
+    is the callback function that will trigger the Processor to send the next word.
     signalFinished is the callback function that will signal the Processor to
     terminate the I/O */
 
@@ -712,25 +734,38 @@ D205CardatronOutput.prototype.outputFormatInitiate = function outputFormatInitia
         this.kDigit = kDigit;
         this.selectedFormat = ((kDigit >>> 1) & 0x07) + 1;
         this.infoIndex = 0;             // start at the beginning of the format band
-        this.digitCount = 0;
         this.togNumeric = true;
         this.lastNumericDigit = 0;
         this.setFormatSelectLamps(this.selectedFormat);
         setCallback(this.mnemonic, this,
                 D205CardatronOutput.trackSize/D205CardatronOutput.digitsPerMilli*2.5,
-                signalOK, this.boundOutputFormatDigit); // request the first format digit
+                requestNextWord, this.boundOutputFormatWord); // request the first format word
     }
 };
 
 /**************************************/
-D205CardatronOutput.prototype.outputFormatDigit = function outputFormatDigit(
-        d, signalOK, signalFinished) {
-    /* Receives the next output format band digit from the Processor and stores it */
+D205CardatronOutput.prototype.outputFormatWord = function outputFormatWord(
+        word, requestNextWord, signalFinished) {
+    /* Receives the next output format band word from the Processor and
+    stores the digits from the word into the next 11 format band digits */
+    var band = this.formatBand[this.selectedFormat];
+    var d;                              // current format digit
+    var ix = this.infoIndex;            // current format band digit index
+    var x;                              // word-digit index
 
-    this.formatBand[this.selectedFormat][this.infoIndex] = d;
-    if (this.infoIndex < D205CardatronOutput.trackSize) {
-        ++this.infoIndex;
-        signalOK(this.boundOutputFormatDigit);
+    for (x=0; x<11; ++x) {
+        d = word % 0x10;
+        word = (word-d)/0x10;
+        if (ix < D205CardatronOutput.trackSize) {
+            band[ix++] = d;
+        } else {
+            break;                      // out of for loop
+        }
+    } // for x
+
+    this.infoIndex = ix;
+    if (ix < D205CardatronOutput.trackSize) {
+        requestNextWord(this.boundOutputFormatWord);
     } else {
         this.setFormatSelectLamps(0);
         signalFinished();
@@ -743,7 +778,7 @@ D205CardatronOutput.prototype.clearUnit = function clearUnit() {
 
     this.$$("CRFileSelector").value = null;     // reset the control so the same file can be reloaded
     this.bufferReady = true;
-    this.SetPrinterReady(true);
+    this.setDeviceReady(true);
     this.startMachineLamp.set(0);
     this.setFormatSelectLamps(0);
 

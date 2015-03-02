@@ -34,12 +34,12 @@
     top:                8px;
     left:               76px}
 
-#COEndOfPaperBtn {
+#COEndOfSupplyBtn {
     position:           absolute;
     top:                8px;
     left:               144px}
 
-#COFormFeedBtn {
+#COFeedSupplyBtn {
     position:           absolute;
     line-height:        100%;
     top:                8px;
@@ -71,8 +71,11 @@
     top:                4px;
     right:              8px;
     width:              auto}
+    
+#COGreenbarSpan {
+    display:            none}
 
-#COPaperMeter {
+#COSupplyMeter {
     position:           absolute;
     top:                32px;
     left:               336px;
@@ -81,7 +84,7 @@
     height:             18px;
     border:             1px solid white}
 
-#COPaperMeterCaption {
+#COSupplyMeterCaption {
     position:           absolute;
     top:                35px;
     right:              18px;
@@ -90,7 +93,7 @@
     color:              black;
     font-weight:        bold}
 
-#COPaperFrame {
+#COSupplyFrame {
     position:           absolute;
     top:                56px;
     bottom:             8px;

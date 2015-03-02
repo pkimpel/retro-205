@@ -102,7 +102,7 @@
             delete pendingCallbacks[tokenName];
             category = thisCallback.category;
             if (category) {
-                delayDev[category] = (delayDev[category] || 0)*delayAlpha +
+                delayDev[category] = delayDev[category]*delayAlpha +
                     (endStamp - thisCallback.startStamp - thisCallback.delay)*(1.0-delayAlpha);
             }
             try {
@@ -170,7 +170,12 @@
         pendingCallbacks[tokenName] = thisCallback;
 
         // Decide whether to do a time wait or just a yield.
-        delay -= (delayDev[categoryName] || 0); // bias by the current avg. deviation
+        if (categoryName in delayDev) {
+            delay -= delayDev[categoryName];    // bias by the current avg. deviation
+        } else {
+            delayDev[categoryName] = 0;         // got a new one
+        }
+
         if (delay < minTimeout) {
             thisCallback.isTimeout = false;
             thisCallback.cancelToken = 0;
