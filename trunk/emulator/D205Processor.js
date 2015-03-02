@@ -22,16 +22,16 @@
 *
 * also:
 *
+*   TM4001 Datatron 205 Computer (Training Edition)
+*       (Burroughs Corporation, December,1956).
 *   Burroughs 205 Handbook: Floating Point Control Unit Model 36044
 *       (Bulletin 3028, Burroughs Corporation 1957).
 *   Engineering Description of the ElectroData Digital Computer, J. C. Alrich,
 *       (IRE Transactions on Electronic Computers, vol EC-4, Number 1, March 1955).
-*   TM4001 Datatron 205 Computer (Training Edition)
-*       (Burroughs Corporation, December,1956).
 *
 * Datatron 205 word format:
 *   44 bits, encoded as binary-coded decimal (BCD); non-decimal codes are invalid
-*   and cause the computer to stop.
+*   and cause the computer to stop with a Forbidden Combination (FC) alarm.
 *   High-order 4 bits are the "sign digit":
 *       Low-order bit of this digit is the actual sign.
 *       Higher-order bits are used in some I/O operations.
@@ -65,7 +65,7 @@ function D205Processor(devices) {
     this.cardatron = null;              // Reference to Cardatron Control Unit
     this.console = null;                // Reference to Control Console for I/O
     this.devices = devices;             // Hash of I/O device objects
-    this.ioReceiver = null;             // Current I/O output digit-receiver function
+    this.ioCallback = null;             // Current I/O interface callback function
     this.poweredOn = 0;                 // System is powered on and initialized
     this.successor = null;              // Current delayed-action successor function
 
@@ -99,10 +99,10 @@ function D205Processor(devices) {
     this.boundConsoleReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveDigit);
     this.boundConsoleReceiveSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveSingleDigit);
     this.boundCardatronOutputWordReady = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWordReady);
-    this.boundCardatronOutputDigit= D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputDigit);
+    this.boundCardatronOutputWord= D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWord);
     this.boundCardatronOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputFinished);
-    this.boundCardatronInputDigit = D205Processor.bindMethod(this, D205Processor.prototype.cardatronInputDigit);
-    this.boundCardatronReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.cardatronReceiveDigit);
+    this.boundCardatronInputWord = D205Processor.bindMethod(this, D205Processor.prototype.cardatronInputWord);
+    this.boundCardatronReceiveWord = D205Processor.bindMethod(this, D205Processor.prototype.cardatronReceiveWord);
 
     // Processor throttling control
     this.scheduler = 0;                 // Current setCallback token
@@ -120,7 +120,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.03e";
+D205Processor.version = "0.04";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -854,7 +854,6 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
     if (roundOff) {
         ++count;
         if (rm >= 0x5000000000) {
-        } else {
             am = this.bcdAdd(am, 0x01, 0, 0);
         }
         this.R = this.D = 0;
@@ -1319,7 +1318,8 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     Note: the D register SHOULD be loaded after the latency delay, but we do
     it here so that the word will show on the panels during the drum latency */
     var addr;                           // binary target address, mod 8000
-    var drumTime;                       // current drum position [word-times]
+    var drumTime =                      // current drum position [word-times]
+            performance.now()*D205Processor.wordsPerMilli;
     var latency;                        // drum latency in word-times
     var trackSize;                      // words/track in target band of drum
 
@@ -1346,8 +1346,7 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
         }
     }
 
-    drumTime = performance.now()*D205Processor.wordsPerMilli;
-    latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
+    latency = (addr%trackSize - drumTime%trackSize + trackSize)%trackSize;
     this.procTime += latency+1;         // emulated time at end of drum access
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
@@ -1379,7 +1378,8 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     Note: the word should be stored after the latency delay, but we do it here
     so that the word will show in the panels during the drum latency */
     var addr;                           // binary target address, mod 8000
-    var drumTime;                       // current drum position [word-times]
+    var drumTime =                      // current drum position [word-times]
+            performance.now()*D205Processor.wordsPerMilli;
     var latency;                        // drum latency in word-times
     var trackSize;                      // words/track in target band of drum
 
@@ -1407,8 +1407,7 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
         }
     }
 
-    drumTime = performance.now()*D205Processor.wordsPerMilli;
-    latency = (addr%trackSize - this.procTime%trackSize + trackSize)%trackSize;
+    latency = (addr%trackSize - drumTime%trackSize + trackSize)%trackSize;
     this.procTime += latency+1;         // emulated time at end of drum access
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
@@ -1427,7 +1426,8 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
     but we do it here, so that the updated registers will show on the panels
     during the delay for drum latency */
     var addr;                           // main binary address, mod 4000
-    var drumTime;                       // current drum position [word-times]
+    var drumTime =                      // current drum position [word-times]
+            performance.now()*D205Processor.wordsPerMilli;
     var latency;                        // drum latency in word-times
     var loopMem;                        // reference to the loop memory array
     var x;                              // iteration control
@@ -1464,10 +1464,9 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
         }
     } // for x
 
-    drumTime = performance.now()*D205Processor.wordsPerMilli;
-    latency = (addr%D205Processor.trackSize - this.procTime%D205Processor.trackSize +
-               D205Processor.trackSize)%D205Processor.trackSize;
-    this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
+    latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
+                D205Processor.trackSize)%D205Processor.trackSize;
+    this.procTime += latency+D205Processor.loopSize; // emulated time at end of drum access
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
     this.successor = successor;
@@ -1485,7 +1484,8 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     but we do it here, so that the updated registers will show on the panels
     during the delay for drum latency */
     var addr;                           // main binary address, mod 4000
-    var drumTime;                       // current drum position [word-times]
+    var drumTime =                      // current drum position [word-times]
+            performance.now()*D205Processor.wordsPerMilli;
     var latency;                        // drum latency in word-times
     var loopMem;                        // reference to the loop memory array
     var x;                              // iteration control
@@ -1522,10 +1522,9 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
         }
     } // for x
 
-    drumTime = performance.now()*D205Processor.wordsPerMilli;
-    latency = (addr%D205Processor.trackSize - this.procTime%D205Processor.trackSize +
-               D205Processor.trackSize)%D205Processor.trackSize;
-    this.procTime += latency+D205Processor.loopSize+1; // emulated time at end of drum access
+    latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
+                D205Processor.trackSize)%D205Processor.trackSize;
+    this.procTime += latency+D205Processor.loopSize; // emulated time at end of drum access
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
     this.successor = successor;
@@ -1555,16 +1554,16 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     This instruction searches one word per word-time, so total execution time is
     drum latency to the initial address plus the number of words searched.
     This function is called after the initial memory word has been fetched into
-    the D register, so the latency delay is already accounted for. It will
-    proceed to search up to 200 words (one drum track) at a time, then if no
-    match is found, perform a catch-up delay. A final partial delay is performed
-    at the end of the search.
+    the D register by executeWithOperand(), so the latency delay is already
+    accounted for. It will proceed to search up to 200 words (one drum track) at
+    a time, then if no match is found, perform a catch-up delay. A final partial
+    delay is performed at the end of the search.
 
     Note: the MSH (85) and MSE (88) instructions apparently were a custom
     modification in 1959 for a 205 to be delivered to the Eaton Manufacturing
-    Company. A description of these instructions was found in the back of the
-    205 Handbook included with Donald Knuth's papers donated to the Computer
-    History Museum in Mountain View, California */
+    Company. A description of these two instructions was found in the back of
+    the 205 Central Computer Handbook included with Donald Knuth's papers donated
+    to the Computer History Museum in Mountain View, California */
     var addr;                           // main binary address, mod 4000
     var aWord = this.A % 0x10000000000; // search target word
     var drumTime;                       // current drum position [word-times]
@@ -1573,9 +1572,8 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     var x = 0;                          // iteration control
 
     if (!this.memACCESS) {
-        drumTime = performance.now()*D205Processor.wordsPerMilli;
         this.memACCESS = this.memACTION = this.memMAIN = this.memLM = 1;
-        this.startMemoryTiming(drumTime);
+        this.startMemoryTiming(performance.now()*D205Processor.wordsPerMilli);
     }
 
     addr = D205Processor.bcdBinary(this.CADDR % 0x4000);
@@ -1813,47 +1811,34 @@ D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingl
 /**************************************/
 D205Processor.prototype.cardatronOutputWordReady = function cardatronOutputWordReady() {
     /* Successor function for readMemory that sets up the next word of output
-    and calls the current ioReceiver function to output the first digit */
-    var d;                              // first digit to be sent
-    var w;                              // local copy of A
+    and calls the current ioCallback function to output that word */
 
     if (this.tog3IO) {                  // if false, we've probably been cleared
-        w = this.A = this.D;            // move D with the memory word to A
-        d = w % 0x10;                   // get the first digit
-        this.A = (w-d)/0x10 + d*0x10000000000;      // rotate A right
-        this.SHIFT = 0x09;              // initialize digit counter (accounting for this digit)
-        this.ioReceiver(d, this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
+        this.SHIFT = 0x09;              // for display only
+        this.A = this.D;                // move D with the memory word to A
+        this.procTime -= performance.now()*D205Processor.wordsPerMilli;
+        this.ioCallback(this.A, this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
     }
 };
 
 /**************************************/
-D205Processor.prototype.cardatronOutputDigit = function cardatronOutputDigit(receiver) {
-    /* Outputs a numeric digit to the Cardatron Control unit and sets up to
-    output the next number digit. If the Shift Counter is already at 19,
-    initiates a read of the next word from memory */
-    var d;                              // next digit to be sent
-    var w;                              // local copy of A
+D205Processor.prototype.cardatronOutputWord = function cardatronOutputWord(receiver) {
+    /* Initiates a read of the next word from memory for output to the
+    Cardatron Control Unit */
 
+    this.procTime += performance.now()*D205Processor.wordsPerMilli;
     if (this.tog3IO) {                  // if false, we've probably been cleared
-        if (this.SHIFT < 0x19) {        // if the shift counter < 19, send the next digit
-            w = this.A;
-            d = w % 0x10;
-            this.A = (w-d)/0x10 + d*0x10000000000;      // rotate A right
-            this.SHIFT = this.bcdAdd(this.SHIFT, 1);
-            receiver(d, this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
-        } else {                        // fetch the next word
-            // Increment the source address (except on the first word)
-            this.SHIFTCONTROL = 0x01;   // for display only
-            this.SHIFT = 0x15;          // for display only
-            if (this.togCOUNT) {
-                this.CADDR = this.bcdAdd(this.CADDR, 1)%0x10000;
-            } else {
-                this.togCOUNT = 1;
-            }
-            this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
-            this.ioReceiver = receiver;
-            this.readMemory(this.boundCardatronOutputWordReady);
+        // Increment the source address (except on the first word)
+        this.SHIFTCONTROL = 0x01;   // for display only
+        this.SHIFT = 0x15;          // for display only
+        if (this.togCOUNT) {
+            this.CADDR = this.bcdAdd(this.CADDR, 1)%0x10000;
+        } else {
+            this.togCOUNT = 1;
         }
+        this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
+        this.ioCallback = receiver;
+        this.readMemory(this.boundCardatronOutputWordReady);
     }
 };
 
@@ -1862,49 +1847,44 @@ D205Processor.prototype.cardatronOutputFinished = function cardatronOutputFinish
     /* Handles the final cycle of an I/O operation and restores this.procTime */
 
     if (this.tog3IO) {                  // if false, we've probably been cleared
-        this.tog3IO = 0;                // for display only
-        this.stopIdle = 0;              // turn IDLE lamp back off now that we're done
+        this.tog3IO = 0;
         this.procTime += performance.now()*D205Processor.wordsPerMilli;
         this.executeComplete();
     }
 };
 
 /**************************************/
-D205Processor.prototype.cardatronInputDigit = function cardatronInputDigit() {
-    // Solicits the next input digit from the Control Cardatron */
+D205Processor.prototype.cardatronInputWord = function cardatronInputWord() {
+    // Solicits the next input word from the Cardatron Control Unit */
 
     this.togTF = 0;                     // for display only, reset finish pulse
     this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-    this.cardatron.inputDigit(this.selectedUnit, this.boundCardatronReceiveDigit);
+    this.cardatron.inputWord(this.selectedUnit, this.boundCardatronReceiveWord);
 };
 
 /**************************************/
-D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(digit) {
-    /* Handles an input digit coming from the Cardatron input unit. Negative
-    values for the digit indicate the last digit was previously sent and the
-    I/O is finished. Data digits are rotated into the D register; one a full
-    word is  accumulated, it is handled according to the sign digit in the
-    D register. Note that a full word is not processed until the first digit
-    for the next word is received. Any partial word received at the end of the
+D205Processor.prototype.cardatronReceiveWord = function cardatronReceiveWord(word) {
+    /* Handles a word coming from the Cardatron input unit. Negative values for
+    the word indicate the last word was previously sent and the I/O is finished.
+    The word is stored into the D register and is handled according to the sign
+    digit in the D register. Any partial word received at the end of the
     I/O is abandoned */
-    var sign;                           // register sign digit
-    var word;                           // register word less sign
+    var sign;                           // D-register sign digit
 
     this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-    if (digit < 0) {
-        // Last digit received -- finished with the I/O
-        this.tog3IO = 0;                // for display only
+    if (word < 0) {
+        // Last word received -- finished with the I/O
+        this.tog3IO = 0;
+        this.togSTART = 0;
         this.togTF = 0;                 // for display only
+        this.D = word-900000000000;     // remove the finished signal; for display only, not stored
         this.executeComplete();
-    } else if (this.SHIFT < 0x19) {
-        // Shift this digit into D and request the next digit
-        this.D = this.D/0x10 + digit*0x10000000000;
-        this.SHIFT = this.bcdAdd(this.SHIFT, 1);
-        this.cardatronInputDigit();
     } else {
-        // Full word accumulated -- process it and start the next word
+        // Full word accumulated -- process it and initialize for the next word
+        this.SHIFT = 0x19;              // for display only
         this.togTF = 1;                 // for display only
-        word = this.D%0x10000000000;
+        this.D = word;
+        word %= 0x10000000000;          // strip the sign digit
         sign = (this.D - word)/0x10000000000; // get D-sign
 
         if (sign & 0x04) {
@@ -1935,7 +1915,7 @@ D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(d
             this.CADDR = word % 0x10000;
             this.COP = (word - this.CADDR)/0x10000;
             if (sign & 0x02) {          // sign-6 or -7
-                this.tog3IO = 0;        // for display only
+                this.tog3IO = 0;
                 this.togTF = 0;         // for display only
                 this.cardatron.inputStop(this.selectedUnit);
                 this.execute();
@@ -1951,10 +1931,10 @@ D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(d
                 likely, things went to hell in a handbasket. The latter is a little
                 difficult to emulate, especially since we don't know which hell or
                 handbasket might be involved, so we'll assume the former, and just
-                continue requesting digits from the Cardatron */
+                continue requesting words from the Cardatron */
                 this.SHIFT = 0x09;      // reset shift counter for next word
-                this.D = digit*0x10000000000; // clear D and shift in the first digit
-                this.cardatronInputDigit();
+                this.D = 0;             // clear D to prepare for next word
+                this.cardatronInputWord(); // request the next word
             }
         } else {
             // D-sign is 0, 1, 2, 3, 8, 9: store word, possibly modified by B
@@ -1990,8 +1970,8 @@ D205Processor.prototype.cardatronReceiveDigit = function cardatronReceiveDigit(d
 
             this.A = sign*0x10000000000 + word%0x10000000000;
             this.SHIFT = 0x09;          // reset shift counter for next word
-            this.D = digit*0x10000000000; // start accumulating the next word
-            this.writeMemory(this.boundCardatronInputDigit, false);
+            this.D = 0;                 // clear D and request the next word after storing this one
+            this.writeMemory(this.boundCardatronInputWord, false);
         }
     }
 };
@@ -2111,7 +2091,7 @@ D205Processor.prototype.fetch = function fetch() {
     this.togT0 = 0;                     // for display only, leave it off for fetch cycle
     if (this.togSTART) {
         if (this.tog3IO) {
-            this.cardatronInputDigit(); // we're still executing a Cardatron input command
+            this.cardatronInputWord(); // we're still executing a Cardatron input command
         } else {
             this.consoleInputDigit();   // we're still executing a Console input command
         }
@@ -2139,7 +2119,6 @@ D205Processor.prototype.executeComplete = function executeComplete() {
     will be cleared in the next call to execute() */
 
     if (this.togBKPT) {
-        this.togBKPT = 0;
         this.togCST = 1;
         this.stopBreakpoint = 1;        // turn on BKPT lamp
     }
@@ -2617,7 +2596,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x26:      //---------------- BF6  Block from 6000 loop
         case 0x27:      //---------------- BF7  Block from 7000 loop
             this.procTime +=2;
-            this.blockFromLoop(this.COP % 0x10, this.executeComplete);
+            this.blockFromLoop(this.COP-0x20, this.executeComplete);
             break;
 
         case 0x28:      //---------------- CC   Change Conditionally
@@ -2694,7 +2673,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x36:      //---------------- BT6  Block to 6000 Loop
         case 0x37:      //---------------- BT7  Block to 7000 Loop
             this.procTime +=2;
-            this.blockToLoop(this.COP % 0x10, this.executeComplete);
+            this.blockToLoop(this.COP-0x30, this.executeComplete);
             break;
 
         case 0x38:      //---------------- CCB  Change Conditionally, Block to 7000 Loop
@@ -2744,12 +2723,12 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x44:      //---------------- CDR  Card Read (Cardatron)
             this.D = 0;
-            this.tog3IO = 1;                            // for display only
+            this.tog3IO = 1;
             this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
             this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             this.SHIFT = 0x08;                          // prepare to receive 11 digits
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-            this.cardatron.inputInitiate(this.selectedUnit, this.kDigit, this.boundCardatronReceiveDigit);
+            this.cardatron.inputInitiate(this.selectedUnit, this.kDigit, this.boundCardatronReceiveWord);
             break;
 
         case 0x45:      //---------------- CDRI Card Read Interrogate
@@ -2767,13 +2746,13 @@ D205Processor.prototype.execute = function execute() {
         case 0x46-0x47: //---------------- (no op)
 
         case 0x48:      //---------------- CDRF Card Read Format
-            this.tog3IO = 1;                            // for display only
+            this.tog3IO = 1;
             this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
             this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             this.SHIFT = 0x19;                          // start at beginning of a word
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
             this.cardatron.inputFormatInitiate(this.selectedUnit, this.kDigit,
-                    this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
+                    this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
             break;
 
         // 0x49:        //---------------- (no op)
@@ -2791,13 +2770,13 @@ D205Processor.prototype.execute = function execute() {
         // 0x53:        //---------------- (no op)
 
         case 0x54:      //---------------- CDW  Card Write (Cardatron)
-            this.tog3IO = 1;                            // for display only
+            this.tog3IO = 1;
             this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
             this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             this.SHIFT = 0x19;                          // start at beginning of a word
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
             this.cardatron.outputInitiate(this.selectedUnit, this.kDigit, (this.CEXTRA >>> 12) & 0x0F,
-                    this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
+                    this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
             break;
 
         case 0x55:      //---------------- CDWI Card Write Interrogate
@@ -2810,18 +2789,19 @@ D205Processor.prototype.execute = function execute() {
                 this.COP = 0x28;                        // make into a CC
                 this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
             }
+            this.executeComplete();
             break;
 
         // 0x56-0x57:   //---------------- (no op)
 
         case 0x58:      //---------------- CDWF Card Write Format
-            this.tog3IO = 1;                            // for display only
+            this.tog3IO = 1;
             this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
             this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
             this.SHIFT = 0x19;                          // start at beginning of a word
             this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
             this.cardatron.outputFormatInitiate(this.selectedUnit, this.kDigit,
-                    this.boundCardatronOutputDigit, this.boundCardatronOutputFinished);
+                    this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
             break;
 
         // 0x59:        //---------------- (no op)
@@ -2844,7 +2824,7 @@ D205Processor.prototype.start = function start() {
 
         this.stopIdle = 0;
         this.stopControl = 0;
-        this.stopBreakpoint = 0;
+        this.stopBreakpoint = this.togBKPT = 0;
         // stopOverflow, stopSector, and stopForbidden are not reset by the START button
 
         this.togCST = 0;

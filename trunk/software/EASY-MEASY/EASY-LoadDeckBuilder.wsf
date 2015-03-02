@@ -35,38 +35,6 @@ Dim loadName
 Dim stamp
 
 '---------------------------------------
-Function Pic9n(byVal v, byVal digits)
-  'Formats "v" as "digits" number of digits with leading zeros
-  Dim s, length
-
-  s = CStr(Abs(v))
-  length = Len(s)
-  If length < digits Then
-    Pic9n = String(digits-length, "0") & s
-  ElseIf length > digits Then
-    Pic9n = Right(s, digits)
-  Else
-    Pic9n = s
-  End If
-End Function
-
-'---------------------------------------
-Function PicZn(byVal v, byVal chars)
-  'Formats "v" as length "chars", right-justified with leading spaces
-  Dim s, length
-
-  s = CStr(v)
-  length = Len(s)
-  If length < chars Then
-    PicZn = Space(chars-length) & s
-  ElseIf length > chars Then
-    PicZn = Right(s, chars)
-  Else
-    PicZn = s
-  End If
-End Function
-
-'---------------------------------------
 Sub WriteCard(byVal card)
   'Fills out the card image with sufficient spaces and "666" for format
   'control in columns 1-3, then writes the image.

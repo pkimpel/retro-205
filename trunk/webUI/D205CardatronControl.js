@@ -141,29 +141,29 @@ D205CardatronControl.prototype.cardatronOnLoad = function cardatronOnLoad() {
 };
 
 /**************************************/
-D205CardatronControl.prototype.inputInitiate = function inputInitiate(unitNr, kDigit, digitSender) {
+D205CardatronControl.prototype.inputInitiate = function inputInitiate(unitNr, kDigit, wordSender) {
     /* Initiates the read from one of the Cardatron input devices */
 
     this.outputUnitLamp.set(0);
     this.setRelayDesignateLamps(0);
     if (!this.inputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
-        digitSender(-1);                // just terminate the I/O
+        wordSender(-1);                 // just terminate the I/O
     } else {
         this.setUnitDesignateLamps(unitNr);
-        this.inputUnit[unitNr].inputInitiate(kDigit, digitSender);
+        this.inputUnit[unitNr].inputInitiate(kDigit, wordSender);
     }
 };
 
 /**************************************/
-D205CardatronControl.prototype.inputDigit = function inputDigit(unitNr, digitSender) {
-    /* Reads the next digit from the Cardatron input device */
+D205CardatronControl.prototype.inputWord = function inputWord(unitNr, wordSender) {
+    /* Reads the next word from the Cardatron input device */
 
     if (!this.inputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
-        digitSender(-1);                // just terminate the I/O
+        wordSender(-1);                 // just terminate the I/O
     } else {
-        this.inputUnit[unitNr].inputDigit(digitSender);
+        this.inputUnit[unitNr].inputWord(wordSender);
     }
 };
 
@@ -193,7 +193,7 @@ D205CardatronControl.prototype.inputReadyInterrogate = function inputReadyInterr
 
 /**************************************/
 D205CardatronControl.prototype.inputFormatInitiate = function inputFormatInitiate(
-        unitNr, kDigit, signalOK, signalFinished) {
+        unitNr, kDigit, requestNextWord, signalFinished) {
     /* Initiates loading a format band for one of the Cardatron input devices */
 
     this.outputUnitLamp.set(0);
@@ -203,13 +203,13 @@ D205CardatronControl.prototype.inputFormatInitiate = function inputFormatInitiat
         signalFinished();               // just terminate the I/O
     } else {
         this.setUnitDesignateLamps(unitNr);
-        this.inputUnit[unitNr].inputFormatInitiate(kDigit, signalOK, signalFinished);
+        this.inputUnit[unitNr].inputFormatInitiate(kDigit, requestNextWord, signalFinished);
     }
 };
 
 /**************************************/
 D205CardatronControl.prototype.outputInitiate = function outputInitiate(
-        unitNr, kDigit, tDigit, signalOK, signalFinished) {
+        unitNr, kDigit, tDigit, requestNextWord, signalFinished) {
     /* Initiates writing to one of the Cardatron output devices */
 
     this.outputUnitLamp.set(1);
@@ -219,7 +219,7 @@ D205CardatronControl.prototype.outputInitiate = function outputInitiate(
         signalFinished();               // just terminate the I/O
     } else {
         this.setUnitDesignateLamps(unitNr);
-        this.outputUnit[unitNr].outputInitiate(kDigit, tDigit, signalOK, signalFinished);
+        this.outputUnit[unitNr].outputInitiate(kDigit, tDigit, requestNextWord, signalFinished);
     }
 };
 
@@ -237,7 +237,7 @@ D205CardatronControl.prototype.outputReadyInterrogate = function outputReadyInte
 
 /**************************************/
 D205CardatronControl.prototype.outputFormatInitiate = function outputFormatInitiate(
-        unitNr, kDigit, signalOK, signalFinished) {
+        unitNr, kDigit, requestNextWord, signalFinished) {
     /* Initiates loading a format band for one of the Cardatron output devices */
 
     this.outputUnitLamp.set(1);
@@ -247,7 +247,7 @@ D205CardatronControl.prototype.outputFormatInitiate = function outputFormatIniti
         signalFinished();               // just terminate the I/O
     } else {
         this.setUnitDesignateLamps(unitNr);
-        this.outputUnit[unitNr].outputFormatInitiate(kDigit, signalOK, signalFinished);
+        this.outputUnit[unitNr].outputFormatInitiate(kDigit, requestNextWord, signalFinished);
     }
 };
 

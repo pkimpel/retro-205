@@ -19,25 +19,22 @@ function D205Util() {
 }
 
 /**************************************/
-D205Util.xlateASCIIToAlgolRex =         // For translation of BIC-as-ASCII to Unicode Algol glyphs
-        /[^\r\n\xA0 "#$%&()*+,\-./0-9:;<=>?@A-Z\[\]a-z\u00D7\u2190\u2260\u2264\u2265]/g;
+D205Util.xlateASCIIToAlgolRex =         // For translation of 205-ASCII to Algol-ASCII glyphs
+        /[^\r\n\xA0 $()*+,-./0-9=@A-Za-z]/g;
 D205Util.xlateASCIIToAlgolGlyph = {
-        "!": "\u2260",  // not-equal
-        "_": "\u2190",  // Sid McHarg's left-arrow
-        "{": "\u2264",  // less-than-or-equal
-        "|": "\u00D7",  // multiply (x)
-        "}": "\u2265",  // greater-than-or-equal
-        "~": "\u2190"}; // left-arrow
+        "#": "=",
+        "%": "(",
+        "&": "+",
+        "<": ")",
+        "\xA4": ")"};   // the lozenge (¤)
 
-D205Util.xlateAlgolToASCIIRex =         // For translation of Unicode Algol glyphs to BIC-as-ASCII
-        /[^\r\n\xA0 !"#$%&()*+,\-./0-9:;<=>?@A-Z\[\]a-z{|}~]/g;
+D205Util.xlateAlgolToASCIIRex =         // For translation of Algol-ASCII glyphs to 205-ASCII
+        /[^\r\n\xA0 #$%&*,-./0-9<@A-Za-z\xA4]/g;
 D205Util.xlateAlgolToASCIIGlyph = {
-        "_":      "~",  // Sid McHarg's left-arrow
-        "\u00D7": "|",  // multiply (x)
-        "\u2190": "~",  // left-arrow
-        "\u2260": "!",  // not-equal
-        "\u2264": "{",  // less-than-or-equal
-        "\u2265": "}"}; // greater-than-or-equal
+        "=": "#",
+        "(": "%",
+        "+": "&",
+        ")": "\xA4"};   // the lozenge (¤)
 
 /**************************************/
 D205Util.$$ = function $$(e) {

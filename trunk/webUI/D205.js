@@ -57,6 +57,16 @@ window.addEventListener("load", function() {
     }
 
     /**************************************/
+    function openDiagPanel(ev) {
+        /* Opens the emulator's diagnostic panel in a new sub-window */
+        var win;
+
+        win = window.open("D205DiagMonitor.html", "DiagPanel",
+                "location=no,scrollbars=no,resizable,width=300,height=500,top=0,left=0");
+        win.global = window;            // give it access to our globals.
+    }
+
+    /**************************************/
     function checkBrowser() {
         /* Checks whether this browser can support the necessary stuff */
         var missing = "";
@@ -87,6 +97,7 @@ window.addEventListener("load", function() {
     document.getElementById("StartUpBtn").disabled = true;
     document.getElementById("EmulatorVersion").textContent = D205Processor.version;
     if (checkBrowser()) {
+        document.getElementById("Retro205Logo").addEventListener("dblclick", openDiagPanel);
         document.getElementById("StartUpBtn").disabled = false;
         document.getElementById("StartUpBtn").addEventListener("click", systemStartup);
         document.getElementById("StartUpBtn").focus();

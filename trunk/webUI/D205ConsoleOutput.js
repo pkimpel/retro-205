@@ -18,7 +18,6 @@ function D205ConsoleOutput(mnemonic) {
     /* Constructor for the Console Output object */
 
     this.maxScrollLines = 15000;        // Maximum amount of printer/punch scrollback
-    this.flexPeriod = 1000/10;          // Printer speed, ms/c (10 cps)
     this.punchPeriod = 1000/60;         // Punch speed, ms/c (60 cps)
 
     this.mnemonic = mnemonic;           // Unit mnemonic
@@ -469,7 +468,8 @@ D205ConsoleOutput.prototype.punchOnload = function punchOnload() {
 ***********************************************************************/
 
 /**************************************/
-D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(outputUnit, formatDigit, signalOK) {
+D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
+        outputUnit, formatDigit, signalOK) {
     /* Sets the format digit at the beginning of output for a word, or as the
     result of a POF instruction. Delays for an appropriate amount of time, then
     calls the Processor's signalOK function. */
@@ -624,33 +624,33 @@ D205ConsoleOutput.prototype.writeFinish = function writeFinish(outputUnit, contr
             if (this.wordCounter < this.wordsKnob.selectedIndex) {
                 ++this.wordCounter;
                 switch (this.tabSpaceSwitch.state) {
-                case 1:                     // output a tab
+                case 1:                         // output a tab
                     tabCol = Math.floor((this.flexCol + 8)/8)*8;
                     while (this.flexCol < tabCol) {
                         this.flexChar(" ");
                     }
                     break;
-                case 2:                     // output a space
+                case 2:                         // output a space
                     this.flexChar(" ");
                     break;
-                } // this.tabSpaceSwitch
+                } // switch this.tabSpaceSwitch.state
             } else {
                 this.wordCounter = 0;
                 if (this.groupingCountersSwitch.state == 2) {
-                    this.flexEmptyLine();
+                    this.flexEmptyLine();       // end of line: do new line
                 }
                 if (this.lineCounter < this.linesKnob.selectedIndex) {
                     ++this.lineCounter;
                 } else {
                     this.lineCounter = 0;
                     if (this.groupingCountersSwitch.state == 2) {
-                        delay += 100;
+                        delay += 100;           // end of group: do another new line
                         this.flexEmptyLine();
                     }
                     if (this.groupCounter < this.groupsKnob.selectedIndex) {
                         ++this.groupCounter;
                     } else {
-                        this.groupCounter = 0;
+                        this.groupCounter = 0;  // end of page
                         if (this.autoStopSwitch.state) {
                             this.stopPrintout = 1;      // stop before next output
                         }
