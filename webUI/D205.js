@@ -38,7 +38,7 @@ window.addEventListener("load", function() {
         p = new D205Processor(devices);
         devices.ControlConsole = new D205ControlConsole(p);
         devices.SupervisoryPanel = new D205SupervisoryPanel(p, systemShutDown);
-        devices.CardatronControl = new D205CardatronControl("CCU");
+        devices.CardatronControl = new D205CardatronControl(p);
         ev.target.disabled = true;
     }
 

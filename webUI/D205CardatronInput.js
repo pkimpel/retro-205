@@ -119,7 +119,7 @@ D205CardatronInput.prototype.clear = function clear() {
     /* Initializes (and if necessary, creates) the reader unit state */
 
     this.ready = false;                 // ready status
-    this.bufferReady = false;           // buffer drum info band is ready to read
+    this.bufferReady = false;           // buffer drum info band is ready to send data to Processor
     this.noFormatAlarm = false;         // No Formal Alarm toggle
     this.reloadLockout = false;         // Reload Lockout toggle
     this.formatLockout = false;         // Format Lockout toggle
@@ -162,13 +162,14 @@ D205CardatronInput.prototype.setReaderReady = function setReaderReady(ready) {
     /* Controls the ready-state of the card reader */
 
     this.$$("CIFileSelector").disabled = ready;
-    this.ready = ready;
-    if (ready) {
+    if (ready && !this.ready) {
         D205Util.addClass(this.$$("CIStartBtn"), "greenLit")
         D205Util.removeClass(this.$$("CIStopBtn"), "redLit");
-    } else {
+        this.ready = true;
+    } else if (this.ready && !ready) {
         D205Util.removeClass(this.$$("CIStartBtn"), "greenLit")
         D205Util.addClass(this.$$("CIStopBtn"), "redLit");
+        this.ready = false;
     }
 };
 
@@ -193,6 +194,8 @@ D205CardatronInput.prototype.setReloadLockout = function setReloadLockout(lockou
     if (lockout) {
         this.reloadLockoutLamp.set(1);
     } else {
+        this.bufferReady = false;
+        this.setFormatLockout(false);
         this.reloadLockoutLamp.set(0);
     }
 };
@@ -225,6 +228,7 @@ D205CardatronInput.prototype.CIStartBtn_onClick = function CIStartBtn_onClick(ev
     /* Handle the click event for the START button */
 
     if (!this.ready) {
+        this.setNoFormatAlarm(false);
         if (this.bufIndex < this.bufLength) {
             this.setReaderReady(true);
             if (!this.bufferReady) {
@@ -241,7 +245,6 @@ D205CardatronInput.prototype.CIStopBtn_onClick = function CIStopBtn_onClick(ev) 
     this.$$("CIFileSelector").value = null;     // reset the control so the same file can be reloaded
     if (this.ready) {
         this.setReaderReady(false);
-        this.setNoFormatAlarm(false);
         this.startMachineLamp.set(0);
         this.setFormatSelectLamps(0);
     }
@@ -454,7 +457,6 @@ D205CardatronInput.prototype.finishCardRead = function finishCardRead() {
     var x;                              // info/format band digit index
 
     this.startMachineLamp.set(0);
-    this.clearInfoBand();
     format = this.determineFormatBand(card);
     if ((format & 0x07) == 7) {
         // Reject format -- clear the information band and read next card
@@ -510,6 +512,7 @@ D205CardatronInput.prototype.initiateCardRead = function initiateCardRead() {
     if (this.ready) {
         this.startMachineLamp.set(1);
         this.setNoFormatAlarm(false);
+        this.clearInfoBand();
         this.timer = setCallback(this.mnemonic, this,
             60000/this.cardsPerMinute, this.boundFinishCardRead);
     }
@@ -729,7 +732,6 @@ D205CardatronInput.prototype.inputStop = function inputStop() {
         }
     } else if (this.reloadLockout) {    // reset reload-lockout
         this.setReloadLockout(false);
-        this.setFormatLockout(false);
     }
 
     if (!this.reloadLockout) {
@@ -800,7 +802,6 @@ D205CardatronInput.prototype.inputFormatWord = function inputFormatWord(
         if (this.kDigit % 2 == 0) {     // reset reload-lockout
             if (this.reloadLockout) {
                 this.setReloadLockout(false);
-                this.setFormatLockout(false);
                 this.initiateCardRead();
             }
         }
@@ -816,10 +817,10 @@ D205CardatronInput.prototype.clearUnit = function clearUnit() {
     this.bufferReady = false;
     this.setReaderReady(false);
     this.setNoFormatAlarm(false);
-    this.setReloadLockout(0);
-    this.setFormatLockout(0);
+    this.setReloadLockout(false);
+    this.setFormatLockout(false);
     this.startMachineLamp.set(0);
-    this.setFormatSelectLamps(0);
+    this.setFormatSelectLamps(7);
     this.formatSelectList.selectedIndex = 0;
     this.formatColumnList.selectedIndex = 1;
 
@@ -829,7 +830,7 @@ D205CardatronInput.prototype.clearUnit = function clearUnit() {
     // from hanging on an I/O to a cleared input unit.
     if (this.readRequested) {
         if (Object.prototype.toString.call(this.pendingParams) === "[object Array]") {
-            if (Object.prototype.toString.call(this.pendingparams[1]) === "[object Function]") {
+            if (Object.prototype.toString.call(this.pendingParams[1]) === "[object Function]") {
                 this.pendingParams[1](this.eodBias);
             }
         }

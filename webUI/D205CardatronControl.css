@@ -25,13 +25,21 @@
     right:              0;
     margin:             4px}
 
+#InputSetupBtn {
+    bottom:             20px;
+    left:               8px}
+#InputSetupBtnCaption {
+    bottom:             4px;
+    left:               8px;
+    width:              32px}
+
 #ClearBtn {
-    top:                8px;
+    bottom:             20px;
     right:              8px}
 #ClearBtnCaption {
-    top:                44px;
-    right:              8px;
-    width:              32px}
+    bottom:             4px;
+    right:              4px;
+    width:              40px}
 
 #OutputUnitLamp {
     top:                8px;

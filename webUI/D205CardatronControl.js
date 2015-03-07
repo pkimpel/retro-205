@@ -13,23 +13,25 @@
 "use strict";
 
 /**************************************/
-function D205CardatronControl(mnemonic) {
+function D205CardatronControl(p) {
     /* Constructor for the CardatronControl object */
     var left = 600;
 
-    this.mnemonic = mnemonic;
+    this.mnemonic = "CCU";
+    this.p = p;                         // D205Processor object
+    this.setupUnit = 1;                 // Unit number for INPUT SETUP button
 
-    this.clear();
+    // Do not call this.clear() here -- call this.clearUnit() from onLoad instead
 
-    this.window = window.open("", mnemonic);
+    this.window = window.open("", this.mnemonic);
     if (this.window) {
         this.shutDown();                // destroy the previously-existing window
         this.window = null;
     }
 
     this.doc = null;
-    this.window = window.open("../webUI/D205CardatronControl.html", mnemonic,
-            "location=no,scrollbars=no,resizable,width=200,height=80,top=0,left=" + left);
+    this.window = window.open("../webUI/D205CardatronControl.html", this.mnemonic,
+            "location=no,scrollbars=no,resizable,width=140,height=120,top=0,left=" + left);
     this.window.addEventListener("load",
         D205Util.bindMethod(this, D205CardatronControl.prototype.cardatronOnLoad));
 
@@ -63,7 +65,7 @@ D205CardatronControl.prototype.$$ = function $$(e) {
 D205CardatronControl.prototype.clear = function clear() {
     /* Initializes (and if necessary, creates) the panel state */
 
-    // nothing at present...
+    this.clearUnit();
 };
 
 /**************************************/
@@ -86,12 +88,20 @@ D205CardatronControl.prototype.setRelayDesignateLamps = function setRelayDesigna
 };
 
 /**************************************/
-D205CardatronControl.prototype.ClearBtn_onClick = function ClearBtn_onClick(ev) {
-    /* Handle the click event for the CLEAR button */
+D205CardatronControl.prototype.InputSetupBtn_onClick = function InputSetupBtn_onClick(ev) {
+    /* Handle the click event for the INPUT SETUP button. This will request the
+    Processor to clear the C register and load a CDR (44) instruction into it */
 
-    this.outputUnitLamp.set(0);
-    this.setUnitDesignateLamps(0);
-    this.setRelayDesignateLamps(0);
+    this.p.inputSetup(this.setupUnit);
+};
+
+/**************************************/
+D205CardatronControl.prototype.ClearBtn_onClick = function ClearBtn_onClick(ev) {
+    /* Handle the click event for the CLEAR button. This is a General Clear for
+    the system. this.p.clear will clear the Processor. That in turn will call
+    this.clear, which will clear the Cardatron Control state */
+
+    this.p.clear();
 };
 
 /**************************************/
@@ -136,8 +146,12 @@ D205CardatronControl.prototype.cardatronOnLoad = function cardatronOnLoad() {
     // Events
 
     this.window.addEventListener("beforeunload", D205CardatronControl.prototype.beforeUnload);
+    this.$$("InputSetupBtn").addEventListener("click",
+            D205Util.bindMethod(this, D205CardatronControl.prototype.InputSetupBtn_onClick));
     this.$$("ClearBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronControl.prototype.ClearBtn_onClick));
+
+    this.clearUnit();
 };
 
 /**************************************/
@@ -249,6 +263,15 @@ D205CardatronControl.prototype.outputFormatInitiate = function outputFormatIniti
         this.setUnitDesignateLamps(unitNr);
         this.outputUnit[unitNr].outputFormatInitiate(kDigit, requestNextWord, signalFinished);
     }
+};
+
+/**************************************/
+D205CardatronControl.prototype.clearUnit = function clearUnit() {
+    /* Clears the internal state of the control unit */
+
+    this.outputUnitLamp.set(0);
+    this.setUnitDesignateLamps(0);
+    this.setRelayDesignateLamps(0);
 };
 
 /**************************************/
