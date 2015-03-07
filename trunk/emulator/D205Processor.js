@@ -120,7 +120,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.04";
+D205Processor.version = "0.04a";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -231,6 +231,11 @@ D205Processor.prototype.clear = function clear() {
     if (this.scheduler) {
         clearCallback(this.scheduler);
         this.scheduler = 0;
+    }
+
+    // Clear Cardatron Control Unit
+    if (this.cardatron) {
+        this.cardatron.clear();
     }
 };
 
@@ -382,7 +387,7 @@ D205Processor.prototype.startMemoryTiming = function startMemoryTiming(drumTime)
     /* Starts the necessary timers for the memory toggles to aid in their
     display on the panels */
 
-    if (this.memMain)   {this.memMainTime -= drumTime}
+    if (this.memMAIN)   {this.memMAINTime -= drumTime}
     if (this.memRWM)    {this.memRWMTime -= drumTime};
     if (this.memRWL)    {this.memRWLTime -= drumTime};
     if (this.memWDBL)   {this.memWDBLTime -= drumTime};
@@ -401,9 +406,9 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
     display on the panels and reset the corresponding toggle */
     var drumTime = performance.now()*D205Processor.wordsPerMilli;
 
-    if (this.memMain)   {
+    if (this.memMAIN)   {
         this.memMAIN = 0;
-        this.memMainTime += drumTime;
+        this.memMAINTime += drumTime;
     }
     if (this.memRWM)    {
         this.memRWM = 0;
@@ -464,7 +469,7 @@ D205Processor.prototype.fetchStats = function fetchStats(stats) {
     while (stats.overflowTime < 0) {stats.overflowTime += drumTime}
 
     stats.memMAINTime = this.memMAINTime;
-    while (stats.memMainTime < 0)   {stats.memMainTime += drumTime}
+    while (stats.memMAINTime < 0)   {stats.memMAINTime += drumTime}
 
     stats.memRWMTime = this.memRWMTime;
     while (stats.memRWMTime < 0)    {stats.memRWMTime += drumTime};
@@ -1318,6 +1323,7 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     Note: the D register SHOULD be loaded after the latency delay, but we do
     it here so that the word will show on the panels during the drum latency */
     var addr;                           // binary target address, mod 8000
+    var cbCategory;                     // setCallback delay-averaging category
     var drumTime =                      // current drum position [word-times]
             performance.now()*D205Processor.wordsPerMilli;
     var latency;                        // drum latency in word-times
@@ -1327,10 +1333,12 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     this.memACCESS = 1;
     if (addr < 4000) {
         trackSize = D205Processor.trackSize;
+        cbCategory = "MEMM";
         this.memMAIN = this.memLM = 1;
         this.D = this.MM[addr];
     } else {
         trackSize = D205Processor.loopSize;
+        cbCategory = "MEML";
         if (addr < 5000) {
             this.memL4 = 1;
             this.D = this.L4[addr%trackSize];
@@ -1351,7 +1359,7 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
     this.successor = successor;
-    this.scheduler = setCallback("MEM", this,
+    this.scheduler = setCallback(cbCategory, this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.readMemoryFinish);
 };
 
@@ -1378,6 +1386,7 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     Note: the word should be stored after the latency delay, but we do it here
     so that the word will show in the panels during the drum latency */
     var addr;                           // binary target address, mod 8000
+    var cbCategory;                     // setCallback delay-averaging category
     var drumTime =                      // current drum position [word-times]
             performance.now()*D205Processor.wordsPerMilli;
     var latency;                        // drum latency in word-times
@@ -1387,10 +1396,12 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     this.memACCESS = 1;
     if (addr < 4000) {
         trackSize = D205Processor.trackSize;
+        cbCategory = "MEMM";
         this.memMAIN = this.memLM = this.memRWM = 1;
         this.MM[addr] = this.A;
     } else {
         trackSize = D205Processor.loopSize;
+        cbCategory = "MEML";
         this.memRWL = 1;
         if (addr < 5000) {
             this.memL4 = 1;
@@ -1412,7 +1423,7 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
     this.successor = successor;
-    this.scheduler = setCallback("MEM", this,
+    this.scheduler = setCallback(cbCategory, this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, clearA);
 };
 
@@ -1470,7 +1481,7 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
     this.successor = successor;
-    this.scheduler = setCallback("MEM", this,
+    this.scheduler = setCallback("MEMM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
 };
 
@@ -1528,7 +1539,7 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     this.memACTION = 1;
     this.startMemoryTiming(drumTime);
     this.successor = successor;
-    this.scheduler = setCallback("MEM", this,
+    this.scheduler = setCallback("MEMM", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
 };
 
@@ -1607,7 +1618,7 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
 
     this.procTime += x;
     drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.scheduler = setCallback("MEM", this,
+    this.scheduler = setCallback("MEML", this,
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.successor, high);
 };
 
@@ -2723,17 +2734,21 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x44:      //---------------- CDR  Card Read (Cardatron)
             this.D = 0;
-            this.tog3IO = 1;
-            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
-            this.SHIFT = 0x08;                          // prepare to receive 11 digits
-            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-            this.cardatron.inputInitiate(this.selectedUnit, this.kDigit, this.boundCardatronReceiveWord);
+            if (!this.cardatron) {
+                this.executeComplete();
+            } else {
+                this.tog3IO = 1;
+                this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+                this.SHIFT = 0x08;                      // prepare to receive 11 digits
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                this.cardatron.inputInitiate(this.selectedUnit, this.kDigit, this.boundCardatronReceiveWord);
+            }
             break;
 
         case 0x45:      //---------------- CDRI Card Read Interrogate
             this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
-            if (this.cardatron.inputReadyInterrogate(this.selectedUnit)) {
+            if (this.cardatron && this.cardatron.inputReadyInterrogate(this.selectedUnit)) {
                 this.R = this.CCONTROL*0x1000000;
                 this.setTimingToggle(0);                // stay in Execute
                 this.setOverflow(1);                    // set overflow
@@ -2746,13 +2761,17 @@ D205Processor.prototype.execute = function execute() {
         case 0x46-0x47: //---------------- (no op)
 
         case 0x48:      //---------------- CDRF Card Read Format
-            this.tog3IO = 1;
-            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
-            this.SHIFT = 0x19;                          // start at beginning of a word
-            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-            this.cardatron.inputFormatInitiate(this.selectedUnit, this.kDigit,
-                    this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
+            if (!this.cardatron) {
+                this.executeComplete();
+            } else {
+                this.tog3IO = 1;
+                this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+                this.SHIFT = 0x19;                      // start at beginning of a word
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                this.cardatron.inputFormatInitiate(this.selectedUnit, this.kDigit,
+                        this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
+            }
             break;
 
         // 0x49:        //---------------- (no op)
@@ -2770,19 +2789,22 @@ D205Processor.prototype.execute = function execute() {
         // 0x53:        //---------------- (no op)
 
         case 0x54:      //---------------- CDW  Card Write (Cardatron)
-            this.tog3IO = 1;
-            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
-            this.SHIFT = 0x19;                          // start at beginning of a word
-            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-            this.cardatron.outputInitiate(this.selectedUnit, this.kDigit, (this.CEXTRA >>> 12) & 0x0F,
-                    this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
+            if (!this.cardatron) {
+                this.executeComplete();
+            } else {
+                this.tog3IO = 1;
+                this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+                this.SHIFT = 0x19;                      // start at beginning of a word
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                this.cardatron.outputInitiate(this.selectedUnit, this.kDigit, (this.CEXTRA >>> 12) & 0x0F,
+                        this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
+            }
             break;
 
         case 0x55:      //---------------- CDWI Card Write Interrogate
-            this.executeComplete();
             this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
-            if (this.cardatron.outputReadyInterrogate(this.selectedUnit)) {
+            if (this.cardatron && this.cardatron.outputReadyInterrogate(this.selectedUnit)) {
                 this.R = this.CCONTROL*0x1000000;
                 this.setTimingToggle(0);                // stay in Execute
                 this.setOverflow(1);                    // set overflow
@@ -2795,13 +2817,17 @@ D205Processor.prototype.execute = function execute() {
         // 0x56-0x57:   //---------------- (no op)
 
         case 0x58:      //---------------- CDWF Card Write Format
-            this.tog3IO = 1;
-            this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
-            this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
-            this.SHIFT = 0x19;                          // start at beginning of a word
-            this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
-            this.cardatron.outputFormatInitiate(this.selectedUnit, this.kDigit,
-                    this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
+            if (!this.cardatron) {
+                this.executeComplete();
+            } else {
+                this.tog3IO = 1;
+                this.kDigit = (this.CEXTRA >>> 8) & 0x0F;
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x07;
+                this.SHIFT = 0x19;                      // start at beginning of a word
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                this.cardatron.outputFormatInitiate(this.selectedUnit, this.kDigit,
+                        this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
+            }
             break;
 
         // 0x59:        //---------------- (no op)
@@ -2853,6 +2879,20 @@ D205Processor.prototype.stop = function stop() {
 };
 
 /**************************************/
+D205Processor.prototype.inputSetup = function inputSetup(unitNr) {
+    /* Called from the Cardatron Control Unit. If the Processor is stopped,
+    loads a CDR (44) instruction into C for unit "unitNr" */
+
+    if (this.togCST && this.poweredOn) {
+        this.CEXTRA = unitNr*0x10;
+        this.COP = 0x44;
+        this.CADDR = 0;
+        this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
+        this.setTimingToggle(0);
+    }
+};
+
+/**************************************/
 D205Processor.prototype.powerUp = function powerUp() {
     /* Powers up the system */
 
@@ -2881,13 +2921,14 @@ D205Processor.prototype.powerDown = function powerDown() {
 
 /**************************************/
 D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
-    /* Loads a default program to the memory drum and constructs a CU at
-    location 0 to branch to it */
+    /* Loads a set of default demo programs to the memory drum */
 
-    this.MM[   0] = 0x0000740002;       // ADD     2 -- start of counter speed test
+    // Simple counter speed test
+    this.MM[   0] = 0x0000740002;       // ADD     2
     this.MM[   1] = 0x0000200000;       // CU      0
     this.MM[   2] = 0x0000000001;       // LIT     1
 
+    // Bootstrap to loop-based square-roots test
     this.MM[  10] = 0x0000360200        // BT6   200
     this.MM[  11] = 0x0000370220        // BT7   220
     this.MM[  12] = 0x0000206980        // CU   6980  branch to loop-6 entry point

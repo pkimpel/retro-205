@@ -127,12 +127,12 @@ D205CardatronOutput.prototype.clear = function clear() {
     /* Initializes (and if necessary, creates) the reader unit state */
 
     this.ready = false;                 // ready status
-    this.bufferReady = true;            // buffer drum info band is ready for write
+    this.bufferReady = true;            // buffer drum info band is ready to accept data from Processor
     this.writeRequested = false;        // Processor has initiated a write, waiting for buffer
     this.togNumeric = false;            // current digit came from zone (false) or numeric (true) punches
 
     this.supplyLeft = this.maxSupplyLines; // lines/cards remaining in output supply
-    this.feedSupplyCount = 0;           // counter for triple-formfeed => rip paper/empty hopper
+    this.runoutSupplyCount = 0;         // counter for triple-formfeed => rip paper/empty hopper
     this.groupLinesLeft = 0;            // lines remaining in current greenbar group
     this.topOfForm = false;             // start new page flag
     this.pendingSpaceBefore = -1;       // pending carriage control (eat the initial space-before)
@@ -182,7 +182,7 @@ D205CardatronOutput.prototype.ClearBtn_onClick = function ClearBtn_onClick(ev) {
 D205CardatronOutput.prototype.setDeviceReady = function setDeviceReady(ready) {
     /* Controls the ready-state of the printer/punch */
 
-    this.feedSupplyCount = 0;
+    this.runoutSupplyCount = 0;
     if (ready && !this.ready) {
         D205Util.addClass(this.$$("COStartBtn"), "greenLit")
         D205Util.removeClass(this.$$("COStopBtn"), "redLit");
@@ -195,17 +195,51 @@ D205CardatronOutput.prototype.setDeviceReady = function setDeviceReady(ready) {
 };
 
 /**************************************/
-D205CardatronOutput.prototype.ripSupply = function ripSupply(ev) {
-    /* Handles an event to clear the suply from the printer/punch */
+D205CardatronOutput.prototype.runoutSupply = function runoutSupply(ev) {
+    /* Handles an event to clear the supply from the printer/punch */
 
-    this.feedSupplyCount = 0;
-    if (this.window.confirm("Do you want to clear the output from the device?")) {
-        D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
-        this.supplyMeter.value = this.supplyLeft = this.maxSupplyLines;
-        while (this.supply.firstChild) {
-            this.supply.removeChild(this.supply.firstChild);
-        }
+    this.runoutSupplyCount = 0;
+    D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
+    this.supplyMeter.value = this.supplyLeft = this.maxSupplyLines;
+    this.groupLinesLeft = 0;
+    while (this.supply.firstChild) {
+        this.supply.removeChild(this.supply.firstChild);
     }
+    if (!this.isGreenbarCapable) {
+        this.barGroup = this.doc.createElement("pre");
+        this.barGroup.className = "paper";
+        this.supply.appendChild(this.barGroup);
+    }
+};
+
+/**************************************/
+D205CardatronOutput.prototype.copySupply = function copySupply(ev) {
+    /* Copies the text contents of the "paper" area of the device, opens a new
+    temporary window, and pastes that text into the window so it can be copied
+    or saved */
+    var barGroup = this.supply.firstChild;
+    var text = "";
+    var title = "D205 " + this.mnemonic + " Text Snapshot";
+    var win = window.open("./D205FramePaper.html", this.mnemonic + "-Snapshot",
+            "scrollbars,resizable,width=500,height=500");
+
+    while (barGroup) {
+        text += barGroup.textContent + "\n";
+        barGroup = barGroup.nextSibling;
+    }
+
+    win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
+    win.addEventListener("load", function() {
+        var doc;
+
+        doc = win.document;
+        doc.title = title;
+        doc.getElementById("Paper").textContent = text;
+    });
+
+    this.runoutSupply();
+    ev.preventDefault();
+    ev.stopPropagation();
 };
 
 /**************************************/
@@ -300,72 +334,79 @@ D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
     var nu = true;                      // numeric toggle: start as numeric
     var x = 0;                          // info/format band digit index
 
-    this.startMachineLamp.set(1);
+    if (this.ready) {
+        this.startMachineLamp.set(1);
 
-    // Map buffer drum digits to ASCII character codes
-    for (x=0; x<fmax; ++x) {
-        switch (band[x]) {
-        case 0:                         // insert zero digit
-            if (nu) {
-                nu = false;
-                lastNumeric = 0;
-            } else {
+        // Map buffer drum digits to ASCII character codes
+        for (x=0; x<fmax; ++x) {
+            switch (band[x]) {
+            case 0:                     // insert zero digit
+                if (nu) {
+                    nu = false;
+                    lastNumeric = 0;
+                } else {
+                    nu = true;
+                    this.lineBuffer[--lx] = this.outputXlate[0][lastNumeric];
+                }
+                break;
+            case 1:                     // translate alphanumerically
+                if (nu) {
+                    nu = false;
+                    lastNumeric = info[x];
+                } else {
+                    nu = true;
+                    this.lineBuffer[--lx] = this.outputXlate[info[x]][lastNumeric];
+                }
+                break;
+            case 2:                     // translate numerically
                 nu = true;
-                this.lineBuffer[--lx] = this.outputXlate[0][lastNumeric];
-            }
-            break;
-        case 1:                         // translate alphanumerically
-            if (nu) {
-                nu = false;
-                lastNumeric = info[x];
-            } else {
-                nu = true;
-                this.lineBuffer[--lx] = this.outputXlate[info[x]][lastNumeric];
-            }
-            break;
-        case 2:                         // translate numerically
-            nu = true;
-            this.lineBuffer[--lx] = (lastNumeric = info[x]) + 0x30;
-            break;
-        default:                        // (3) delete info band digit
-            break;
-        } // switch band[x]
-    } // for x
+                this.lineBuffer[--lx] = (lastNumeric = info[x]) + 0x30;
+                break;
+            default:                    // (3) delete info band digit
+                break;
+            } // switch band[x]
+        } // for x
 
-    // Convert to ASCII line image and determine carriage control
-    line = String.fromCharCode.apply(null, this.lineBuffer.subarray(lx, this.lineWidth+lx));
-    switch (this.tDigit) {
-    case 1:                             // Relay 1 (eject page after printing)
-    case 9:                             // same as 1
-        this.printLine(line, this.pendingSpaceBefore);
-        this.pendingSpaceBefore = 0;
-        break;
-    case 2:                             // Relay 2 (single space before and after printing)
-        this.printLine(line, this.pendingSpaceBefore+1);
-        this.pendingSpaceBefore = 1;
-        break;
-    case 3:                             // Relay 3 (eject page before printing)
-    case 5:                             // Relay 5 (skip to channel 2 before printing)
-    case 7:                             // Relay 3+5 (skip to channel 3 before printing)
-        this.printLine(line, -1);
-        this.pendingSpaceBefore = 0;
-        break;
-    case 4:                             // Relay 4 (double space before printing)
-        this.printLine(line, this.pendingSpaceBefore+2);
-        this.pendingSpaceBefore = 0;
-        break;
-    case 6:                             // Relay 2+4 (double space before and single space after printing)
-        this.printLine(line, this.pendingSpaceBefore+2);
-        this.pendingSpaceBefore = 1;
-        break;
-    default:                            // single space before printing
-        this.printLine(line, this.pendingSpaceBefore+1);
-        this.pendingSpaceBefore = 0;
-        break;
+        // Convert to ASCII line image and determine carriage control
+        line = String.fromCharCode.apply(null, this.lineBuffer.subarray(lx, this.lineWidth+lx));
+        if (this.useAlgolGlyphs) {
+            line = D205Util.xlateASCIIToAlgol(line.replace(this.rtrimRex, ''));
+        } else {
+            line = line.replace(this.rtrimRex, '');
+        }
+        switch (this.tDigit) {
+        case 1:                         // Relay 1 (eject page after printing)
+        case 9:                         // same as 1
+            this.printLine(line, this.pendingSpaceBefore);
+            this.pendingSpaceBefore = 0;
+            break;
+        case 2:                         // Relay 2 (single space before and after printing)
+            this.printLine(line, this.pendingSpaceBefore+1);
+            this.pendingSpaceBefore = 1;
+            break;
+        case 3:                         // Relay 3 (eject page before printing)
+        case 5:                         // Relay 5 (skip to channel 2 before printing)
+        case 7:                         // Relay 3+5 (skip to channel 3 before printing)
+            this.printLine(line, -1);
+            this.pendingSpaceBefore = 0;
+            break;
+        case 4:                         // Relay 4 (double space before printing)
+            this.printLine(line, this.pendingSpaceBefore+2);
+            this.pendingSpaceBefore = 0;
+            break;
+        case 6:                         // Relay 2+4 (double space before and single space after printing)
+            this.printLine(line, this.pendingSpaceBefore+2);
+            this.pendingSpaceBefore = 1;
+            break;
+        default:                        // single space before printing
+            this.printLine(line, this.pendingSpaceBefore+1);
+            this.pendingSpaceBefore = 0;
+            break;
+        }
+
+        this.endOfSupply.scrollIntoView();
+        setCallback(this.mnemonic, this, 60000/this.linesPerMinute, this.finishWrite);
     }
-
-    this.endOfSupply.scrollIntoView();
-    setCallback(this.mnemonic, this, 60000/this.linesPerMinute, this.finishWrite);
 };
 
 /**************************************/
@@ -419,8 +460,11 @@ D205CardatronOutput.prototype.COStartBtn_onClick = function COStartBtn_onClick(e
     /* Handle the click event for the START button */
 
     if (!this.ready && this.supplyLeft > 0) {
-        this.feedSupplyCount = 0;
+        this.runoutSupplyCount = 0;
         this.setDeviceReady(true);
+        if (!this.bufferReady) {
+            this.initiateWrite();       // have a full buffer, so output it
+        }
     }
 };
 
@@ -429,20 +473,22 @@ D205CardatronOutput.prototype.COStopBtn_onClick = function COStopBtn_onClick(ev)
     /* Handle the click event for the STOP button */
 
     if (this.ready) {
-        this.feedSupplyCount = 0;
+        this.runoutSupplyCount = 0;
         this.setDeviceReady(false);
     }
 };
 
 /**************************************/
-D205CardatronOutput.prototype.COFeedSupplyBtn_onClick = function COFeedSupplyBtn_onClick(ev) {
+D205CardatronOutput.prototype.CORunoutSupplyBtn_onClick = function CORunoutSupplyBtn_onClick(ev) {
     /* Handle the click event for the Skip To Heading button */
 
     if (!this.ready) {
         this.printLine("", -1);
         this.endOfSupply.scrollIntoView();
-        if (++this.feedSupplyCount >= 3) {
-            this.ripSupply();
+        if (++this.runoutSupplyCount >= 3) {
+            if (this.window.confirm("Do you want to clear the output from the device?")) {
+                this.runoutSupply();
+            }
         }
     }
 };
@@ -458,7 +504,7 @@ D205CardatronOutput.prototype.COEndOfSupplyBtn_onClick = function COEndOfSupplyB
     the paper or empty the punch hopper */
 
     if (this.supplyLeft <= 0 && !this.ready) {
-        this.feedSupplyCount = 0;
+        this.runoutSupplyCount = 0;
         D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
         this.setDeviceReady(true);
     }
@@ -541,13 +587,15 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COStartBtn_onClick), false);
     this.$$("COEndOfSupplyBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COEndOfSupplyBtn_onClick), false);
-    this.$$("COFeedSupplyBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205CardatronOutput.prototype.COFeedSupplyBtn_onClick), false);
+    this.$$("CORunoutSupplyBtn").addEventListener("click",
+            D205Util.bindMethod(this, D205CardatronOutput.prototype.CORunoutSupplyBtn_onClick), false);
     this.$$("COAlgolGlyphsCheck").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COAlgolGlyphsCheck_onClick), false);
     this.$$("ClearBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.ClearBtn_onClick));
 
+    this.supply.addEventListener("dblclick",
+            D205Processor.bindMethod(this, D205CardatronOutput.prototype.copySupply));
     if (!this.isPrinter) {
         this.$$("COGreenbarCheck").disabled = true;
     } else {
@@ -688,7 +736,8 @@ D205CardatronOutput.prototype.outputInitiate = function outputInitiate(
     requestNextWord is the callback function that will request the next word from the
     processor. signalFinished is the callback function that tells the Processor
     we're done. If the buffer is not ready, simply sets the writeRequested flag
-    and exits after stashing kDigit, tDigit, and the callbacks */
+    and exits after stashing kDigit, tDigit, and the callbacks. Note that if the
+    device is not ready, the buffer can still be loaded */
 
     if (!this.bufferReady) {
         this.writeRequested = true;     // wait for the buffer to be emptied
