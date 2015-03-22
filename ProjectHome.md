@@ -1,0 +1,3 @@
+The ElectroData Datatron 205 was a mid-1950s, vacuum-tube, drum-memory computer system. ElectroData was a spin-off from Consolidated Electrodynamics Corporation of Pasadena, California, a company that made mass spectrometers.
+
+ElectroData was acquired from CEC by the Burroughs Corporation in 1957 and became the foundation of the Burroughs commercial computer business. The ElectroData division of Burroughs went on to create a number of successful systems, including the B100/200/300 series, the B2000/3000/4000/V Series, the B5000/5500, and finally the B6000/7000/A Series, which are still produced and sold today as !Unisys ClearPath MCP systems.
