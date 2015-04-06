@@ -562,7 +562,8 @@ D205CardatronInput.prototype.readerOnLoad = function readerOnLoad() {
     this.formatSelect4Lamp = new NeonLamp(body, null, null, "FormatSelect4Lamp");
     this.formatSelect4Lamp.setCaption("FS4", true);
 
-    this.setReaderReady(false);
+    this.ready = true;                  // so that setReaderReady called from clearUnit
+    this.clearUnit();                   // will actually set the state and lamps correctly
 
     this.window.addEventListener("beforeunload",
             D205CardatronInput.prototype.beforeUnload);

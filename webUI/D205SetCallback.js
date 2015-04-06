@@ -81,7 +81,7 @@
     /* Define a closure for the setCallback() mechanism */
     var delayAlpha = 0.99;              // exponential-moving-average decay factor
     var delayDev = {NUL: 0};            // hash of average delay time deviations by category
-    var minTimeout = 2;                 // minimum setTimeout() threshold, milliseconds
+    var minTimeout = 4;                 // minimum setTimeout() threshold, milliseconds
     var nextTokenNr = 1;                // next setCallback token return value
     var pendingCallbacks = {};          // hash of pending callbacks, indexed by token as a string
     var perf = global.performance;      // cached window.performance object

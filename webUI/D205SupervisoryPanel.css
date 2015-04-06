@@ -14,6 +14,10 @@
 DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     border-top:         none}
     
+#LogoDiv {
+    font-size:          8px;
+    line-height:        1px}
+
 #ElectroDataLogo {
     width:              1180px}
     

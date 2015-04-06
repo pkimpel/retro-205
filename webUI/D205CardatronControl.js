@@ -48,8 +48,8 @@ function D205CardatronControl(p) {
     this.outputUnit = [
             null,                                       // no output unit 0
             new D205CardatronOutput("CP1", 1, false),   // output unit 1
-            new D205CardatronOutput("LP2", 2, true),    // output unit 2
-            null,                                       // output unit 3
+            null,                                       // output unit 2
+            new D205CardatronOutput("LP3", 3, true),    // output unit 3
             null,                                       // output unit 4
             null,                                       // output unit 5
             null,                                       // output unit 6
