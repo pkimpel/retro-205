@@ -10,12 +10,11 @@ The main goal of this project is creation of a web browser-based implementation 
 
 The contents of this project are licensed under the [MIT License](http://www.opensource.org/licenses/mit-license.php).
 
-Links:
-
------ | -----
-Emulator hosting site | http://www.phkimpel.us/ElectroData/205/webUI/D205.html
-205 blog | http://datatron.blogspot.com/
-Tom Sawyer's 205 web site | http://tjsawyer.com/b205home.php
+| Related Sites | URL |
+| ----- | ----- |
+| Emulator hosting site | http://www.phkimpel.us/ElectroData/205/webUI/D205.html |
+| 205 blog | http://datatron.blogspot.com/ |
+| Tom Sawyer's 205 web site | http://tjsawyer.com/b205home.php |
 
 
 This project was originally hosted on Google Code at https://code.google.com/p/retro-205 and moved to GitHub in April 2015.
