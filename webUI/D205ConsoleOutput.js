@@ -220,7 +220,7 @@ D205ConsoleOutput.prototype.flexResizeWindow = function flexResizeWindow(ev) {
 D205ConsoleOutput.prototype.flexCopyPaper = function flexCopyPaper(ev) {
     /* Copies the text contents of the "paper" area of the device, opens a new
     temporary window, and pastes that text into the window so it can be copied
-    or saved */
+    or saved by the user */
     var text = this.flexPaper.textContent;
     var title = "D205 " + this.mnemonic + " Text Snapshot";
     var win = window.open("./D205FramePaper.html", "Flexowriter-Snapshot",
@@ -420,7 +420,7 @@ D205ConsoleOutput.prototype.punchResizeWindow = function punchResizeWindow(ev) {
 D205ConsoleOutput.prototype.punchCopyTape = function punchCopyTape(ev) {
     /* Copies the text contents of the "paper" area of the device, opens a new
     temporary window, and pastes that text into the window so it can be copied
-    or saved */
+    or saved by the user */
     var text = this.punchTape.textContent;
     var title = "D205 " + this.mnemonic + " Text Snapshot";
     var win = window.open("./D205FramePaper.html", "PaperTapePunch-Snapshot",

@@ -216,7 +216,7 @@ D205CardatronOutput.prototype.runoutSupply = function runoutSupply(ev) {
 D205CardatronOutput.prototype.copySupply = function copySupply(ev) {
     /* Copies the text contents of the "paper" area of the device, opens a new
     temporary window, and pastes that text into the window so it can be copied
-    or saved */
+    or saved by the user */
     var barGroup = this.supply.firstChild;
     var text = "";
     var title = "D205 " + this.mnemonic + " Text Snapshot";
@@ -581,6 +581,8 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
 
     this.window.addEventListener("beforeunload",
             D205CardatronOutput.prototype.beforeUnload, false);
+    this.supply.addEventListener("dblclick",
+            D205Processor.bindMethod(this, D205CardatronOutput.prototype.copySupply));
     this.$$("COStopBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COStopBtn_onClick), false);
     this.$$("COStartBtn").addEventListener("click",
@@ -594,8 +596,6 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
     this.$$("ClearBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.ClearBtn_onClick));
 
-    this.supply.addEventListener("dblclick",
-            D205Processor.bindMethod(this, D205CardatronOutput.prototype.copySupply));
     if (!this.isPrinter) {
         this.$$("COGreenbarCheck").disabled = true;
     } else {
