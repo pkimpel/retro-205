@@ -66,6 +66,7 @@ function D205Processor(devices) {
     this.console = null;                // Reference to Control Console for I/O
     this.devices = devices;             // Hash of I/O device objects
     this.ioCallback = null;             // Current I/O interface callback function
+    this.magTape = null;                // Reference to Magnetic Tape Control Unit
     this.poweredOn = 0;                 // System is powered on and initialized
     this.successor = null;              // Current delayed-action successor function
 
@@ -86,23 +87,33 @@ function D205Processor(devices) {
     this.cswPOSuppress = 0;             // Print-out suppress
     this.cswSkip = 0;                   // Skip instruction
     this.cswAudibleAlarm = 0;           // Audible alarm
-    this.cswOutput = 0;                 // Output knob: 0=Off, 1=Page, 2=Tape
+    this.cswOutput = 0;                 // Output knob: 0=Off, 1=Page, 2=Tape (mapped from actual knob values)
     this.cswInput = 0;                  // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
     this.cswBreakpoint = 0;             // Breakpoint knob: 0=Off, 1, 2, 4
 
+    // Mag-Tape Control Unit switch
+    this.tswSuppressB = 0;              // Suppress B-register modification on input
+
     // Context-bound routines
     this.boundExecuteComplete = D205Processor.bindMethod(this, D205Processor.prototype.executeComplete);
+
     this.boundConsoleOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputSignDigit);
     this.boundConsoleOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputNumberDigit);
     this.boundConsoleOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputFinished);
     this.boundConsoleInputDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleInputDigit);
     this.boundConsoleReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveDigit);
     this.boundConsoleReceiveSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveSingleDigit);
+
     this.boundCardatronOutputWordReady = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWordReady);
     this.boundCardatronOutputWord= D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWord);
     this.boundCardatronOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputFinished);
     this.boundCardatronInputWord = D205Processor.bindMethod(this, D205Processor.prototype.cardatronInputWord);
     this.boundCardatronReceiveWord = D205Processor.bindMethod(this, D205Processor.prototype.cardatronReceiveWord);
+
+    this.boundMagTapeReceiveBlock = D205Processor.bindMethod(this, D205Processor.prototype.magTapeReceiveBlock);
+    this.boundMagTapeInitiateSend = D205Processor.bindMethod(this, D205Processor.prototype.magTapeInitiateSend);
+    this.boundMagTapeSendBlock = D205Processor.bindMethod(this, D205Processor.prototype.magTapeSendBlock);
+    this.boundMagTapeTerminateSend = D205Processor.bindMethod(this, D205Processor.prototype.magTapeTerminateSend);
 
     // Processor throttling control
     this.scheduler = 0;                 // Current setCallback token
@@ -120,7 +131,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.04d";
+D205Processor.version = "0.04e";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -283,7 +294,7 @@ D205Processor.prototype.clearControl = function clearControl() {
     this.togBKPT = 0;                   // Central control: breakpoint toggle
     this.togZCT = 0;                    // Central control: zero check toggle
     this.togASYNC = 0;                  // Central control: async toggle
-    this.togMT3P = 0;                   // Magnetic tape: 3PT toggle
+    this.togMT3P = 0;                   // Magnetic tape: 3P toggle
     this.togMT1BV4 = 0;                 // Magnetic tape: 1BV4 toggle
     this.togMT1BV5 = 0;                 // Magnetic tape: 1BV5 toggle
 
@@ -293,7 +304,7 @@ D205Processor.prototype.clearControl = function clearControl() {
 
     // I/O globals
     this.kDigit = 0;                    // variant/format digits from upper part of instruction
-    this.selectedUnit = 0;              // unit number
+    this.selectedUnit = 0;              // currently-selected unit number
 };
 
 /***********************************************************************
@@ -306,7 +317,7 @@ D205Processor.bindMethod = function bindMethod(context, f) {
     Note that this is a static constructor property function, NOT an instance
     method of the CC object */
 
-    return function bindMethodAnon() {f.apply(context, arguments)};
+    return function bindMethodAnon() {return f.apply(context, arguments)};
 };
 
 /**************************************/
@@ -893,6 +904,7 @@ D205Processor.prototype.integerDivide = function integerDivide() {
     this.togMULDIV = 1;                 // for display only
     this.togDELTABDIV = 1;              // for display only
     this.togDIVALARM = 1;               // for display only
+    this.SPECIAL = 0x09;                // for display only: state at end unless overflow is set
 
     // We now have the divisor in D (dm) and the dividend in A (am) & R (rm).
     // The value in am will become the remainder; the value in rm will become
@@ -921,6 +933,7 @@ D205Processor.prototype.integerDivide = function integerDivide() {
             this.togDIVALARM = 0;
         } else {
             this.setOverflow(1);
+            this.SPECIAL = 0x0F;        // for display only
             am = rm = 0;
             break;                      // out of for loop
         }
@@ -928,7 +941,6 @@ D205Processor.prototype.integerDivide = function integerDivide() {
 
     this.SHIFTCONTROL = 0x0E;           // for display only
     this.SHIFT = 0x09;                  // for display only
-    this.SPECIAL = 0x09;                // for display only
     this.togSIGN = sign;                // for display only
     this.togSTEP = 1;                   // for display only
     this.A = sign*0x10000000000 + rm;
@@ -1469,11 +1481,18 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
         this.MM[addr] = loopMem[addr%D205Processor.loopSize];
         if ((++addr)%D205Processor.trackSize == 0) {
             addr %= 4000;           // handle main memory address wraparound
-            // bump the track counter in the C register (for display only)
-            this.CADDR = this.bcdAdd(this.CADDR, 0x200)%0x10000;
-            this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
         }
     } // for x
+
+    /* According to TM4001, the memory control circuits added 200 to the C-register
+    address, but only if the blocking operation crossed a main-memory track boundary.
+    The Burroughs 205 Handbook of Operating Procedures (Bulletin 2034-A, Rev June 1960),
+    however, indicates that for systems equipped with magnetic tape, blocking operations
+    added 20 to the address field in C (see paragraph 3-19 on page 3-2). We implement
+    the magnetic tape variant */
+
+    this.CADDR = this.bcdAdd(this.CADDR, 0x20)%0x10000;
+    this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
 
     latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
                 D205Processor.trackSize)%D205Processor.trackSize;
@@ -1527,11 +1546,12 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
         loopMem[addr%D205Processor.loopSize] = this.MM[addr];
         if ((++addr)%D205Processor.trackSize == 0) {
             addr %= 4000;           // handle main memory address wraparound
-            // bump the track counter in the C register (for display only)
-            this.CADDR = this.bcdAdd(this.CADDR, 0x200)%0x10000;
-            this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
         }
     } // for x
+
+    // See the comment on C address field adjustment at this point in blockFromLoop()
+    this.CADDR = this.bcdAdd(this.CADDR, 0x20)%0x10000;
+    this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
 
     latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
                 D205Processor.trackSize)%D205Processor.trackSize;
@@ -1983,6 +2003,165 @@ D205Processor.prototype.cardatronReceiveWord = function cardatronReceiveWord(wor
             this.SHIFT = 0x09;          // reset shift counter for next word
             this.D = 0;                 // clear D and request the next word after storing this one
             this.writeMemory(this.boundCardatronInputWord, false);
+        }
+    }
+};
+
+/***********************************************************************
+*   Magnetic Tape I/O Module                                           *
+***********************************************************************/
+
+/**************************************/
+D205Processor.prototype.magTapeInitiateSend = function magTapeInitiateSend(writeInitiate) {
+    /* Performs the initial memory block-to-loop operation after the tape control
+    unit has determined the drive is ready and not busy. Once the initial loop is
+    loaded, calls "writeInitiate" to start tape motion, which in turn will cause
+    the control to call this.magTapeSendBlock to pass the loop data to the drive
+    and initiate loading of the alternate loop buffer */
+    var that = this;
+
+    if (this.CADDR >= 0x8000) {
+        writeInitiate(this.boundMagTapeSendBlock, this.boundMagTapeTerminateSend);
+    } else {
+        this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+        this.blockToLoop((this.togMT1BV4 ? 4 : 5), function initialBlockComplete() {
+            that.procTime -= performance.now()*D205Processor.wordsPerMilli; // suspend time during I/O
+            writeInitiate(that.boundMagTapeSendBlock, that.boundMagTapeTerminateSend);
+        });
+    }
+};
+
+/**************************************/
+D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) {
+    /* Handles sending a block of data from a loop buffer to the tape control
+    unit and initiating the load of the alternate loop buffer. togMT1BV4 and
+    togMT1BV5 control alternation of the loop buffers. "lastBlock" indicates
+    this will be the last block requested by the control unit and no further
+    blocks should be buffered. If the C-register address is 8000 or higher, the
+    loop is not loaded from main memory, and the current contents of the loop
+    are written to tape. Since tape block writes take 46 ms, they are much
+    longer than any memory-to-loop transfer, so this routine simply exits after
+    the next blockToLoop is initiated, and the processor then waits for the tape
+    control unit to request the next block, by which time the blockToLoop will
+    have completed */
+    var loop = (this.togMT1BV4 ? this.L4 : this.L5);
+    var that = this;
+
+    function blockFetchComplete() {
+        that.procTime -= performance.now()*D205Processor.wordsPerMilli; // suspend time again during I/O
+    }
+
+    //console.log("TSU " + this.selectedUnit + " W, L" + (this.togMT1BV4 ? 4 : 5) +
+    //        ", ADDR=" + this.CADDR.toString(16) +
+    //        " : " + block[0].toString(16) + ", " + block[19].toString(16));
+
+    if (!lastBlock) {
+        this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+        // Flip the loop-buffer toggles
+        this.togMT1BV5 = this.togMT1BV4;
+        this.togMT1BV4 = 1-this.togMT1BV4;
+        // Block the loop buffer from main memory if appropriate
+        if (this.CADDR < 0x8000) {
+            this.blockToLoop((this.togMT1BV4 ? 4 : 5), blockFetchComplete);
+        } else {
+            blockFetchComplete();
+        }
+    }
+
+    this.A = loop[loop.length-1];       // for display only
+    this.D = 0;                         // for display only
+    return loop;                        // give the loop data to the control unit
+};
+
+/**************************************/
+D205Processor.prototype.magTapeTerminateSend = function magTapeTerminateSend() {
+    /* Called by the tape control unit after the last block has been completely
+    written to tape. Terminates the write instruction */
+
+    this.togMT3P = 0;
+    this.togMT1BV4 = this.togMT1BV5 = 0;
+    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+    this.executeComplete();
+};
+
+/**************************************/
+D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block, lastBlock) {
+    /* Handles a block of 20 words coming from a MagTape unit. If "lastBlock" is
+    true, it indicates this is the last block and the I/O is finished. If "block"
+    is null, thatindicates the I/O was aborted and the block must not be stored
+    in memory. The block is stored in one of the loops, as determined by the
+    togMT1BV4 and togMT1BV5 control toggles. Sign digit adjustment and B-register
+    modification take place at this time. If the C-register operand address is
+    less than 8000, the loop is then stored at the current operand address, which
+    is incremented by blockFromLoop(). If this is the last block, executeComplete()
+    is called after the loop is stored to terminate the read instruction. Since
+    tape block reads take 46 ms, they are much longer than any loop-to-memory
+    transfer, so this routine simply exits after the blockFromLoop is initiated,
+    and the then processor waits for the next block to arrive from the tape, by
+    which time the blockFromLoop will have completed */
+    var loop = (this.togMT1BV4 ? this.L4 : this.L5);
+    var sign;                           // sign digit
+    var that = this;
+    var w;                              // scratch word
+    var x;                              // scratch index
+
+    function blockStoreComplete() {
+        if (lastBlock) {
+            that.A = that.D = 0;        // for display only
+            that.togMT3P = 0;
+            that.togMT1BV4 = that.togMT1BV5 = 0;
+            that.executeComplete();
+        } else {
+            // Flip the loop buffer toggles
+            that.togMT1BV5 = that.togMT1BV4;
+            that.togMT1BV4 = 1-that.togMT1BV4;
+            // Suspend time again during I/O
+            that.procTime -= performance.now()*D205Processor.wordsPerMilli;
+        }
+    }
+
+    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+    //console.log("TSU " + this.selectedUnit + " R, L" + (this.togMT1BV4 ? 4 : 5) +
+    //        ", ADDR=" + this.CADDR.toString(16) +
+    //        " : " + block[0].toString(16) + ", " + block[19].toString(16));
+
+    if (!block) {
+        blockStoreComplete();
+    } else {
+        // Copy the tape block data to the appropriate high-speed loop
+        for (x=0; x<loop.length; ++x) {
+            this.D = w = block[x];      // D for display only
+            if (w < 0x20000000000) {
+                this.togCLEAR = 1;      // no B modification
+            } else {
+                // Adjust sign digit and do B modification as necessary
+                sign = ((w - w%0x10000000000)/0x10000000000) % 0x08; // low-order 3 bits only
+                if (this.tswSuppressB) {
+                    this.togClear = 1;  // no B modification
+                } else {
+                    this.togCLEAR = ((sign & 0x02) ? 0 : 1);
+                    sign &= 0x01;
+                }
+
+                w = sign*0x10000000000 + w%0x10000000000;
+            }
+
+            if (this.togCLEAR) {
+                w = this.bcdAdd(w, 0);
+            } else {
+                w = this.bcdAdd(w, this.B);
+            }
+
+            loop[x] = w;
+        } // for x
+
+        this.A = w;                     // for display only
+
+        // Block the loop buffer to main memory if appropriate
+        if (this.CADDR < 0x8000) {
+            this.blockFromLoop((this.togMT1BV4 ? 4 : 5), blockStoreComplete);
+        } else {
+            blockStoreComplete();
         }
     }
 };
@@ -2547,7 +2726,7 @@ D205Processor.prototype.execute = function execute() {
             this.executeComplete();
             break;
 
-        case 0x18-0x19: //---------------- (no op)
+        // 0x18-0x19:   //---------------- (no op)
 
         case 0x20:      //---------------- CU   Change Unconditionally
             this.procTime += 2;
@@ -2721,12 +2900,33 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x40:      //---------------- MTR  Magnetic Tape Read
-            this.executeComplete();
+            if (!this.magTape) {
+                this.executeComplete();
+            } else {
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+                d = (this.CEXTRA >>> 8) & 0xFF;         // number of blocks
+                this.togMT3P = 1;
+                this.togMT1BV4 = d & 0x01;              // select initial loop buffer
+                this.togMT1BV5 = 1-this.togMT1BV4;
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                if (this.magTape.read(this.selectedUnit, d, this.boundMagTapeReceiveBlock)) {
+                    this.setOverflow(1);                // control or tape unit busy/not-ready
+                    this.togMT3P = this.togMT1BV4 = this.togMT1BV5 = 0;
+                    this.executeComplete();
+                }
+            }
             break;
 
         // 0x41:        //---------------- (no op)
 
         case 0x42:      //---------------- MTS  Magnetic Tape Search
+            if (this.magTape) {
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+                d = (this.CEXTRA >>> 8) & 0xFF;         // lane number
+                if (this.magTape.search(this.selectedUnit, d, this.CADDR)) {
+                    this.setOverflow(1);                // control or tape unit busy/not-ready
+                }
+            }
             this.executeComplete();
             break;
 
@@ -2758,7 +2958,7 @@ D205Processor.prototype.execute = function execute() {
             this.executeComplete();
             break;
 
-        case 0x46-0x47: //---------------- (no op)
+        // 0x46-0x47:   //---------------- (no op)
 
         case 0x48:      //---------------- CDRF Card Read Format
             if (!this.cardatron) {
@@ -2777,12 +2977,32 @@ D205Processor.prototype.execute = function execute() {
         // 0x49:        //---------------- (no op)
 
         case 0x50:      //---------------- MTW  Magnetic Tape Write
-            this.executeComplete();
+            if (!this.magTape) {
+                this.executeComplete();
+            } else {
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+                d = (this.CEXTRA >>> 8) & 0xFF;         // number of blocks
+                this.togMT3P = 1;
+                this.togMT1BV4 = d & 0x01;              // select initial loop buffer
+                this.togMT1BV5 = 1-this.togMT1BV4;
+                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                if (this.magTape.write(this.selectedUnit, d, this.boundMagTapeInitiateSend)) {
+                    this.setOverflow(1);                // control or tape unit busy/not-ready
+                    this.togMT3P = this.togMT1BV4 = this.togMT1BV5 = 0;
+                    this.executeComplete();
+                }
+            }
             break;
 
         // 0x51:        //---------------- (no op)
 
         case 0x52:      //---------------- MTRW Magnetic Tape Rewind
+            if (this.magTape) {
+                this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+                if (this.magTape.rewind(this.selectedUnit)) {
+                    this.setOverflow(1);                // control or tape unit busy/not-ready
+                }
+            }
             this.executeComplete();
             break;
 
@@ -2899,8 +3119,9 @@ D205Processor.prototype.powerUp = function powerUp() {
     if (!this.poweredOn) {
         this.clear();
         this.poweredOn = 1;
-        this.console = this.devices.ControlConsole;
         this.cardatron = this.devices.CardatronControl;
+        this.console = this.devices.ControlConsole;
+        this.magTape = this.devices.MagTapeControl;
     }
 };
 
@@ -2916,6 +3137,7 @@ D205Processor.prototype.powerDown = function powerDown() {
         this.poweredOn = 0;
         this.cardatron = null;
         this.console = null;
+        this.magTape = null;
     }
 };
 

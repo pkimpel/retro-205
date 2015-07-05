@@ -23,7 +23,7 @@ function D205CardatronControl(p) {
 
     // Do not call this.clear() here -- call this.clearUnit() from onLoad instead
 
-    this.window = window.open("", this.mnemonic);
+    this.window = window.open("", this.mnemonic, "resizable,width=140,height=140");
     if (this.window) {
         this.shutDown();                // destroy the previously-existing window
         this.window = null;
@@ -31,7 +31,7 @@ function D205CardatronControl(p) {
 
     this.doc = null;
     this.window = window.open("../webUI/D205CardatronControl.html", this.mnemonic,
-            "location=no,scrollbars=no,resizable,width=140,height=120,top=0,left=" + left);
+            "location=no,scrollbars=no,resizable,width=140,height=140,top=0,left=" + left);
     this.window.addEventListener("load",
         D205Util.bindMethod(this, D205CardatronControl.prototype.cardatronOnLoad));
 

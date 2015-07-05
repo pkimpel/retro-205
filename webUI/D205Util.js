@@ -75,7 +75,7 @@ D205Util.removeClass = function removeClass(e, name) {
 D205Util.bindMethod = function bindMethod(context, f) {
     /* Returns a new function that binds the function "f" to the object "context" */
 
-    return function bindMethodAnon() {f.apply(context, arguments)};
+    return function bindMethodAnon() {return f.apply(context, arguments)};
 };
 
 /**************************************/

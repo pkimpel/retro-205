@@ -53,7 +53,7 @@ function D205CardatronInput(mnemonic, unitIndex) {
         this.formatBand[6][x+1] = 3;
     }
 
-    this.window = window.open("", mnemonic);
+    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
     if (this.window) {
         this.shutDown();                // destroy the previously-existing window
         this.window = null;

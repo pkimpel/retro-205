@@ -1,0 +1,218 @@
+/***********************************************************************
+* retro-205/emulator D205MagTapeDrive.css
+************************************************************************
+* Copyright (c) 2015, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* ElectroData/Burroughs Datatron 205 emulator Magnetic Tape Drive
+* web interface style sheet.
+************************************************************************
+* 2015-06-23  P.Kimpel
+*   Original version, from B5500MagTapeDrive.css.
+***********************************************************************/
+
+#magTapeBody {
+    height:             100%;
+    min-height:         100%;
+    overflow:           hidden;
+    padding:            0}
+
+#MTDiv {
+    position:           absolute;
+    top:                0;
+    bottom:             0;
+    left:               0;
+    right:              0;
+    margin:             4px}
+
+SPAN.annunciator {
+    color:              #F93;
+    position:           absolute}
+
+SELECT {
+    text-align:         center}
+
+#LoadBtn {
+    top:                8px;
+    left:               8px}
+#LoadBtnCaption {
+    top:                44px;
+    left:               8px;
+    width:              32px}
+
+#UnloadBtn {
+    top:                80px;
+    left:               8px}
+#UnloadBtnCaption {
+    top:                116px;
+    left:               8px;
+    width:              32px}
+
+#DesignatedLamp {
+    top:                12px;
+    left:               84px}
+#DesignatedLampCaption {
+    top:                44px;
+    left:               72px;
+    width:              48px}
+
+#RewindBtn {
+    top:                80px;
+    left:               80px}
+#RewindBtnCaption {
+    top:                116px;
+    left:               80px;
+    width:              32px}
+
+#UnitDesignate {
+    position:           absolute;
+    top:                12px;
+    left:               152px;
+    width:              48px}
+#UnitDesignateCaption {
+    top:                44px;
+    left:               152px;
+    width:              48px}
+
+#RemoteSwitch {
+    position:           absolute;
+    top:                84px;
+    left:               164px;
+    width:              24px}
+#RemoteCaption {
+    top:                74px;
+    left:               160px;
+    width:              32px}
+#LocalCaption {
+    top:                116px;
+    left:               160px;
+    width:              32px}
+
+#NotReadyLamp {
+    top:                12px;
+    left:               244px}
+#NotReadyLampCaption {
+    top:                44px;
+    left:               224px;
+    width:              64px}
+
+#RewindReadySwitch {
+    position:           absolute;
+    top:                84px;
+    left:               244px;
+    width:              24px}
+#RewindReadyCaption {
+    top:                74px;
+    left:               224px;
+    width:              64px}
+#RewindNotReadyCaption {
+    top:                116px;
+    left:               216px;
+    width:              80px}
+
+#NotWriteLamp {
+    top:                12px;
+    left:               324px}
+#NotWriteLampCaption {
+    top:                44px;
+    left:               304px;
+    width:              64px}
+
+#NotWriteSwitch {
+    position:           absolute;
+    top:                84px;
+    left:               324px;
+    width:              24px}
+#NotWriteCaption {
+    top:                74px;
+    left:               304px;
+    width:              64px}
+#WriteCaption {
+    top:                116px;
+    left:               304px;
+    width:              64px}
+
+#MTReel {
+    position:           absolute;
+    height:             64px;
+    visibility:         hidden;
+    border-radius:      50%;
+    top:                8px;
+    right:              8px}
+
+#MTUnloadedLight {
+    top:                84px;
+    right:              8px}
+
+#MTAtBOTLight {
+    top:                94px;
+    right:              8px;}
+
+#MTAtEOTLight {
+    top:                104px;
+    right:              8px}
+
+#MTRewindingLight {
+    top:                114px;
+    right:              8px}
+
+#MTStatusDiv {
+    position:           absolute;
+    top:                128px;
+    left:               8px;
+    right:              8px}
+
+#MTFileName {
+    width:              100%;
+    font-family:        DejaVuSansWeb, sans-serif;
+    color:              white;
+    background-color:   inherit;
+    border:             none}
+
+#MTReelBar {
+    margin-top:         4px;
+    width:              100%;
+    height:             16px;
+    border:             1px solid white}
+
+#MTReelBarCaption {
+    position:           absolute;
+    right:              4px;
+    top:                24px;
+    z-index:            1;
+    height:             12px;
+    color:              black;
+    font-weight:        bold}
+
+/* Tape Load Panel */
+
+#MTLoadFileGroup {
+    position:           absolute;
+    top:                8px;
+    left:               8px;
+    right:              8px}
+
+#MTLoadFileSelector {
+    border:             1px solid white;
+    color:              white;
+    width:              100%}
+
+#MTLoadButtonGroup {
+    position:           absolute;
+    top:                40px;
+    right:              0}
+
+#MTLoadCancelBtn {
+    background-image:   none;
+    background-color:   #900;
+    height:             20px;
+    bottom:             0;
+    right:              64px}
+
+#MTLoadOKBtn {
+    background-image:   none;
+    background-color:   #060;
+    height:             20px;
+    bottom:             0;
+    right:              0}

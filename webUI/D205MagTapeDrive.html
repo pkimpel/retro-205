@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Datatron 205 Emulator Magnetic Tape Drive</title>
+<!--
+/***********************************************************************
+* retro-205/emulator D205MagTapeDrive.html
+************************************************************************
+* Copyright (c) 2015, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* ElectroData/Burroughs Datatron 205 Magnetic Tape Drive device page.
+*
+* Implements the Datatron 205 magnetic tape drive storage unit peripheral.
+*
+************************************************************************
+* 2015-06-23  P.Kimpel
+*   Original version, from B5500MagTapeDrive.html.
+***********************************************************************/
+-->
+<meta name="Author" content="Paul Kimpel">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
+<link id=tapeDriveStyleSheet rel=stylesheet type="text/css" href="D205MagTapeDrive.css">
+</head>
+
+<body id=magTapeBody class=deviceBody>
+
+<div id=MTDiv>
+
+    <div id=LoadBtn class=redButton1>&nbsp;</div>
+    <div id=LoadBtnCaption class=caption>LOAD</div>
+
+    <div id=UnloadBtn class=blackButton1>&nbsp;</div>
+    <div id=UnloadBtnCaption class=caption>UNLOAD</div>
+
+    <div id=DesignatedLampCaption class=caption>DESIGNATED</div>
+
+    <div id=RewindBtn class=redButton1>&nbsp;</div>
+    <div id=RewindBtnCaption class=caption>REWIND</div>
+
+    <select id=UnitDesignate>
+        <option value=1>1
+        <option value=2>2
+        <option value=3>3
+        <option value=4>4
+        <option value=5>5
+        <option value=6>6
+        <option value=7>7
+        <option value=8>8
+        <option value=9>9
+        <option value=0>10
+    </select>
+    <div id=UnitDesignateCaption class=caption>DESIGNATE</div>
+
+    <div id=RemoteCaption class=caption>REMOTE</div>
+    <div id=LocalCaption class=caption>LOCAL</div>
+
+    <div id=NotReadyLampCaption class=caption>NOT READY</div>
+
+    <div id=RewindReadyCaption class=caption>REWIND-READY</div>
+    <div id=RewindNotReadyCaption class=caption>REWIND-NOT READY</div>
+
+    <div id=NotWriteLampCaption class=caption>NOT WRITE</div>
+
+    <div id=NotWriteCaption class=caption>NOT WRITE</div>
+    <div id=WriteCaption class=caption>WRITE</div>
+
+    <img id=MTReel src="./resources/MagTapeReel.jpg">
+
+    <span id=MTUnloadedLight    class=annunciator>UNLOADED</span>
+    <span id=MTAtBOTLight       class=annunciator>AT BOT</span>
+    <span id=MTAtEOTLight       class=annunciator>AT EOT</span>
+    <span id=MTRewindingLight   class=annunciator>REWINDING</span>
+
+    <div id=MTStatusDiv>
+        <input id=MTFileName type=text READONLY><br>
+        <meter id=MTReelBar min=0 max=100 value=0 title="Tape remaining on supply reel"></meter>
+        <label id=MTReelBarCaption for=MTReelBar>SUPPLY REEL</label>
+    </div>
+</div>
+
+</body>
+</html>

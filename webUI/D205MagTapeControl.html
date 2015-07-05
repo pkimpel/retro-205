@@ -2,34 +2,47 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>retro-205 Cardatron Control Unit</title>
+<title>retro-205 Mag Tape Control Unit</title>
 <!--
 /***********************************************************************
-* retro-205/D205CardatronControl.html
+* retro-205/D205MagTapeControl.html
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* ElectroData/Burroughs Datatron 205 Cardatron Control page.
+* ElectroData/Burroughs Datatron 205 Magnetic Tape Control page.
 ************************************************************************
-* 2015-02-01  P.Kimpel
-*   Original version, from D205ControlConsole.html.
+* 2015-06-13  P.Kimpel
+*   Original version, from D205CardatronConsole.html.
 ***********************************************************************/
 -->
 <meta name="Author" content="Paul Kimpel">
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css">
 <link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
-<link id=consoleStyleSheet rel=stylesheet type="text/css" href="D205CardatronControl.css">
+<link id=consoleStyleSheet rel=stylesheet type="text/css" href="D205MagTapeControl.css">
 </head>
 
-<body id=cardatronControlBody class=deviceBody>
+<body id=mtControlBody class=deviceBody>
 <div id=PanelSurface>
-    <div id=InputSetupBtn class=blackButton1>&nbsp;</div>
-    <div id=InputSetupBtnCaption class=caption>INPUT<br>SETUP</div>
+    <div id=BZZRegPanel class=panelRegister>
+        <div id=BZRegPanel></div>
+        <div id=ZRegPanel></div>
+    </div>
+
+    <div id=TRegPanel class=panelRegister></div>
+
+    <div id=MiscRegPanel class=panelRegister></div>
+
     <div id=ClearBtn class=redButton1>&nbsp;</div>
-    <div id=ClearBtnCaption class=caption>GENERAL<br>CLEAR</div>
+    <div id=ClearBtnCaption class=caption>CLEAR</div>
+
+    <div id=SuppressBNormal class=caption>NORMAL</div>
+    <div id=SuppressBSuppress class=caption>SUPPRESS B</div>
+
+    <div id=DisableBtn class=blackButton1>&nbsp;</div>
+    <div id=DisableBtnCaption class=caption>DISABLE</div>
 </div>
 </body>
 </html>

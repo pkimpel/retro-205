@@ -137,8 +137,7 @@ ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
 
 /**************************************/
 ColoredLamp.prototype.set = function set(state) {
-    /* Changes the visible state of the lamp according to the low-order
-    bit of "state" */
+    /* Changes the visible state of the lamp according to the value of "state", 0-1 */
     var newState = Math.max(Math.min(Math.round(state*ColoredLamp.lampLevels + 0.4999), ColoredLamp.lampLevels), 0);
 
     if (this.state != newState) {       // the state has changed
@@ -358,6 +357,7 @@ function BlackControlKnob(element, x, y, id, initial, positions) {
     is straight up) of each of the knob's positions */
 
     this.position = 0;                  // current knob position
+    this.direction = 1;                 // rotate knob clockwise(1), counter-clockwise(-1)
     this.topCaptionDiv = null;          // optional top caption element
     this.bottomCaptionDiv = null;       // optional bottom caption element
     this.positions = positions;         // array of knob position angles
@@ -401,10 +401,12 @@ BlackControlKnob.prototype.set = function set(position) {
 
     if (position < 0) {
         this.position = 0;
+        this.direction = 1;
     } else if (position < this.positions.length) {
         this.position = position;
     } else {
         this.position = this.positions.length-1;
+        this.direction = -1;
     }
 
     dc.save();
@@ -449,12 +451,16 @@ BlackControlKnob.prototype.set = function set(position) {
 BlackControlKnob.prototype.step = function step() {
     /* Steps the knob to its next position. If it is at the last position, steps it
     to the first position */
-    var position = this.position+1;
+    var position = this.position+this.direction;
 
-    if (position < this.positions.length) {
+    if (position < 0) {
+        this.direction = 1;
+        this.set(1);
+    } else if (position < this.positions.length) {
         this.set(position);
     } else {
-        this.set(0);
+        this.direction = -1;
+        this.set(this.positions.length-2);
     }
 };
 

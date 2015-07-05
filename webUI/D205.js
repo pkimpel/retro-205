@@ -39,6 +39,7 @@ window.addEventListener("load", function() {
         devices.ControlConsole = new D205ControlConsole(p);
         devices.SupervisoryPanel = new D205SupervisoryPanel(p, systemShutDown);
         devices.CardatronControl = new D205CardatronControl(p);
+        devices.MagTapeControl = new D205MagTapeControl(p);
         ev.target.disabled = true;
     }
 

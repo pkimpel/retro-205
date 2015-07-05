@@ -1,5 +1,3 @@
-# retro-205
-
 The ElectroData Datatron 205 was a mid-1950s, decimal, vacuum-tube, drum-memory computer system. The system was originally developed by Consolidated Electrodynamics Corporation (CEC) of Pasadena, California, a company that made mass spectrometers.
 
 Analysis of mass spectrometer output required solving sets of simultaneous linear equations. CEC initially set out to build a digital electronic calculator for this purpose, but soon switched to designing a full computer. The initial product was the 201, on which Ernst Selmer and Harry Husky consulted during the design phase. As the system became successful, CEC spun off the computer business as a partly-owned subsidiary, ElectroData. Over the next few years, the 201 evolved through a series of models into the 205.

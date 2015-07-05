@@ -90,6 +90,19 @@ INPUT[type=text] {
     font-family:        DejaVuSansMonoBookWeb, monospace;
     font-size:          8pt}
 
+DIV.paper {
+    white-space:        pre;
+    font-family:        DejaVuSansMonoBookWeb, monospace}
+    margin-top:         0;
+    margin-bottom:      0;
+    font-size:          8pt;
+    line-height:        120%}
+DIV.topOfForm {
+    page-break-before:  always;
+    margin-top:         1px;
+    padding-top:        1px;
+    border-top:         1px dashed black}
+
 DIV.caption {
     position:           absolute;
     z-index:            1;

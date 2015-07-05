@@ -15,7 +15,7 @@
 /**************************************/
 function D205SupervisoryPanel(p, systemShutdown) {
     /* Constructor for the SupervisoryPanel object */
-    var h = 600;
+    var h = 584;
     var w = 1180;
     var mnemonic = "SupervisoryPanel";
 
@@ -32,7 +32,7 @@ function D205SupervisoryPanel(p, systemShutdown) {
     this.boundStartBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.updatePanel);
 
-    this.window = window.open("", mnemonic);
+    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
     if (this.window) {
         this.shutDown();                // destroy the previously-existing window
         this.window = null;
@@ -228,8 +228,8 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.regAdder.update(p.ADDER);
     this.regCarry.update(p.CT);
 
-    this.cardaTronTWA.set(p.togTWA);
-    this.cardaTron3IO.set(p.tog3IO);
+    this.cardatronTWA.set(p.togTWA);
+    this.cardatron3IO.set(p.tog3IO);
 
     this.overflowLamp.set(p.poweredOn && this.timeToLevel("overflowTime", elapsed));
     this.sectorLamp.set(p.stopSector);
@@ -315,11 +315,11 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             break;
         case "TWA":
             p.togTWA ^= 1;
-            this.cardaTronTWA.set(p.togTWA);
+            this.cardatronTWA.set(p.togTWA);
             break;
         case "3IO":
             p.tog3IO ^= 1;
-            this.cardaTron3IO.set(p.tog3IO);
+            this.cardatron3IO.set(p.tog3IO);
             break;
         case "CTL":
             switch (bit) {
@@ -602,14 +602,14 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
         this.regB.lamps[19-x*4].setCaption("B-"+x);
     }
 
-    // CardaTron Control
+    // Cardatron Control
     cx = 5*PanelRegister.hSpacing + PanelRegister.hOffset;
     cy = PanelRegister.vOffset;
-    this.cardaTronTWA = new NeonLamp(adderDiv, cx, cy, "TWA");
-    this.cardaTronTWA.setCaption("CARDATRON CONTROL");
-    this.cardaTronTWA.setCaption("TWA", true);
-    this.cardaTron3IO = new NeonLamp(adderDiv, cx, cy+PanelRegister.vSpacing, "3IO");
-    this.cardaTron3IO.setCaption("3IO", true);
+    this.cardatronTWA = new NeonLamp(adderDiv, cx, cy, "TWA");
+    this.cardatronTWA.setCaption("CARDATRON CONTROL");
+    this.cardatronTWA.setCaption("TWA", true);
+    this.cardatron3IO = new NeonLamp(adderDiv, cx, cy+PanelRegister.vSpacing, "3IO");
+    this.cardatron3IO.setCaption("3IO", true);
 
     // Carry Control
     this.regCarry = new PanelRegister(this.$$("CarryPanel"), 5, 5, "CT_", null);
@@ -827,6 +827,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     setCallback(this.mnemonic, this, 4000, function() {
         this.p.powerUp();
         this.powerLamp.set(1);
+        this.window.focus();
         this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
     });
 };

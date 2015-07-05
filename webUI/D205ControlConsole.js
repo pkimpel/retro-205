@@ -32,7 +32,7 @@ function D205ControlConsole(p) {
 
     this.clear();
 
-    this.window = window.open("", mnemonic);
+    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
     if (this.window) {
         this.shutDown();                // destroy the previously-existing window
         this.window = null;
@@ -87,7 +87,7 @@ D205ControlConsole.prototype.loadPrefs = function loadPrefs() {
         poSuppressSwitch: 0,
         skipSwitch: 0,
         audibleAlarmSwitch: 0,
-        outputKnob: 1,
+        outputKnob: 2,
         breakpointKnob: 0,
         inputKnob: 1};
 };
@@ -97,6 +97,25 @@ D205ControlConsole.prototype.storePrefs = function storePrefs(prefs) {
     /* Stores the current panel preferences back to browser localStorage */
 
     localStorage["retro-205-ControlConsole-Prefs"] = JSON.stringify(prefs);
+};
+
+/**************************************/
+D205ControlConsole.prototype.mapOutputKnobPosition = function mapOutputKnobPosition(pos) {
+    /* Maps the new outputKnob position value to the old ones used by the rest of
+    the system. These changed with the implementation of auto-reversing knob clicks
+    in 1.05 */
+
+    switch (pos) {
+    case 0:
+        return 2;       // Tape
+        break;
+    case 2:
+        return 1;       // Page
+        break;
+    default:
+        return 0;       // Off
+        break;
+    }
 };
 
 /**************************************/
@@ -297,10 +316,10 @@ D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
             this.poSuppressSwitch.state;
         break;
     case "OutputKnob":
-        // Output knob: 0=Off, 1=Page, 2=Tape
+        // Output knob: 0=Tape, 1=Off, 2=Page
         this.outputKnob.step();
-        prefs.outputKnob = this.p.cswOutput =
-            this.outputKnob.position;
+        prefs.outputKnob = this.outputKnob.position;
+        this.p.cswOutput = this.mapOutputKnobPosition(this.outputKnob.position);
         break;
     case "InputKnob":
         // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
@@ -451,7 +470,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
 
     this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob",
-        prefs.outputKnob, [90, 115, 60]);
+        prefs.outputKnob, [60, 90, 115]);
     this.breakpointKnob = new BlackControlKnob(body, null, null, "BreakpointKnob",
         prefs.breakpointKnob, [-40, -15, 15, 40]);
     this.inputKnob = new BlackControlKnob(body, null, null, "InputKnob",
@@ -475,7 +494,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("InputKnob").addEventListener("click", this.boundFlipSwitch);
     this.$$("BreakpointKnob").addEventListener("click", this.boundFlipSwitch);
 
-    this.p.cswOutput = this.outputKnob.position;
+    this.p.cswOutput = this.mapOutputKnobPosition(this.outputKnob.position);
     this.p.cswInput = this.inputKnob.position;
     this.p.cswBreakpoint = this.breakpointKnob.position;
 
@@ -503,22 +522,22 @@ D205ControlConsole.prototype.readDigit = function readDigit(digitSender) {
 
 /**************************************/
 D205ControlConsole.prototype.writeFormatDigit = function writeFormatDigit(formatDigit, successor) {
-    this.consoleOut.writeFormatDigit(this.outputKnob.position, formatDigit, successor);
+    this.consoleOut.writeFormatDigit(this.p.cswOutput, formatDigit, successor);
 };
 
 /**************************************/
 D205ControlConsole.prototype.writeSignDigit = function writeSignDigit(signDigit, successor) {
-    this.consoleOut.writeSignDigit(this.outputKnob.position, signDigit, successor);
+    this.consoleOut.writeSignDigit(this.p.cswOutput, signDigit, successor);
 };
 
 /**************************************/
 D205ControlConsole.prototype.writeNumberDigit = function writeNumberDigit(digit, successor) {
-    this.consoleOut.writeNumberDigit(this.outputKnob.position, digit, successor);
+    this.consoleOut.writeNumberDigit(this.p.cswOutput, digit, successor);
 };
 
 /**************************************/
 D205ControlConsole.prototype.writeFinish = function writeFinish(controlDigit, successor) {
-    this.consoleOut.writeFinish(this.outputKnob.position, controlDigit, successor);
+    this.consoleOut.writeFinish(this.p.cswOutput, controlDigit, successor);
 };
 
 /**************************************/
