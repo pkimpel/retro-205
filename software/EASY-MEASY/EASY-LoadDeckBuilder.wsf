@@ -15,12 +15,12 @@ Option Explicit
 ' Uses Scripting Runtime FileSystemObject.
 ' Parameters:
 '   Name of assembler output list/punch file (required).
-'   Name of resulting load-deck file (optional - by default will have name of 
+'   Name of resulting load-deck file (optional - by default will have 
 '       name of list/punch file with "-Load.card" concatenated.
 '-----------------------------------------------------------------------
 ' Modification Log.
 ' 2015-02-19  P.Kimpel
-'   Original version, cloned from HQ\SecretProgrammer\CatTextFiles.wsf
+'   Original version, cloned from HQ\SecretProgrammer\CatTextFiles.wsf.
 '-----------------------------------------------------------------------
 
 Const defaultSuffix = "-Load.card"
@@ -32,7 +32,6 @@ Dim asmName
 Dim fso
 Dim loadFile
 Dim loadName
-Dim stamp
 
 '---------------------------------------
 Sub WriteCard(byVal card)
@@ -51,7 +50,7 @@ Sub WriteCard(byVal card)
 End Sub
 
 '---------------------------------------
-Sub BuildLoadfile
+Sub BuildLoadFile
   'Creates the card-load file from the assembler output file.
   Dim addr
   Dim addrField
@@ -104,7 +103,6 @@ End Sub
 
 '---------------------------------------------------------------
 
-stamp = Now()
 Set fso = WScript.CreateObject("Scripting.FileSystemObject")
 
 Set args = WScript.Arguments

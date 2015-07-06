@@ -1,0 +1,133 @@
+<package>
+<job id="MEASY-ListingZeroSuppress">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 MEASY-ListingZeroSuppress.wsf
+' Copyright (c) 2015, Paul Kimpel, 
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to apply zero-suppression to fields in a MEASY output listing. 
+' Zero suppression ends in 1-relative columns 4, 9, 34, 42, 43, 66, 69.
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of assembler output list file (required).
+'   Name of resulting zero-suppressed file (optional - by default will have 
+'       name of output list file with "-ZS.lst" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-07-05  P.Kimpel
+'   Original version, cloned from retro-205/software/EASY-MEASY/EASY-LoadDeckBuilder.wsf.
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-ZS.lst"
+Const suppressedChars = "0 "
+
+Dim args
+Dim fso
+Dim listFile
+Dim listName
+Dim zsFile
+Dim zsName
+Dim zStops
+
+zStops = Array(4, 9, 34, 42, 43, 66, 69)
+
+'---------------------------------------
+Sub BuildZeroSuppressedFile
+  'Creates the zero-suppressed file from the assembler file.
+  Dim colx
+  Dim line
+  Dim lineLen
+  Dim nextCol
+  Dim stopx
+  Dim topStop
+  Dim ztxt
+  
+  topStop = UBound(zStops)
+  
+  While Not listFile.AtEndOfStream
+    line = RTrim(listFile.ReadLine)
+    lineLen = Len(line)
+    If zStops(0) <= 1 Then
+      ztxt = ""
+    Else
+      ztxt = Left(line, zStops(0)-1)
+    End If
+    
+    For stopx = 0 To topStop
+      colx = zStops(stopx)
+      If stopx < topStop Then
+        nextCol = zStops(stopx+1)
+      Else
+        nextCol = lineLen+1
+      End If
+      
+      If colx > lineLen Then
+        colx = lineLen+1
+        nextCol = colx      
+      ElseIf nextCol > lineLen Then
+        nextCol = lineLen+1
+      End If
+
+      Do While colx < nextCol
+        If Instr(suppressedChars, Mid(line, colx, 1)) > 0 Then
+          ztxt = ztxt & " "
+          colx = colx+1
+        Else
+          Exit Do
+        End If
+      Loop
+      
+      If colx < nextCol Then
+        ztxt = ztxt & Mid(line, colx, nextCol-colx)
+      End If
+    Next
+
+    zsFile.WriteLine ztxt
+  Wend
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the MEASY listing file."
+  WScript.Quit 9
+Else  
+  listName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    zsName = Trim(args.Item(1))
+  Else
+    zsName = fso.BuildPath(fso.GetParentFolderName(listName), fso.GetBaseName(listName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(listName) Then
+  MsgBox "MEASY listing file does not exist: " & vbCrLf & listName
+Else
+  Set listFile = fso.OpenTextFile(listName, ForReading, False, False)
+  Set zsFile = fso.CreateTextFile(zsName, True, False)
+  BuildZeroSuppressedFile
+  zsFile.Close
+  Set zsFile = Nothing
+  listFile.Close
+  Set listFile = Nothing
+  MsgBox "Program load file created: " & vbCrLf & zsName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+</script>
+</job>
+</package>
