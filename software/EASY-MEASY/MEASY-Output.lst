@@ -1,5 +1,5 @@
 
-      1             74 0002                     1000 START            MEASY ASSEMBLER
+                                                1000 START            MEASY ASSEMBLER
         1000 0 0140 40 8000        MREAD   140008000 MRD             
         1001 0 5000 64 0000¤                         CAD         5F 5
         1002 0 7000 12 0000¤     1                   STA   GET      7

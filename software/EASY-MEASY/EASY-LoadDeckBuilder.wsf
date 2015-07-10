@@ -21,10 +21,14 @@ Option Explicit
 ' Modification Log.
 ' 2015-02-19  P.Kimpel
 '   Original version, cloned from HQ\SecretProgrammer\CatTextFiles.wsf.
+' 2015-07-06  P.Kimpel
+'   Modify from original version used to build a load deck from the transcription
+'   of the EASY listing to build from the punch output of EASY itself.
 '-----------------------------------------------------------------------
 
 Const defaultSuffix = "-Load.card"
-Const addrIndex = 62
+Const word1Index = 70
+Const word2Index = 59
 
 Dim args
 Dim asmFile
@@ -64,41 +68,61 @@ Sub BuildLoadFile
   lastAddr = -2
   wordCount = 0
   
-  While Not asmFile.AtEndOfStream
+  Do While Not asmFile.AtEndOfStream
     line = asmFile.ReadLine
-    If Len(line) >= addrIndex + 18 Then
-      addrField = Mid(line, addrIndex, 4)
-      If IsNumeric(addrField) Then
-        addr = CInt(addrField)
-        word = Mid(line, addrIndex+5, 1) & Mid(line, addrIndex+7, 4) & _
-               Mid(line, addrIndex+12, 2) & Mid(line, addrIndex+15, 4)
-        If lastAddr+1 = addr Then
-          If wordCount >= 6 Then
-            card = "6081044" & addrField & card
-            WriteCard card
-            card = ""
-            wordCount = 0
-          End If
+    If Left(line, 1) = "7" Then
+      Exit Do
+    Else
+      '-- Process an instruction line
+      If Len(line) >= 80 Then
+        word = Mid(line, word1Index, 11)
+        If Left(word, 1) >= "4" Then
+          '-- Control word that redirects the address of the next instruction word
+          addrField = Right(word, 4)
+          addr = CInt(addrField)
         Else
-          If wordCount < 5 Then
-            card = "4081044" & addrField & card
-            wordCount = wordCount + 1
+          '-- Output instruction word and determine address of next word
+          If lastAddr+1 = addr Then
+            If wordCount > 5 Then
+              card = "6081044" & addrField & card
+              WriteCard card
+              card = ""
+              wordCount = 0
+            End If
           Else
-            card = "6081044" & addrField & card
-            WriteCard card
-            card = ""
-            wordCount = 0
+            If wordCount < 5 Then
+              card = "4081044" & addrField & card
+              wordCount = wordCount + 1
+            Else
+              card = "6081044" & addrField & card
+              WriteCard card
+              card = ""
+              wordCount = 0
+            End If
           End If
+
+          card = word & card
+          wordCount = wordCount + 1
+          lastAddr = addr
+          
+          word = Mid(line, word2Index, 11)
+          addrField = Right(word, 4)
+          addr = CInt(addrField)
         End If
-        
-        card = word & card
-        wordCount = wordCount + 1
-        lastAddr = addr
       End If
     End If
-  Wend
+  Loop
   
+  card = "6081044" & addrField & card
   WriteCard card
+      
+  '-- Just dump out the forward-reference fixup code at the end
+  Do While Not asmFile.AtEndOfStream
+    loadFile.WriteLine "6" & Mid(line, 2)
+    line = asmFile.ReadLine
+  Loop
+  
+  loadFile.WriteLine "6" & Mid(line, 2)
 End Sub
 
 '---------------------------------------------------------------
