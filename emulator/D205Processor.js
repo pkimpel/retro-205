@@ -131,7 +131,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.04e";
+D205Processor.version = "0.04f";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -704,7 +704,7 @@ D205Processor.prototype.integerAdd = function integerAdd() {
     var compl;                          // complement addition required
     var dm = this.D % 0x10000000000;    // addend mantissa
     var dSign = ((this.D - dm)/0x10000000000);
-    var sign = dSign;                   // local copy of sign toggle
+    var sign = dSign & 0x01;            // local copy of sign toggle
 
     this.togADDER = 1;                  // for display only
     this.togDPCTR = 1;                  // for display only
@@ -1189,8 +1189,6 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
     var sign = aSign ^ dSign;           // local copy of sign toggle (sign of quotient)
     var x;                              // digit counter
 
-    var as, ds, rs;  // <<<<< DEBUG >>>>>
-
     this.togMULDIV = 1;                 // for display only
     this.togDELTABDIV = 1;              // for display only
     this.togDIVALARM = 0;               // for display only
@@ -1260,7 +1258,6 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
                     rd = 0;
                     while (am >= dm) {
                         am = this.bcdAdd(dm, am, 1, 1);
-                        as = am.toString(16);
                         ++rd;
                         ++count;
                     }
@@ -1272,9 +1269,6 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
                     if (x < 9) {
                         am = am*0x10 + rd;      // shift into remainder except on last digit
                     }
-                    as = am.toString(16);
-                    rs = rm.toString(16);
-                    ds = dm.toString(16);
                 } // for x
 
                 // Rotate the quotient from R into A for 8 digits or until it's normalized
@@ -1286,9 +1280,6 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
                     rm %= 0x10000000000;
                     am = (am%0x1000000000)*0x10 + rd;
                 }
-
-                as = am.toString(16);
-                rs = rm.toString(16);
 
                 this.SHIFTCONTROL = 0x0E;           // for display only
                 this.SHIFT = 0x09;                  // for display only
@@ -2020,22 +2011,24 @@ D205Processor.prototype.magTapeInitiateSend = function magTapeInitiateSend(write
     and initiate loading of the alternate loop buffer */
     var that = this;
 
-    if (this.CADDR >= 0x8000) {
-        writeInitiate(this.boundMagTapeSendBlock, this.boundMagTapeTerminateSend);
-    } else {
-        this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-        this.blockToLoop((this.togMT1BV4 ? 4 : 5), function initialBlockComplete() {
-            that.procTime -= performance.now()*D205Processor.wordsPerMilli; // suspend time during I/O
-            writeInitiate(that.boundMagTapeSendBlock, that.boundMagTapeTerminateSend);
-        });
+    if (this.togMT3P) {                 // if false, we've probably been cleared
+        if (this.CADDR >= 0x8000) {
+            writeInitiate(this.boundMagTapeSendBlock, this.boundMagTapeTerminateSend);
+        } else {
+            this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+            this.blockToLoop((this.togMT1BV4 ? 4 : 5), function initialBlockComplete() {
+                that.procTime -= performance.now()*D205Processor.wordsPerMilli; // suspend time during I/O
+                writeInitiate(that.boundMagTapeSendBlock, that.boundMagTapeTerminateSend);
+            });
+        }
     }
 };
 
 /**************************************/
 D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) {
-    /* Handles sending a block of data from a loop buffer to the tape control
-    unit and initiating the load of the alternate loop buffer. togMT1BV4 and
-    togMT1BV5 control alternation of the loop buffers. "lastBlock" indicates
+    /* Sends a block of data from a loop buffer to the tape control unit and 
+    initiates the load of the alternate loop buffer. this.togMT1BV4 and
+    this.togMT1BV5 control alternation of the loop buffers. "lastBlock" indicates
     this will be the last block requested by the control unit and no further
     blocks should be buffered. If the C-register address is 8000 or higher, the
     loop is not loaded from main memory, and the current contents of the loop
@@ -2043,8 +2036,9 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
     longer than any memory-to-loop transfer, so this routine simply exits after
     the next blockToLoop is initiated, and the processor then waits for the tape
     control unit to request the next block, by which time the blockToLoop will
-    have completed */
-    var loop = (this.togMT1BV4 ? this.L4 : this.L5);
+    have completed. Returns null if the processor has been cleared and the I/O
+    must be aborted */
+    var loop;
     var that = this;
 
     function blockFetchComplete() {
@@ -2055,21 +2049,27 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
     //        ", ADDR=" + this.CADDR.toString(16) +
     //        " : " + block[0].toString(16) + ", " + block[19].toString(16));
 
-    if (!lastBlock) {
-        this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-        // Flip the loop-buffer toggles
-        this.togMT1BV5 = this.togMT1BV4;
-        this.togMT1BV4 = 1-this.togMT1BV4;
-        // Block the loop buffer from main memory if appropriate
-        if (this.CADDR < 0x8000) {
-            this.blockToLoop((this.togMT1BV4 ? 4 : 5), blockFetchComplete);
-        } else {
-            blockFetchComplete();
+    if (!this.togMT3P) {
+        loop = null;
+    } else {
+        loop = (this.togMT1BV4 ? this.L4 : this.L5);
+        if (!lastBlock) {
+            this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+            // Flip the loop-buffer toggles
+            this.togMT1BV5 = this.togMT1BV4;
+            this.togMT1BV4 = 1-this.togMT1BV4;
+            // Block the loop buffer from main memory if appropriate
+            if (this.CADDR < 0x8000) {
+                this.blockToLoop((this.togMT1BV4 ? 4 : 5), blockFetchComplete);
+            } else {
+                blockFetchComplete();
+            }
         }
+
+        this.A = loop[loop.length-1];       // for display only
+        this.D = 0;                         // for display only
     }
 
-    this.A = loop[loop.length-1];       // for display only
-    this.D = 0;                         // for display only
     return loop;                        // give the loop data to the control unit
 };
 
@@ -2078,17 +2078,19 @@ D205Processor.prototype.magTapeTerminateSend = function magTapeTerminateSend() {
     /* Called by the tape control unit after the last block has been completely
     written to tape. Terminates the write instruction */
 
-    this.togMT3P = 0;
-    this.togMT1BV4 = this.togMT1BV5 = 0;
-    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-    this.executeComplete();
+    if (this.togMT3P) {                 // if false, we've probably been cleared
+        this.togMT3P = 0;
+        this.togMT1BV4 = this.togMT1BV5 = 0;
+        this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+        this.executeComplete();
+    }
 };
 
 /**************************************/
 D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block, lastBlock) {
-    /* Handles a block of 20 words coming from a MagTape unit. If "lastBlock" is
+    /* Called by the tape control unit to store a block of 20 words. If "lastBlock" is
     true, it indicates this is the last block and the I/O is finished. If "block"
-    is null, thatindicates the I/O was aborted and the block must not be stored
+    is null, that indicates the I/O was aborted and the block must not be stored
     in memory. The block is stored in one of the loops, as determined by the
     togMT1BV4 and togMT1BV5 control toggles. Sign digit adjustment and B-register
     modification take place at this time. If the C-register operand address is
@@ -2098,7 +2100,9 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
     tape block reads take 46 ms, they are much longer than any loop-to-memory
     transfer, so this routine simply exits after the blockFromLoop is initiated,
     and the then processor waits for the next block to arrive from the tape, by
-    which time the blockFromLoop will have completed */
+    which time the blockFromLoop will (should?) have completed. Returns true if
+    the processor has been cleared and the tape control unit should abort the I/O */
+    var aborted = false;                // return value
     var loop = (this.togMT1BV4 ? this.L4 : this.L5);
     var sign;                           // sign digit
     var that = this;
@@ -2107,10 +2111,12 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
 
     function blockStoreComplete() {
         if (lastBlock) {
-            that.A = that.D = 0;        // for display only
-            that.togMT3P = 0;
-            that.togMT1BV4 = that.togMT1BV5 = 0;
-            that.executeComplete();
+            if (that.togMT3P) {         // if false, we've probably been cleared
+                that.A = that.D = 0;    // for display only
+                that.togMT3P = 0;
+                that.togMT1BV4 = that.togMT1BV5 = 0;
+                that.executeComplete();
+            }
         } else {
             // Flip the loop buffer toggles
             that.togMT1BV5 = that.togMT1BV4;
@@ -2120,50 +2126,56 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
         }
     }
 
-    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
     //console.log("TSU " + this.selectedUnit + " R, L" + (this.togMT1BV4 ? 4 : 5) +
     //        ", ADDR=" + this.CADDR.toString(16) +
     //        " : " + block[0].toString(16) + ", " + block[19].toString(16));
 
-    if (!block) {
-        blockStoreComplete();
+    if (!this.togMT3P) {                // if false, we've probably been cleared
+        aborted = true;
     } else {
-        // Copy the tape block data to the appropriate high-speed loop
-        for (x=0; x<loop.length; ++x) {
-            this.D = w = block[x];      // D for display only
-            if (w < 0x20000000000) {
-                this.togCLEAR = 1;      // no B modification
-            } else {
-                // Adjust sign digit and do B modification as necessary
-                sign = ((w - w%0x10000000000)/0x10000000000) % 0x08; // low-order 3 bits only
-                if (this.tswSuppressB) {
-                    this.togClear = 1;  // no B modification
+        this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+        if (!block) {                   // control unit aborted the I/O
+            blockStoreComplete();
+        } else {
+            // Copy the tape block data to the appropriate high-speed loop
+            for (x=0; x<loop.length; ++x) {
+                this.D = w = block[x];  // D for display only
+                if (w < 0x20000000000) {
+                    this.togCLEAR = 1;  // no B modification
                 } else {
-                    this.togCLEAR = ((sign & 0x02) ? 0 : 1);
-                    sign &= 0x01;
+                    // Adjust sign digit and do B modification as necessary
+                    sign = ((w - w%0x10000000000)/0x10000000000) % 0x08; // low-order 3 bits only
+                    if (this.tswSuppressB) {
+                        this.togClear = 1;  // no B modification
+                    } else {
+                        this.togCLEAR = ((sign & 0x02) ? 0 : 1);
+                        sign &= 0x01;
+                    }
+
+                    w = sign*0x10000000000 + w%0x10000000000;
                 }
 
-                w = sign*0x10000000000 + w%0x10000000000;
-            }
+                if (this.togCLEAR) {
+                    w = this.bcdAdd(w, 0);
+                } else {
+                    w = this.bcdAdd(w, this.B);
+                }
 
-            if (this.togCLEAR) {
-                w = this.bcdAdd(w, 0);
+                loop[x] = w;
+            } // for x
+
+            this.A = w;                 // for display only
+
+            // Block the loop buffer to main memory if appropriate
+            if (this.CADDR < 0x8000) {
+                this.blockFromLoop((this.togMT1BV4 ? 4 : 5), blockStoreComplete);
             } else {
-                w = this.bcdAdd(w, this.B);
+                blockStoreComplete();
             }
-
-            loop[x] = w;
-        } // for x
-
-        this.A = w;                     // for display only
-
-        // Block the loop buffer to main memory if appropriate
-        if (this.CADDR < 0x8000) {
-            this.blockFromLoop((this.togMT1BV4 ? 4 : 5), blockStoreComplete);
-        } else {
-            blockStoreComplete();
         }
     }
+
+    return aborted;
 };
 
 /***********************************************************************

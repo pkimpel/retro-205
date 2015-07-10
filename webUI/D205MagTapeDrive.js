@@ -196,10 +196,14 @@ D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, callBack)
         } else {
             this.timer = setCallback(this.mnemonic, this, delayLeft, spinFinish);
         }
-        motion = this.tapeSpeed*interval*direction;
-        inchesLeft -= motion;
-        if (inchesLeft*direction < 0) { // inchesLeft crossed zero
-            inchesLeft = direction = 0;
+        motion = inches*direction*interval/delay;
+        if (inchesLeft*direction <= 0) { // inchesLeft crossed zero
+            motion = inchesLeft = direction = 0;
+        } else if (motion <= inchesLeft) {
+            inchesLeft -= motion;
+        } else {
+            motion = inchesLeft;
+            inchesLeft = 0;
         }
         this.spinReel(motion);
     }
@@ -254,6 +258,7 @@ D205MagTapeDrive.prototype.setTapeReady = function setTapeReady(makeReady) {
             this.tapeState = this.tapeRemote;
         } else {
             this.busy = false;          // forced reset
+            this.designatedLamp.set(0);
             this.tapeState = this.tapeLocal;
         }
     }
@@ -730,10 +735,10 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock, lastBlock) {
+D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock) {
     /* Reads the next block from the tape. If at EOT, makes the drive not ready
     and terminates the read. After delaying for tape motion, calls the receiveBlock
-    callback function to pass the block to the processor */
+    callback function to pass the block to the control unit and thence the processor */
     var wx = this.blockNr*this.blockWords;
 
     if (this.blockNr >= this.imgMaxBlocks) {
@@ -749,16 +754,20 @@ D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock, lastBloc
         this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function readBlockComplete() {
             ++this.blockNr;
             receiveBlock(this.image[this.laneNr].subarray(wx, wx+this.blockWords), false);
-            if (lastBlock) {
-                this.designatedLamp.set(0);
-                this.busy = false;
-            }
         });
     }
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.readInitiate = function readInitiate(receiveBlock, lastBlock) {
+D205MagTapeDrive.prototype.readTerminate = function readTerminate() {
+    /* Terminates a read operation on the tape drive and makes it not-busy */
+
+    this.designatedLamp.set(0);
+    this.busy = false;
+};
+
+/**************************************/
+D205MagTapeDrive.prototype.readInitiate = function readInitiate(receiveBlock) {
     /* Initiates a read operation on the unit. If the drive is busy or not ready,
     returns true. Otherwise, delays for the start-up time of the drive and calls
     readBlock() to read the next block and send it to the Processor */
@@ -771,9 +780,7 @@ D205MagTapeDrive.prototype.readInitiate = function readInitiate(receiveBlock, la
     } else {
         this.busy = true;
         this.designatedLamp.set(1);
-        setCallback(this.mnemonic, this, this.startupTime, function readStartupComplete() {
-            this.readBlock(receiveBlock, lastBlock);
-        });
+        setCallback(this.mnemonic, this, this.startupTime, this.readBlock, receiveBlock);
     }
     //console.log(this.mnemonic + " read:             result=" + result.toString());
 

@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* ElectroData/Burroughs Datatron 205 MagTape Control object.
+* ElectroData/Burroughs Datatron 205 MagTape Control unit module.
 ************************************************************************
 * 2015-06-13  P.Kimpel
 *   Original version, from D205ConsoleConsole.js.
@@ -197,38 +197,60 @@ D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad() {
 };
 
 /**************************************/
+D205MagTapeControl.prototype.readTerminate = function readTerminate() {
+    /* Terminates the read operation, sets the control to not-busy, and signals
+    the processor we are finished with the I/O */
+
+    this.forwardLamp.set(0);
+    this.controlBusy = false;
+    this.currentUnit.readTerminate();
+};
+
+/**************************************/
 D205MagTapeControl.prototype.readReceiveBlock = function readReceiveBlock(block, abortRead) {
     /* Receives the next block read by the tape unit. Sends the block to the
     processor for storage in memory, updates the block counter, and if not
-    finished, requests the next block from the tape */
-    var lastBlock = abortRead;
+    finished, requests the next block from the tape. Termination is a little
+    tricky here, as readTerminate() must be called to release the drive before
+    the block is stored in memory (and p.executeComplete() called to advance to
+    the next instruction, but if the memory call-back tells us the processor
+    has been cleared, we must release the drive after the attempt to store the
+    block in memory. Mess with the sequencing below at your peril */
+    var lastBlock;
     var t = D205Processor.bcdBinary(this.T);
 
-    // First, decrement the block counter in the T register:
-    t = (t + 990)%1000;                 // subtract 1 from the counter field without overflow
-    this.T = D205Processor.binaryBCD(t);
-    this.regT.update(this.T);
-
-    // If there are more blocks to read, request the next one
-    if (t >= 10 && !abortRead) {
-        this.currentUnit.readBlock(this.boundReadReceiveBlock, (t < 20));
+    if (abortRead) {
+        this.readTerminate();
+        this.memoryBlockCallback(null, true);
     } else {
-        lastBlock = true;
-        this.forwardLamp.set(0);
-        this.controlBusy = false;
-    }
+        // Decrement the block counter in the T register:
+        t = (t + 990)%1000;                 // subtract 1 from the counter field without overflow
+        this.T = D205Processor.binaryBCD(t);
+        this.regT.update(this.T);
 
-    // Send this block to the Processor for storage
-    this.memoryBlockCallback(block, lastBlock);
+        // If there are more blocks to read, request the next one
+        lastBlock = (t < 10);
+        if (lastBlock) {
+            this.readTerminate();
+            abortRead = this.memoryBlockCallback(block, true);
+        } else {
+            abortRead = this.memoryBlockCallback(block, false);
+            if (abortRead) {            // processor was cleared
+                this.readTerminate();
+            } else {                    // at least one block left to go
+                this.currentUnit.readBlock(this.boundReadReceiveBlock);
+            }
+        }
+    }
 };
 
 /**************************************/
 D205MagTapeControl.prototype.read = function read(unitNr, blocks, blockSender) {
     /* Initiates a read on the designated unit. "blocks" is the number of blocks
     to read in BCD; "blockSender" is the call-back function to send a block of data
-    to the processor. Returns true if the control is still busy with another command
+    to the processor. "terminator" is the call-back function to tell the Processor
+    the I/O is finished. Returns true if the control is still busy with another command
     or the unit is busy, and does not do the read */
-    var lastBlock = (blocks == 0x01);   // first block is the last block to read
     var result = false;                 // return value
     var unit;                           // tape unit object
     var ux;                             // internal unit index
@@ -250,7 +272,7 @@ D205MagTapeControl.prototype.read = function read(unitNr, blocks, blockSender) {
             this.T = blocks*0x10 + unitNr;
             this.regT.update(this.T);
             this.memoryBlockCallback = blockSender;
-            result = unit.readInitiate(this.boundReadReceiveBlock, lastBlock);
+            result = unit.readInitiate(this.boundReadReceiveBlock);
             if (result) {
                 this.controlBusy = false;
             }
@@ -263,7 +285,8 @@ D205MagTapeControl.prototype.read = function read(unitNr, blocks, blockSender) {
 /**************************************/
 D205MagTapeControl.prototype.writeTerminate = function writeTerminate(abortWrite) {
     /* Called by the drive after the last block is written to release the
-    control unit and terminate the I/O */
+    control unit and terminate the I/O. Note that "abortWrite" is not used, but
+    exists for signature compatibility with writeSendBlock() */
 
     this.forwardLamp.set(0);
     this.recordLamp.set(0);
@@ -276,7 +299,8 @@ D205MagTapeControl.prototype.writeSendBlock = function writeSendBlock(abortWrite
     /* Called by the tape drive when it is ready for the next block to be written.
     Retrieve the next buffered block from the Processor and passes it to the drive.
     Unless this is the last block to write, the drive will call this again after
-    tape motion is complete */
+    tape motion is complete. Note that this.memoryBlockCallback() will return null
+    if the processor has been cleared and the I/O must be aborted */
     var block;
     var lastBlock = abortWrite;
     var t = D205Processor.bcdBinary(this.T);
@@ -290,7 +314,7 @@ D205MagTapeControl.prototype.writeSendBlock = function writeSendBlock(abortWrite
     }
 
     block = this.memoryBlockCallback(lastBlock);
-    if (abortWrite) {
+    if (abortWrite || !block) {
         this.writeTerminate(false);
     } else if (lastBlock) {
         this.currentUnit.writeBlock(block, this.boundWriteTerminate, true);
@@ -439,7 +463,11 @@ D205MagTapeControl.prototype.clearUnit = function clearUnit() {
     this.regZ.update(0);
     this.regBZ.update(0);
     this.regT.update(0);
-    this.regMisc.update(0);             // handles forward/backward/search/record lamps
+    this.regMisc.update(0);
+    this.searchLamp.set(0);
+    this.recordLamp.set(0);
+    this.forwardLamp.set(0);
+    this.backwardLamp.set(0);
 };
 
 /**************************************/

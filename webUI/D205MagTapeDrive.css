@@ -197,6 +197,12 @@ SELECT {
     border:             1px solid white;
     color:              white;
     width:              100%}
+    
+#MTLoadNotes {
+    position:           absolute;
+    top:                40px;
+    width:              300px;
+    left:               0}
 
 #MTLoadButtonGroup {
     position:           absolute;
