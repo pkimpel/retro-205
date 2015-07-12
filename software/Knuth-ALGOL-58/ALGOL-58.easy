@@ -71,7 +71,7 @@
 1           17190000000                  4
 1                                          5
 1                                          6
-1                                        7
+1           17530000000                  7
 1           17360000000                  8
 1                                          9
 1                                         10
@@ -86,7 +86,7 @@
 1                                         19
 1           17310000000                  20
 1                                         21
-1           172700000000                 22
+1           17270000000                  22
 1                                         23
 1                                         24
 1                                         25
@@ -285,7 +285,7 @@
 1                554163                     3
 1            5959418605                   4
 1                  6841                     5
-1            4745428602                   6
+1            4745428605                   6
 1                  5549                     7
 1            5456438607                   8
 1              63554554                     9
@@ -329,7 +329,7 @@
 1                444145                    47
 1            6663578607                  48
 1              45634959                    49
-1            5549638603                  50
+1            5549628603                  50
 1            5958628604                  51
 1                    63                    52
 1            5663628604                  53
@@ -373,7 +373,7 @@
 1           33333333333
 1           33333333333
 1           33333333333
-1   FO2
+1     FO2
 1
 1
 1
@@ -391,7 +391,7 @@
 1             220022220
 1               2002222
 1           33333332222
-1   FO1
+1     FO1
 1
 1
 1
@@ -464,25 +464,25 @@
 1                  7000 BUN
 1            6600000000 CUB
 1                  3720 START
-1     4INIT           1                  ONE
-1                    71                   DRUML
-1                                        LOOPL
-1                                        ABC
-1                                        STOR
-1     ILLOC          70                   LLOC
-1                                        CNO
-1                                       OP
-1                    29                  CNAME
-1                                        CMTX
-1                                        CTF
-1            2800005020                  T
+1     4INIT           1                   ONE
+1                    71                    DRUML
+1                                         LOOPL
+1                                         ABC
+1                                         STOR
+1     ILLOC          70                    LLOC
+1                                         CNO
+1                                        OP
+1                    29                   CNAME
+1                                         CMTX
+1                                         CTF
+1            2800005020                   T
 1                  3740 START
-1     5INIT                              Q
-1            9900000000                  WORD
-1                                        LSTCH
-1            4102000000                  A0
-1                                        A1
-1     HOLD2    20000000 CWF   F03
+1     5INIT                               Q
+1            9900000000                   WORD
+1                                         LSTCH
+1            4102000000                   A0
+1                                         A1
+1     HOLD2    20000000 CWF   FO3
 1                       CAD   CARD1
 1                       CIRA
 1                       STA   CARD1
@@ -557,7 +557,7 @@
 1     OPST
 1     NSTAK
 1                    58 START       0&
-1     MATRIX
+1     MATRX
 1                    16 START       0&
 1     NUMST
 1                  3958 START
@@ -574,7 +574,7 @@
 1                       IB
 1     CARDZ             BA
 1                       STA   CARDL
-1                       CAD
+1                       CAD   TEMP2
 1           1           STA   PCH
 1                       CAA   TEMP1      C4
 1                       STA   LLOC
@@ -591,7 +591,7 @@
 1              10006000 CRD              A3
 1            4830006000 CWR
 1                  6002 CAD
-1                       ADD
+1                       ADD         3F 7
 1                  6002 STA
 1                       BF6
 1   1                   CAD         3F 7
@@ -601,10 +601,10 @@
 1           1         2 CAD              A4
 1                       CUB   CONTI
 1   3          99000099
-1   7
+1   8
 1     Z              59
 1                     2 START
-1                    19 NOR            7
+1                    10 NOR         0& 7
 1                       CAD   TEMP1
 1                    10 SRT
 1                       CAD         2F 7
@@ -632,7 +632,7 @@
 1                     2 SRT
 1   6       1           CAD
 1                       OSD         2B 7 A2
-1                       CCB   CONT1      A4
+1                       CCB   CONTI      A4
 1                       LDB         2B 7
 1   4       1      6099 STA
 1                       DBB         1- 7
@@ -696,12 +696,12 @@
 1                       ADA   CMTX
 1                       ADA   CNO
 1                       SUB         1F 7
-1                       CNZ   ERRB
+1                       CNZ   ERR8
 1                       CAD         2F 7
 1                       CUB   OUTP1
 1   3                   CSU   DRUML
 1                       ADA   HIGHL
-1                       OSD            7
+1                       OSD         0& 7
 1                       BOF   ERR7
 1                  5250 HLT
 1     OVERL   810000000 CRD
@@ -712,7 +712,7 @@
 1     NXCH2             BA
 1                       STA   Q
 1     NXCH3             CAD   WORD
-1     CONT1           8 SRT
+1     CONTI           8 SRT
 1                       CNZ         2& 7
 1                       CUB         6F
 1   7                   STA   A4
@@ -943,11 +943,11 @@
 1                       SUB         6F 7 D5
 1                       SUB   TEMP3
 1                       BUN         2B 7
-1                   111
+1   4               111
 1   5        9999999019
 1   6                19
 1   8                   CUB         7F
-1                       LDB   LOOPL
+1   2                   LDB   LOOPL
 1                       CAA   TEMP3
 1                       ADD         2F 7
 1           1   3000000 STA   OUT        D6
@@ -1009,7 +1009,7 @@
 1                       DBB         3B 7
 1                       CUB         9B
 1   1        1200000001
-1   8                   CSU   OPTBL
+1   8       1           CSU   OPTBL
 1   9                 4 SLT
 1                       STA   TEMP2
 1                       CAD   DRUML
@@ -1047,7 +1047,7 @@
 1     CON
 1                       START       9&
 1     OUT
-1                    19 START
+1                    19 START       0&
 1     ACALL             STC   TEMP4
 1                       STC         5F 7
 1                       BUN         2& 7
@@ -1118,7 +1118,7 @@
 1                       CAA   TOGET
 1                       ADD         3F 7 G2
 1                       CCB         9F
-1                       ADD   GET1
+1                       ADD   GET1     7
 1                       CCB         6F   G3
 1     GET2              CAD   STOR
 1                       ADD         4F 7
@@ -1135,7 +1135,7 @@
 1                       SUB   COUNT    7
 1                       OSD         1F 7
 1                       BOF         3& 7
-1                       ADD   COUNT
+1                       ADD   COUNT    7
 1                       STA   COUNT
 1                       CAD   TOGET
 1                       EXT         3F 7
@@ -1263,7 +1263,7 @@
 1                       CAD         4F 7
 1                       STA   OP
 1                       CAD         1F 7
-1                       CUB   MASTER
+1                       CUB   MASTR
 1   4        5222011030
 1   1                   CUB         1&
 1                       CAD   COLUM
@@ -1365,7 +1365,7 @@
 1                       CAD         3F 7
 1                       CUB   OUTPT
 1   3                   CUB         7F
-1                       CAD   PVAR
+1   7                   CAD   PVAR
 1                       CNZ         5& 7
 1                       CAD         1F 7
 1                       STA   TEMP1
@@ -1415,7 +1415,7 @@
 1     FORE              LDB   CDOO
 1   5                   IB          2B
 1   3                   BA          4F   I36
-1                       CDOO
+1                       STA   CDOO
 1                       CAA         1F 7
 1                       STC   A1
 1                       STA   PHOR4
@@ -1507,7 +1507,7 @@
 1   9                   CAA   OP
 1   5                   CLR         9B
 1                       EXT         1F 7
-1                     6 SRT
+1                     5 SRT
 1                       CNZ         3F 7
 1                       CAD   RIGHT
 1                       STC   LEFT
@@ -1616,7 +1616,7 @@
 1                       BUN         6F 7
 1   7                   CAA   RIGHT
 1                       ADD         2F 7 H14
-1                       BOF   HARD
+1                       BOF   HARD     7
 1   6                   CAD   LEFT
 1                       LDB         5F 7 H16
 1                       CUB   GET
@@ -1965,7 +1965,7 @@
 1   2         400000000 LDB   ONE
 1   3        5600000000 CAD   A2
 1   6         900000008 SRT
-1                       SUB   ONE
+1   7                   SUB   ONE
 1                       CNZ         2F 7
 1   5                   CAD   A1
 1                       ADD         3B 7
@@ -2030,7 +2030,7 @@
 1                       CNZ   ERR2       K5
 1                       CUB   OPPRE
 1   4                   EXT         1& 7
-1            1188991111
+1            1188001111
 1   1                40
 1   3                   CAD         1F 7
 1                       ADD   RETRO      K7
@@ -2116,11 +2116,11 @@
 1                       STA   CMTX
 1                       CAD         6F 7
 1                       CUB   FIXT5
-1     MINUS 1         1 CUS   NSTAK
+1     MINUS 1         1 CSU   NSTAK
 1                       BUN         4F 7 Q2
 1     ABS   1         1 CAD   NSTAK
 1                       EXT         3F 7 Q3
-1   4                 1 STA   NSTAK
+1   4       1         1 STA   NSTAK
 1   6                   CUB   HIER
 1   3        1111221111
 1     ARR2              CAD   ONE
@@ -2229,7 +2229,7 @@
 1     REPL1             CAD         7F 7
 1                       CUB   MAST1
 1   8                   CAD         1F 7
-1                       BUN   MAST2
+1                       BUN   MAST2    7
 1     ASMD              LDB   COP
 1           1         1 CAD   OPST
 1     MAST2             LDB         6F 7
@@ -2319,7 +2319,7 @@
 1                       CAD         4F 7
 1                       CUB   NXTCH
 1   2        9999999920
-1                       SUB         1F 7
+1   8                   SUB         1F 7
 1                       CNZ         2F 7 J15
 1                       STA   TEMP5
 1                       CAD   TEMP6
@@ -2412,7 +2412,7 @@
 1                       CAD   TEMP5
 1                       MUL         4F 7
 1                    10 SLT
-1                       SBU   ONE
+1                       SUB   ONE
 1   2                   ADA   HIGHL
 1                     7 SRT
 1                       LDB   TEMP3
@@ -2434,7 +2434,7 @@
 1                     8 SLT
 1                     4 CIRA
 1                       STA   TEMP7
-1                       CAD         1D 7 T1
+1                       CAD         1F 7 T1
 1                       STA   OP
 1                       CAD         2F 7
 1                       STA   MEXIT
@@ -2455,7 +2455,7 @@
 1                       CAD         2F 7
 1                       BUN         2& 7
 1                       CSU         2F 7
-1   1       10000000000 STA   TEMP5
+1   1        1000000000 STA   TEMP5
 1                       LDB   LOOPL
 1           1      9999 CAD   OUT
 1                       EXT         3F 7
@@ -2811,7 +2811,7 @@
 1                       CUB   QUER1
 1   7              2222
 1   2                   HLT         3F
-1     STDLB             CAD         1F 7
+1     STLDB             CAD         1F 7
 1                       STA   TEMP1
 1                       CAD         8F 7
 1                       CUB   OUTPT
@@ -2888,7 +2888,7 @@
 1                       CUB   OUTPT
 1   2                   LDB   COP
 1                       CAD   TEMP5
-1                       ADD   5F 7
+1                       ADD         5F 7
 1           1         1 STA   OPST
 1                     4 SRT
 1                       EXT         6F 7
@@ -2936,7 +2936,7 @@
 1     BAKK  1           CAD   PART2
 1                       STC   TEMP6      O6
 1                       LDB   TEMP1
-1           1      9966 BUN            7
+1           1      9966 BUN         0& 7
 1                       CUB         2F
 1                       CUB   BAK
 1                       CUB         4F
@@ -3044,7 +3044,7 @@
 1   5                   SUB         2F 7
 1                       CNZ         6F 7
 1                       CAD         5F 7
-1                       STA   A1O13
+1                       STA   A1         O13
 1                       CUB   PRSC3
 1   6                   CAD         1F 7
 1                       CUB   NXCH1
@@ -3097,7 +3097,7 @@
 1                     8 SRT
 1                       ADD         2F 7
 1                       STC         2F 7
-1   2              9931 BUN            7
+1   2              9931 BUN         0& 7
 1                       CUB   PRSC1      N3
 1                       CUB   PRSC1
 1                       CUB   FMT
@@ -3278,7 +3278,7 @@
 1   5                11
 1   6                19
 1   4                   CAD   TEMP5
-1                       ADD         1F 5
+1                       ADD         1F 7
 1                       CCB         4F   N9
 1                     2 SLT
 1                       CUB   FMT2
@@ -3401,7 +3401,7 @@
 1   2                   CAD         5F 7
 1                       CUB   FOR6
 1   4                   CUB   FOR5
-1   5            10000
+1   5            100000
 1   8                   CAD         4F 7
 1                       CUB   FIXT3
 1   4                   CUB         8F
@@ -3449,7 +3449,7 @@
 1   2            197000
 1     I-O             8 SRT
 1                       CNZ         1F 7
-1     OUTPT     3000000 LDB   CNAME
+1     OTPUT     3000000 LDB   CNAME
 1           1           CAD   NSTAK      S1
 1                       LDB         3F 7
 1                       CUB   GET
@@ -3566,7 +3566,7 @@
 1                       CAD   CURNT
 1                  8410 PTW
 1                       DBB         5- 7
-1                       BUN
+1                       BUN         0&
 1     TRANS         999
 1
 1

@@ -48,7 +48,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3034 0 0000 00 0142        SEG2          142
      3035 0 0000 00 0126        SEG3          126
      3036 0 0000 00 0314        SEG4          314
-     3037 0 0000 00 0000        SEG5          110
+     3037 0 0000 00 0110        SEG5          110
      3038 0 0000 00 0000        SEG6
      3039 0 0000 00 0000        SEG7
      3040 0 0000 64 0000¤       HOLD              CAD   PEXIT
@@ -72,7 +72,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3063 1 7190 00 0000              17190000000                  4
      3064 0 0000 00 0000                                             5
      3065 0 0000 00 0000                                             6
-     3066 1 7530 00 0000                                           7
+     3066 1 7530 00 0000              17530000000                  7
      3067 1 7360 00 0000              17360000000                  8
      3068 0 0000 00 0000                                             9
      3069 0 0000 00 0000                                            10
@@ -87,7 +87,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3078 0 0000 00 0000                                            19
      3079 1 7310 00 0000              17310000000                  20
      3080 0 0000 00 0000                                            21
-     3081 1 7270 00 0000              172700000000                 22
+     3081 1 7270 00 0000              17270000000                  22
      3082 0 0000 00 0000                                            23
      3083 0 0000 00 0000                                            24
      3084 0 0000 00 0000                                            25
@@ -167,7 +167,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3278 1 7620 00 0000              17620000000                  219
      3279 1 7600 00 0000              17600000000                  220
      3280 1 7510 00 0000              17510000000                  221
-     3281 1 7640 00 0000              17460000000                  222
+     3281 1 7460 00 0000              17460000000                  222
      3282 1 7420 00 0000              17420000000                  223
      3283 1 7100 00 0000              17100000000                  224
      3284 1 7020 00 0000        PART2 17020000000                  225
@@ -190,8 +190,8 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3301 0 9800 32 3035               9800320000       SEG3        17 PTWRI
      3302 0 7188 00 0000               7188000000                   18 INPUT
      3303 0 0000 00 0000                                           19
-     3304 0 5418 11 0010               5418110100                      20 LS
-     3505 0 0000 00 0000                                           21
+     3304 0 5418 11 0100               5418110100                      20 LS
+     3305 0 0000 00 0000                                           21
      3306 0 9500 00 0000               9500000000                  22 INTEG
      3307 0 0000 00 0000                                           23
      3308 0 0000 00 0000                                           24
@@ -250,7 +250,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3361 0 0000 00 0000                                           77
      3362 0 0000 00 0000                                           78
      3363 0 0000 00 0000                                           79
-     3365 0 0000 00 0000                                           80
+     3364 0 0000 00 0000                                           80
      3365 0 0000 00 0000                                           81
      3366 0 2988 00 0000               2988000000                   82 MOD
      3367 0 0000 00 0000                                           83
@@ -286,7 +286,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3525 0 0000 55 4163                   554163                     3
      3526 0 5959 41 8605               5959418605                   4
      3527 0 0000 00 6841                     6841                     5
-     3528 0 4745 42 8605               4745428602                   6
+     3528 0 4745 42 8605               4745428605                   6
      3529 0 0000 00 5549                     5549                     7
      3530 0 5456 43 8607               5456438607                   8
      3531 0 0063 55 4554                 63554554                     9
@@ -330,12 +330,12 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3569 0 0000 44 4145                   444145                    47
      3570 0 6663 57 8607               6663578607                  48
      3571 0 0045 63 4959                 45634959                    49
-     3572 0 5549 62 8603               5549638603                  50
+     3572 0 5549 62 8603               5549628603                  50
      3573 0 5958 62 8604               5958628604                  51
      3574 0 0000 00 0063                       63                    52
      3575 0 5663 62 8604               5663628604                  53
      3576 0 0000 00 0057                       57                    54
-     3577 0 4364 62 8610               4264628610                  55
+     3577 0 4264 62 8610               4264628610                  55
      3578 0 4963 64 5659               4963645659                    56
      3579 0 0000 00 4555                     4555                    57
      3580 0 4966 62 8606               4966628606                  58
@@ -374,7 +374,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3613 3 3333 33 3333              33333333333
      3614 3 3333 33 3333              33333333333
      3615 3 3333 33 3333              33333333333
-     3616 0 0000 00 0000      FO2
+     3616 0 0000 00 0000        FO2
      3617 0 0000 00 0000
      3618 0 0000 00 0000
      3619 0 0000 00 0000
@@ -392,7 +392,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3631 0 0220 02 2220                220022220
      3632 0 0002 00 2222                  2002222
      3633 3 3333 33 2222              33333332222
-     3634 0 0000 00 0000      FO1
+     3634 0 0000 00 0000        FO1
      3635 0 0000 00 0000
      3636 0 0000 00 0000
      3637 0 0000 00 0000
@@ -432,7 +432,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3671 0 0000 00 0000
      3672 0 0000 00 0000
      3673 0 0000 00 0000
-     3574 0 0000 00 0000
+     3674 0 0000 00 0000
      3675 0 0000 00 0000
      3676 0 0000 00 0000
      3677 0 0000 00 0000
@@ -465,25 +465,25 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3704 0 0000 20 7000                     7000 BUN
      3705 0 6600 30 0000               6600000000 CUB
                                              3720 START
-     3720 0 0000 00 0001        4INIT           1                  ONE
-     3721 0 0000 00 0071                       71                   DRUML
-     3722 0 0000 00 0000                                           LOOPL
-     3723 0 0000 00 0000                                           ABC
-     3724 0 0000 00 0000                                           STOR
-3045 3725 0 0000 00 0070        ILLOC          70                   LLOC
-     3726 0 0000 00 0000                                           CNO
-     3727 0 0000 00 0000                                          OP
-     3728 0 0000 00 0029                       29                  CNAME
-     3729 0 0000 00 0000                                           CMTX
-     3730 0 0000 00 0000                                           CTF
-     3731 0 2800 00 5020               2800005020                  T
+     3720 0 0000 00 0001        4INIT           1                   ONE
+     3721 0 0000 00 0071                       71                    DRUML
+     3722 0 0000 00 0000                                            LOOPL
+     3723 0 0000 00 0000                                            ABC
+     3724 0 0000 00 0000                                            STOR
+3045 3725 0 0000 00 0070        ILLOC          70                    LLOC
+     3726 0 0000 00 0000                                            CNO
+     3727 0 0000 00 0000                                           OP
+     3728 0 0000 00 0029                       29                   CNAME
+     3729 0 0000 00 0000                                            CMTX
+     3730 0 0000 00 0000                                            CTF
+     3731 0 2800 00 5020               2800005020                   T
                                              3740 START
-     3740 0 0000 00 0000        5INIT                              Q
-     3741 0 9900 00 0000               9900000000                  WORD
-     3742 0 0000 00 0000                                           LSTCH
-     3743 0 4102 00 0000               4102000000                  A0
-     3744 0 0000 00 0000                                           A1
-3042 3745 0 0020 58 3663        HOLD2    20000000 CWF   F03
+     3740 0 0000 00 0000        5INIT                               Q
+     3741 0 9900 00 0000               9900000000                   WORD
+     3742 0 0000 00 0000                                            LSTCH
+     3743 0 4102 00 0000               4102000000                   A0
+     3744 0 0000 00 0000                                            A1
+3042 3745 0 0020 58 3663        HOLD2    20000000 CWF   FO3
      3746 0 0000 64 3692                          CAD   CARD1
      3747 0 0000 01 0000                          CIRA
      3748 0 0000 12 3692                          STA   CARD1
@@ -558,7 +558,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3861 0 0000 00 0000        OPST
      3862 0 0000 00 0000        NSTAK
                                                58 START       0&
-     3921 0 0000 00 0000        MATRIX
+     3921 0 0000 00 0000        MATRX
                                                16 START       0&
      3938 0 0000 00 0000        NUMST
                                              3958 START
@@ -575,7 +575,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3968 0 0000 32 0000                          IB
      3969 0 0000 11 0000        CARDZ             BA
      3970 0 0000 12 3967¤                         STA   CARDL
-     3971 0 0000 64 4013                          CAD
+     3971 0 0000 64 4013                          CAD   TEMP2
      3972 1 0000 12 0000¤             1           STA   PCH
      3973 0 0000 66 4014                          CAA   TEMP1      C4
      3974 0 0000 12 4005                          STA   LLOC
@@ -592,20 +592,20 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      3985 0 0010 44 6000                 10006000 CRD              A3
      3986 0 4830 54 6000               4830006000 CWR
      3987 0 0000 64 6002                     6002 CAD
-     3988 0 7000 74 0000¤                         ADD
+     3988 0 7000 74 0000¤                         ADD         3F 7
      3989 0 0000 12 6002                     6002 STA
      3990 0 0000 26 0000                          BF6
-3983 3991 0 7000 64 3988      1                   CAD         3F 7
+3983 3991 0 7000 64 3988¤     1                   CAD         3F 7
      3992 0 0000 13 0002                        2 SRT
 3984 3993 0 0000 11 0014      2                14 BA
      3994 0 0000 12 3982¤                         STA         8F
      3995 1 0000 64 0002              1         2 CAD              A4
      3996 0 0000 30 0000¤                         CUB   CONTI
 3991 3997 0 0099 00 0099      3          99000099
-3994 3998 0 0000 00 0000      7
+3994 3998 0 0000 00 0000      8
      3999 0 0000 00 0059        Z              59
                                                 2 START
-        2 0 0000 15 7012                       19 NOR            7
+        2 0 0000 15 7012                       10 NOR         0& 7
         3 0 0000 64 4014                          CAD   TEMP1
         4 0 0000 13 0010                       10 SRT
         5 0 7000 64 0000¤                         CAD         2F 7
@@ -633,7 +633,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
        27 0 0000 13 0002                        2 SRT
   17   28 1 0000 64 0000      6       1           CAD
        29 0 0000 73 7023                          OSD         2B 7 A2
-       30 0 0000 38 3996¤                         CCB   CONT1      A4
+       30 0 0000 38 3996¤                         CCB   CONTI      A4
        31 0 0000 72 7023                          LDB         2B 7
   26   32 1 0000 12 6099      4       1      6099 STA
        33 0 0000 22 7032                          DBB         1- 7
@@ -697,23 +697,23 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
        89 0 0000 76 4009                          ADA   CMTX
        90 0 0000 76 4006                          ADA   CNO
        91 0 7000 75 0000¤                         SUB         1F 7
-       92 0 0000 04 0000¤                         CNZ   ERRB
+       92 0 0000 04 0000¤                         CNZ   ERR8
        93 0 7000 64 0000¤                         CAD         2F 7
        94 0 0000 30 0000¤                         CUB   OUTP1
        95 0 0000 65 4001      3                   CSU   DRUML
        96 0 0000 76 0000¤                         ADA   HIGHL
-       97 0 0000 73 7097                          OSD            7
+       97 0 0000 73 7097                          OSD         0& 7
        98 0 0000 28 0000¤                         BOF   ERR7
        99 0 0000 08 5250                     5250 HLT
 3046  100 0 0810 44 0000        OVERL   810000000 CRD
   91  101 0 0000 00 0029      1                29
   93  102 0 0000 30 0095      2                   CUB         3B
-3780  103 0 0000 72 4000        NXCH1             LDB   ONE
-  30  104 0 0000 12 0000¤       NXTCH             STA   NEXIT
+      103 0 0000 72 4000        NXCH1             LDB   ONE
+      104 0 0000 12 0000¤       NXTCH             STA   NEXIT
       105 0 0000 11 0000        NXCH2             BA
       106 0 0000 12 5000                          STA   Q
-      107 0 0000 64 5001        NXCH3             CAD   WORD
-      108 0 0000 13 0008        CONT1           8 SRT
+3780  107 0 0000 64 5001        NXCH3             CAD   WORD
+  30  108 0 0000 13 0008        CONTI           8 SRT
       109 0 0000 04 7111                          CNZ         2& 7
       110 0 0000 30 0000¤                         CUB         6F
       111 0 0000 12 5007      7                   STA   A4
@@ -747,7 +747,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
  131  139 0 0000 30 0118¤     6                   CUB         8F
  139  140 0 0000 64 5007      8                   CAD   A4
 3766  141 0 0000 13 0002        CHCK1           2 SRT
-      142 0 0000 38 3775¤                         BT6   CURNT
+      142 0 0000 36 3775¤                         BT6   CURNT
       143 0 6000 72 0142¤                         LDB   CURNT    6
       144 0 0000 73 7151                          OSD         7& 7
       145 0 0000 38 3770¤                         CCB   CHCK3
@@ -944,11 +944,11 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       336 0 7000 75 0000¤                         SUB         6F 7 D5
       337 0 0000 75 4015                          SUB   TEMP3
       338 0 0000 20 7331                          BUN         2B 7
- 332  339 0 0000 00 0111                      111
+ 332  339 0 0000 00 0111      4               111
  333  340 0 9999 99 9019      5        9999999019
  336  341 0 0000 00 0019      6                19
  323  342 0 0000 30 0000¤     8                   CUB         7F
- 335  343 0 0000 72 4002                          LDB   LOOPL
+ 335  343 0 0000 72 4002      2                   LDB   LOOPL
       344 0 0000 66 4015                          CAA   TEMP3
       345 0 7000 74 0000¤                         ADD         2F 7
       346 1 0003 12 0313¤             1   3000000 STA   OUT        D6
@@ -959,8 +959,8 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
  345  351 0 0000 14 0000      2            140000
       352 0 0000 02 4016        OUTP4             STC   TEMP4
  350  353 0 0000 12 4016        OUTP6             STA   TEMP4
-      354 0 0000 73 4016      4                   LDB   TEMP4      D7
-      355 1 0000 66 0346              1           CAA   OUT
+      354 0 0000 72 4016      4                   LDB   TEMP4      D7
+      355 1 0000 66 0346¤             1           CAA   OUT
       356 0 0000 13 0004                        4 SRT
       357 0 0000 02 4014                          STC   TEMP1
       358 0 0000 14 0001                        1 SLT
@@ -992,13 +992,13 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
  379  384 0 0000 02 7377      7                   STC         7- 7
       385 0 0000 14 0003                        3 SLT
       386 0 0000 12 7379                          STA         7- 7
-      387 0 0000 12 7379                          LDB         8- 7
+      387 0 0000 72 7379                          LDB         8- 7
       388 1 0000 64 3284              1           CAD   PART2
       389 0 0000 30 0000¤                         CUB         3F
  389  390 0 0000 13 0008      3                 8 SRT
       391 0 7000 04 0000¤                         CNZ         2F 7
       392 0 0000 22 7393                          DBB         1& 7
-      383 0 0000 11 0000      3                   BA
+      393 0 0000 11 0000      3                   BA
       394 0 0000 13 0004                        4 SRT
       395 0 0000 64 4016                          CAD   TEMP4
       396 0 0000 74 4001                          ADD   DRUML
@@ -1010,7 +1010,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       402 0 0000 22 7393                          DBB         3B 7
       403 0 0000 30 0363                          CUB         9B
  398  404 0 1200 00 0001      1        1200000001
- 366  405 1 0000 65 0367¤     8                   CSU   OPTBL
+ 366  405 1 0000 65 0367¤     8       1           CSU   OPTBL
  368  406 0 0000 14 0004      9                 4 SLT
       407 0 0000 12 4013                          STA   TEMP2
       408 0 0000 64 4001                          CAD   DRUML
@@ -1048,7 +1048,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
  432  440 0 0000 00 0000        CON
                                                   START       9&
  355  450 0 0000 00 000*        OUT
-                                               19 START
+                                               19 START       0&
       470 0 0000 02 4016        ACALL             STC   TEMP4
       471 0 7000 02 0000¤                         STC         5F 7
       472 0 0000 20 7474                          BUN         2& 7
@@ -1119,7 +1119,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       537 0 0000 66 5014                          CAA   TOGET
       538 0 7000 74 0000¤                         ADD         3F 7 G2
       539 0 0000 38 0000¤                         CCB         9F
-      540 0 0000 74 7533                          ADD   GET1
+      540 0 0000 74 7533                          ADD   GET1     7
       541 0 0000 38 0000¤                         CCB         6F   G3
       542 0 0000 64 4004        GET2              CAD   STOR
       543 0 7000 74 0000¤                         ADD         4F 7
@@ -1136,7 +1136,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       554 0 7000 75 0000¤                         SUB   COUNT    7
       555 0 7000 73 0553¤                         OSD         1F 7
       556 0 0000 28 7559                          BOF         3& 7
-      557 0 7000 74 0554¤                         ADD   COUNT
+      557 0 7000 74 0554¤                         ADD   COUNT    7
       558 0 0000 12 0557¤                         STA   COUNT
       559 0 0000 64 5014                          CAD   TOGET
       560 0 7000 63 0000¤                         EXT         3F 7
@@ -1148,7 +1148,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       566 0 0000 30 0542                          CUB   GET2
  555  567 0 1100 00 1111      1        1100001111
  560  568 1 1100 11 1111      3       11100111111
- 558  558 0 0000 00 0000        COUNT
+ 558  569 0 0000 00 0000        COUNT
  545  570 0 0000 66 5014      2                   CAA   TOGET
       571 0 7000 74 0000¤                         ADD         2F 7
       572 0 7000 28 0571¤                         BOF         2F 7 G5
@@ -1213,7 +1213,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       631 1 0000 20 7625              1           BUN         6- 7
       632 0 0000 30 0621¤                         CUB         1F
       633 0 0000 30 0622¤                         CUB   SINGL
-      630 0 0000 30 0000¤                         CUB   LDBR2
+      634 0 0000 30 0000¤                         CUB   LDBR2
  627  635 0 2222 00 1111      3        2222001111
  632  636 0 0000 64 4009      1                   CAD   CMTX
       637 0 7000 75 0000¤                         SUB         2F 7
@@ -1264,7 +1264,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       682 0 7000 64 0000¤                         CAD         4F 7
       683 0 0000 12 5012                          STA   OP
       684 0 7000 64 0000¤                         CAD         1F 7
-      685 0 0000 30 0000¤                         CUB   MASTER
+      685 0 0000 30 0000¤                         CUB   MASTR
  682  686 0 5222 01 1030      4        5222011030
  684  687 0 0000 30 0688      1                   CUB         1&
       688 0 0000 64 5019                          CAD   COLUM
@@ -1288,11 +1288,11 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       706 0 0000 12 5010                          STA   RIGHT
       707 0 7000 64 0000¤                         CAD         3F 7
       708 0 0000 12 5012                          STA   OP
- 711  709 0 7000 64 0000¤                         CAD         4F 7
- 707  710 0 0000 30 0685¤                         CUB   MASTR
- 633  711 0 0001 30 0699¤     4           1000000 CUB   QUER
-      712 0 5220 10 1026      3        5220101026
-      713 0 0000 72 4009        SINGL             LDB   CMTX
+      709 0 7000 64 0000¤                         CAD         4F 7
+      710 0 0000 30 0685¤                         CUB   MASTR
+ 709  711 0 0001 30 0699¤     4           1000000 CUB   QUER
+ 707  712 0 5220 10 1026      3        5220101026
+ 633  713 0 0000 72 4009        SINGL             LDB   CMTX
       714 0 0000 22 7715                          DBB         1& 7
       715 0 0000 11 0000                          BA
       716 0 0000 12 4009                          STA   CMTX
@@ -1355,10 +1355,10 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       773 0 7000 72 0000¤                         LDB         3F 7
       774 0 0000 30 0000¤                         CUB   CONOT
  771  775 0 0000 30 0000¤     2                   CUB         7F
-772   776 0 5810 00 0000      1        5810000000
-773   777 0 0000 08 0000¤     3                   HLT         1F
-770   778 0 0010 00 0000      5          10000000
-777   779 0 0000 64 4018      1                   CAD   TEMP6
+ 772  776 0 5810 00 0000      1        5810000000
+ 773  777 0 0000 08 0000¤     3                   HLT         1F
+ 770  778 0 0010 00 0000      5          10000000
+ 777  779 0 0000 64 4018      1                   CAD   TEMP6
       780 0 0000 13 0010                       10 SRT              G23
       781 0 0000 01 0004                        4 CIRA
       782 0 0000 74 4014                          ADD   TEMP1
@@ -1366,7 +1366,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       784 0 7000 64 0000¤                         CAD         3F 7
       785 0 0000 30 0310                          CUB   OUTPT
  784  786 0 0000 30 0775¤     3                   CUB         7F
- 786  787 0 0000 64 5017                          CAD   PVAR
+ 786  787 0 0000 64 5017      7                   CAD   PVAR
       788 0 0000 04 7793                          CNZ         5& 7
       789 0 7000 64 0000¤                         CAD         1F 7
       790 0 0000 12 4014                          STA   TEMP1
@@ -1416,7 +1416,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       834 0 0000 72 0000¤       FORE              LDB   CDOO
  827  835 0 0000 32 0829      5                   IB          2B
  832  836 0 0000 11 0000¤     3                   BA          4F   I36
-      837 0 0000 12 0834¤                         CDOO
+      837 0 0000 12 0834¤                         STA   CDOO
       838 0 7000 66 0000¤                         CAA         1F 7
       839 0 0000 02 5004                          STC   A1
       840 0 0000 12 3521                          STA   PHOR4
@@ -1429,7 +1429,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       847 0 0000 72 5016                          LDB   MFL
  838  848 1 4410 02 5010      1       14410000000 STC   RIGHT
       849 0 0000 30 0808¤                         CUB   FLFL
- 816  850 0 0000 66 6011        FXFL              CAA   LEFT       H6
+ 816  850 0 0000 66 5011        FXFL              CAA   LEFT       H6
       851 0 7000 74 0000¤                         ADD         4F 7
       852 0 0000 38 0000¤                         CCB   WORRY
       853 0 0000 64 4000        FXFL1             CAD   ONE
@@ -1508,7 +1508,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       926 0 0000 66 5012      9                   CAA   OP
  918  927 0 0000 33 0926      5                   CLR         9B
       928 0 7000 63 0000¤                         EXT         1F 7
-      929 0 0000 13 0005                        6 SRT
+      929 0 0000 13 0005                        5 SRT
       930 0 7000 04 0000¤                         CNZ         3F 7
       931 0 0000 64 5010                          CAD   RIGHT
       932 0 0000 02 5011                          STC   LEFT
@@ -1576,7 +1576,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
       994 0 0000 30 0000¤                         CUB   UNTIL
       995 0 0000 30 0000¤                         CUB   SWICH
       996 0 0000 30 0000¤                         CUB   PCS
-      997 0 0000 31 0998¤       ERR2              CUBR  ALARM
+      997 0 0000 31 0988¤       ERR2              CUBR  ALARM
       998 0 0000 31 0997¤       ERR3              CUBR  ALARM
       999 0 0000 31 0998¤       ERR4              CUBR  ALARM
   92 1000 0 0000 31 0999¤       ERR8              CUBR  ALARM
@@ -1607,7 +1607,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1025 0 0000 12 5011                          STA   LEFT
      1026 0 0000 64 7013                          CAD         7B 7
 1022 1027 0 7000 02 5010      1        7000000000 STC   RIGHT
-     1028 0 0000 38 0899                          CUB   SIMPL
+     1028 0 0000 30 0899                          CUB   SIMPL
 1014 1029 0 0000 00 1000      2              1000
      1030 0 0000 64 4011      9                   CAD   T
      1031 0 0000 75 4000                          SUB   ONE
@@ -1617,7 +1617,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1035 0 7000 20 1023¤                         BUN         6F 7
 1016 1036 0 0000 66 5010      7                   CAA   RIGHT
      1037 0 7000 74 0000¤                         ADD         2F 7 H14
-     1038 0 7000 28 1012¤                         BOF   HARD
+     1038 0 7000 28 1012¤                         BOF   HARD     7
 1035 1039 0 0000 64 5011      6                   CAD   LEFT
      1040 0 7000 72 0000¤                         LDB         5F 7 H16
      1041 0 0000 30 0532                          CUB   GET
@@ -1759,7 +1759,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1177 0 0000 12 3034                          STA   SEG2
      1178 0 7000 72 0000¤                         LDB         1F 7
      1179 0 0000 64 5010                          CAD   RIGHT
-     1180 0 0000 32 0532                          CUB   GET
+     1180 0 0000 30 0532                          CUB   GET
      1181 0 0000 72 4007        OPPRE             LDB   COP
 1178 1182 0 0000 32 1149      1                   IB    PWR5
      1183 0 0000 11 0000                          BA
@@ -1774,12 +1774,12 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1192 0 7000 64 0000¤                         CAD   INSW     7
      1193 0 0000 04 7195                          CNZ         2& 7 I2
      1194 0 0000 30 1119¤                         CUB   PRSC2
-     1195 0 0000 30 0000                          CUB   SCAN2
+     1195 0 0000 30 0000¤                         CUB   SCAN2
 1190 1196 0 0000 00 0000        N
 1192 1197 0 0000 00 0000        INSW
      1198 0 7000 64 0211¤       PRSC5             CAD   PRSC1    7 I39
      1199 0 0000 30 1204                          CUB         5&
-     1200 07000 02 0000¤        PRSC4             STC         2F 7
+     1200 0 7000 02 0000¤       PRSC4             STC         2F 7
      1201 0 0000 12 5004                          STA   A1         I6
      1202 0 7000 20 3762¤                         BUN   PRSC3    7
 1194 1203 0 0000 64 5005        PRSC2             CAD   A2         I4
@@ -1787,7 +1787,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
 1198 1205 0 4690 64 5000        PRSC1  4690000000 CAD   Q
      1206 0 7000 04 1200¤                         CNZ         2F 7 I5
 1202 1207 0 7000 64 0000¤       PRSC3             CAD         3F 7
-     1208 0 7000 72 0585                          LDB   CNOUT    7 I7
+     1208 0 7000 72 0585¤                         LDB   CNOUT    7 I7
      1209 0 0000 30 0104                          CUB   NXTCH
 1206 1210 0 0000 75 4000      2                   SUB   ONE
      1211 0 0000 12 5000                          STA   Q
@@ -1958,7 +1958,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1376 0 7000 64 1369¤                         CAD   BOOFL    7
      1377 0 0000 04 7379                          CNZ         2& 7
 1375 1378 0 0000 30 0000¤     4                   CUB         2F
-     1379 0 0000 02 5002                          STC   A1         I38
+     1379 0 0000 02 5004                          STC   A1         I38
      1380 0 0000 12 1376¤                         STA   BOOFL
      1381 0 0000 30 1344¤                         CUB   SCAN
 1374 1382 0 4102 00 0000      3        4102000000
@@ -1966,7 +1966,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
 1378 1384 0 0400 72 4000      2         400000000 LDB   ONE
      1385 0 5600 64 5005      3        5600000000 CAD   A2
      1386 0 0900 13 0008      6         900000008 SRT
-     1387 0 0000 75 4000                          SUB   ONE
+     1387 0 0000 75 4000      7                   SUB   ONE
      1388 0 7000 04 0000¤                         CNZ         2F 7
      1389 0 0000 64 5004      5                   CAD   A1
      1390 0 0000 74 7385                          ADD         3B 7
@@ -1986,7 +1986,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1404 0 5224 01 1030               5224011030
 1195 1405 0 0000 02 5004        SCAN2             STC   A1         I3
 1400 1406 0 0000 12 1197        SCAN1             STA   INSW
-1395 1407 0 0000 64 5003        SCAN      3000000 CAD   A0
+1395 1407 0 0003 64 5003        SCAN      3000000 CAD   A0
      1408 0 0500 74 7416      4         500000000 ADD         8& 7
      1409 0 0000 38 1181                          CCB   OPPRE
      1410 0 2200 74 7418      3        2200000000 ADD         8& 7 K1
@@ -2009,7 +2009,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1427 0 0000 75 7423                          SUB         1B 7
      1428 0 0000 04 0988      3                   CNZ   ERR1       K8
      1429 0 0000 30 1089¤                         CUB   HIER
-1418 1430 0 0000 64 4006      4                   CAD   CNO
+1419 1430 0 0000 64 4006      4                   CAD   CNO
      1431 0 0000 74 4000                          ADD   ONE        K2
      1432 0 0000 12 4006                          STA   CNO
      1433 0 0000 74 5003                          ADD   A0
@@ -2031,7 +2031,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1449 0 0000 04 0997                          CNZ   ERR2       K5
      1450 0 0000 30 1181                          CUB   OPPRE
 1436 1451 0 0000 63 7452      4                   EXT         1& 7
-     1452 0 1188 00 1111               1188991111
+     1452 0 1188 00 1111               1188001111
 1448 1453 0 0000 00 0040      1                40
      1454 0 7000 64 0000¤     3                   CAD         1F 7
      1455 0 0000 74 0000¤                         ADD   RETRO      K7
@@ -2063,7 +2063,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1481 0 0000 13 0008                        8 SRT
      1482 0 0000 04 7484                          CNZ         2& 7
      1483 0 0000 30 0000¤                         CUB   OFOR
-     1484 1 0000 84 3860              1      9999 CAD   OPST
+     1484 1 0000 64 3860              1      9999 CAD   OPST
 1480 1485 0 4400 12 4014      3        4400000000 STA   TEMP1
      1486 0 7000 74 0000¤                         ADD         1F 7
      1487 0 0000 28 7490                          BOF         3& 7
@@ -2117,11 +2117,11 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1535 0 0000 12 4009                          STA   CMTX
      1536 0 7000 64 0000¤                         CAD         6F 7
      1537 0 0000 30 1057                          CUB   FIXT5
- 985 1538 1 0000 65 3863        MINUS 1         1 CUS   NSTAK
+ 985 1538 1 0000 65 3863        MINUS 1         1 CSU   NSTAK
      1539 0 7000 20 0000¤                         BUN         4F 7 Q2
  965 1540 1 0000 64 3863        ABS   1         1 CAD   NSTAK
      1541 0 7000 63 0000¤                         EXT         3F 7 Q3
-1539 1542 1 0000 12 3863      4                 1 STA   NSTAK
+1539 1542 1 0000 12 3863      4       1         1 STA   NSTAK
 1536 1543 0 0000 30 1511      6                   CUB   HIER
 1541 1544 0 1111 22 1111      3        1111221111
  972 1545 0 0000 64 4000        ARR2              CAD   ONE
@@ -2230,7 +2230,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1648 0 7000 64 1647¤       REPL1             CAD         7F 7
      1649 0 0000 30 0000¤                         CUB   MAST1
 1645 1650 0 7000 64 0000¤     8                   CAD         1F 7
-     1651 0 7000 20 0000¤                         BUN   MAST2
+     1651 0 7000 20 0000¤                         BUN   MAST2    7
 1631 1652 0 0000 72 4007        ASMD              LDB   COP
      1653 1 0000 64 3862              1         1 CAD   OPST
 1651 1654 0 7000 72 0000¤       MAST2             LDB         6F 7
@@ -2310,7 +2310,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
 1723 1728 0 0000 00 0006      1                 6
 1724 1729 0 0000 30 1695¤     2                   CUB   NFIN
 1725 1730 0 0000 30 0000¤     3                   CUB         8F
-     1731 0 7000 00 0000¤     1                   ADD         2F 7
+     1731 0 7000 74 0000¤     1                   ADD         2F 7
      1732 0 0000 38 0000¤                         CCB         9F   J28
      1733 0 0000 13 0001                        1 SRT
      1734 0 7000 02 1731¤                         STC         2F 7
@@ -2320,7 +2320,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1738 0 7000 64 0000¤                         CAD         4F 7
      1739 0 0000 30 0104                          CUB   NXTCH
 1734 1740 0 9999 99 9920      2        9999999920
-1730 1741 0 7000 75 0000¤                         SUB         1F 7
+1730 1741 0 7000 75 0000¤     8                   SUB         1F 7
      1742 0 7000 04 0000¤                         CNZ         2F 7 J15
      1743 0 0000 12 4017                          STA   TEMP5
      1744 0 0000 64 4018                          CAD   TEMP6
@@ -2361,7 +2361,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1779 0 0000 30 0103                          CUB   NXCH1
 1777 1780 0 7000 64 0000¤     6                   CAD         1F 7
      1781 0 0000 30 0163                          CUB   BUILD      M3
-1773 1782 0 0000 03 0007      4                 7
+1773 1782 0 0000 00 0007      4                 7
 1776 1783 0 9999 99 9980      5        9999999980
 1778 1784 0 0000 30 1773      2                   CUB         3B
 1780 1785 0 0000 30 0000¤     1                   CUB         6F
@@ -2395,13 +2395,13 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1813 0 0000 14 0001                        1 SLT
 1810 1814 0 0000 02 4017      8                   STC   TEMP5
      1815 0 0000 12 5002                          STA   LSTCH
-     1816 0 7000 640000¤                          CAD         3F 7 M9
+     1816 0 7000 64 0000¤                         CAD         3F 7 M9
      1817 0 0000 30 0103                          CUB   NXCH1
 1805 1818 0 9999 99 9928      2        9999999928
 1803 1819 0 9999 99 9920      1        9999999920
 1816 1820 0 0000 30 1803      3                   CUB         6B
 1806 1821 0 0000 30 0000¤     4                   CUB         1F
-1832 1822 0 0000 65 4019      1                   CSU   TEMP7
+1821 1822 0 0000 65 4019      1                   CSU   TEMP7
      1823 0 0000 04 7825                          CNZ         2& 7 M13
      1824 0 0000 65 4018                          CSU   TEMP6
      1825 0 0000 60 4017                          MUL   TEMP5
@@ -2413,7 +2413,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1831 0 0000 64 4017                          CAD   TEMP5
      1832 0 7000 60 0000¤                         MUL         4F 7
      1833 0 0000 14 0010                       10 SLT
-     1834 0 0000 75 4000                          SBU   ONE
+     1834 0 0000 75 4000                          SUB   ONE
 1830 1835 0 0000 76 1828¤     2                   ADA   HIGHL
      1836 0 0000 13 0007                        7 SRT
      1837 0 0000 72 4015                          LDB   TEMP3
@@ -2435,7 +2435,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1853 0 0000 14 0008                        8 SLT
      1854 0 0000 01 0004                        4 CIRA
      1855 0 0000 12 4019                          STA   TEMP7
-     1856 0 7000 64 0000¤                         CAD         1D 7 T1
+     1856 0 7000 64 0000¤                         CAD         1F 7 T1
      1857 0 0000 12 5012                          STA   OP
      1858 0 7000 64 0000¤                         CAD         2F 7
      1859 0 0000 12 5009                          STA   MEXIT
@@ -2456,7 +2456,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1874 0 7000 64 0000¤                         CAD         2F 7
      1875 0 0000 20 7877                          BUN         2& 7
      1876 0 7000 65 1874¤                         CSU         2F 7
-1869 1877 0 1000 12 4017      1       10000000000 STA   TEMP5
+1869 1877 0 1000 12 4017      1        1000000000 STA   TEMP5
      1878 0 0000 72 4002                          LDB   LOOPL
      1879 1 0000 64 0449              1      9999 CAD   OUT
      1880 0 7000 63 0000¤                         EXT         3F 7
@@ -2471,7 +2471,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1889 0 7000 72 0000¤     7                   LDB         2F 7
      1890 0 0000 30 1218                          CUB   CNOUT
      1891 0 0000 64 4000      8                   CAD   ONE
-     1892 0 0000 74 1851¤                         ADD   PHOR3
+     1892 0 0000 74 1852¤                         ADD   PHOR3
      1893 0 7000 72 0000¤                         LDB         1F 7
      1894 0 0000 30 1221                          CUB   FULL2
 1882 1895 0 7000 04 0000¤     4                   CNZ         6F 7
@@ -2480,7 +2480,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      1898 0 0000 22 7899                          DBB         1& 7
 1887 1899 0 0000 11 0000¤     5                   BA    NEQ1
      1900 0 0000 02 4002                          STC   LOOPL
-     1901 0 0000 72 4005                          LDB   ABC
+     1901 0 0000 72 4003                          LDB   ABC
      1902 0 0000 22 7903                          DBB         1& 7
 1889 1903 0 0000 11 0000¤     2                   BA          9F
      1904 0 0000 02 4003                          STC   ABC
@@ -2608,7 +2608,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2026 0 0000 00 0008                        8                    40    0
      2027 0 0000 00 0001                        1                    41    0
      2028 0 0000 00 0028                       28                   42    0 B
- 922 2029 0 0000 72 4010        NOT               LDB   CTF
+ 992 2029 0 0000 72 4010        NOT               LDB   CTF
      2030 1 0000 66 3831      3       1           CAA   TEST
      2031 0 7000 15 0000¤                         NOR         1F 7
      2032 0 0000 13 0008                        8 SRT
@@ -2621,7 +2621,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2039 1 0000 76 3831              1           ADA   TEST
      2040 1 0000 12 3831              1           STA   TEST
 2031 2041 0 0000 22 7030      1                   DBB         3B 7
-2035 2942 0 0000 30 1511      2                   CUB   HIER
+2035 2042 0 0000 30 1511      2                   CUB   HIER
 2036 2043 0 0000 00 0010      3                10
  990 2044 0 0000 64 4000        AND               CAD   ONE
  991 2045 0 0000 12 4017        OR                STA   TEMP5
@@ -2634,7 +2634,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2052 0 0000 04 0999                          CNZ   ERR4
      2053 0 0000 64 2033¤                         CAD   CBOOL
      2054 0 0000 75 4000                          SUB   ONE
-     2055 0 0000 12 2054¤                         STA   CBOOL
+     2055 0 0000 12 2053¤                         STA   CBOOL
      2056 1 0000 64 3863              1         1 CAD   NSTAK
      2057 0 0000 30 0000¤                         CUB         3F
 2057 2058 1 0000 12 3862      3       1           STA   NSTAK
@@ -2812,7 +2812,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2230 0 0000 30 0769                          CUB   QUER1
 2221 2231 0 0000 00 2222      7              2222
 2223 2232 0 0000 08 0000¤     2                   HLT         3F
- 798 2233 0 7000 64 0000¤       STDLB             CAD         1F 7
+ 798 2233 0 7000 64 0000¤       STLDB             CAD         1F 7
      2234 0 0000 12 4014                          STA   TEMP1
      2235 0 7000 64 0000¤                         CAD         8F 7
      2236 0 0000 30 0310                          CUB   OUTPT
@@ -2889,7 +2889,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2307 0 0000 30 0310                          CUB   OUTPT
 2301 2308 0 0000 72 4007      2                   LDB   COP
      2309 0 0000 64 4017                          CAD   TEMP5
-     2310 0 7000 74 0000¤                         ADD   5F 7
+     2310 0 7000 74 0000¤                         ADD         5F 7
      2311 1 0000 12 3862              1         1 STA   OPST
      2312 0 0000 13 0004                        4 SRT
      2313 0 7000 63 0000¤                         EXT         6F 7
@@ -2937,7 +2937,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2355 1 0000 64 3284        BAKK  1           CAD   PART2
      2356 0 0000 02 4018                          STC   TEMP6      O6
      2357 0 0000 72 4014                          LDB   TEMP1
-     2358 1 0000 20 7324              1      9966 BUN            7
+     2358 1 0000 20 7324              1      9966 BUN         0& 7
      2359 0 0000 30 0000¤                         CUB         2F
      2360 0 0000 30 0000¤                         CUB   BAK
      2361 0 0000 30 0000¤                         CUB         4F
@@ -3045,7 +3045,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2463 0 7000 75 0000¤     5                   SUB         2F 7
      2464 0 7000 04 2458¤                         CNZ         6F 7
      2465 0 7000 64 0000¤                         CAD         5F 7
-     2466 0 0000 12 5004                          STA   A1O13
+     2466 0 0000 12 5004                          STA   A1         O13
      2467 0 0000 30 1207                          CUB   PRSC3
 2464 2468 0 7000 64 0000¤     6                   CAD         1F 7
      2469 0 0000 30 0103                          CUB   NXCH1
@@ -3098,14 +3098,14 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2516 0 0000 13 0008                        8 SRT
      2517 0 7000 74 0000¤                         ADD         2F 7
      2518 0 7000 02 2517¤                         STC         2F 7
-2518 2519 0 0000 20 7450      2              9931 BUN            7
+2518 2519 0 0000 20 7450      2              9931 BUN         0& 7
      2520 0 0000 30 1205                          CUB   PRSC1      N3
      2521 0 0000 30 1205                          CUB   PRSC1
      2522 0 0000 30 0000¤                         CUB   FMT
      2523 0 0000 30 0000¤                         CUB   SBR
      2524 0 0000 64 1074                          CAD   TMIN
      2525 0 0000 12 4011                          STA   T          N11
-     2526 0 0000 64 4011      3                   CAD   DRUML
+     2526 0 0000 64 4001      3                   CAD   DRUML
      2527 0 7000 74 0000¤                         ADD         4F 7
      2528 0 0000 72 1320                          LDB   EQUIV
      2529 1 0000 12 3284              1           STA   PART2
@@ -3113,7 +3113,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2531 0 0000 13 0007                        7 SRT
      2532 0 0000 12 4014                          STA   TEMP1
      2533 0 0000 30 0000¤                         CUB         2F
-2527 2534 0 3400 00 000       4        3400000000
+2527 2534 0 3400 00 0000      4        3400000000
 2280 2535 0 7000 72 2533¤       SWFN1             LDB         2F 7
      2536 0 0000 64 5003                          CAD   A0
      2537 0 0000 74 4000                          ADD   ONE
@@ -3135,10 +3135,10 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2553 0 7000 64 0000¤     9                   CAD         4F 7
      2554 0 0000 30 0103                          CUB   NXCH1      N13
 2548 2555 0 0000 00 0300        PROCC         300
-2543 2556 0 1111 11 86 11     5        1111118611
+2543 2556 0 1111 11 8611      5        1111118611
 2551 2557 0 9999 99 9993      1        9999999993
 2553 2558 0 0000 30 2551      4                   CUB         2B
-2552 2559 0 0000 4 7563       3                   CNZ         4& 7
+2552 2559 0 0000 04 7563      3                   CNZ         4& 7
      2560 0 0000 64 4017      6                   CAD   TEMP5      N15
      2561 0 7000 74 0000¤                         ADD         5F 7
      2562 0 0000 30 2549                          CUB         8B
@@ -3197,7 +3197,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2615 1 0000 12 3510              1           STA   PROCX
      2616 0 7000 64 2609¤                         CAD         2F 7
      2617 0 0000 30 0310                          CUB   OUTPT
-2613 2616 0 0000 19 9226      1            199226
+2613 2618 0 0000 19 9226      1            199226
 2616 2619 0 0000 30 1207      2                   CUB   PRSC3
 2608 2620 0 0000 30 1187      3                   CUB   PRESC
 1009 2621 0 0000 64 1074        PRCDR             CAD   TMIN
@@ -3212,7 +3212,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2630 1 0000 64 3284              1           CAD   PART2
      2631 0 7000 74 2628¤                         ADD         2F 7
      2632 0 0000 30 0000¤                         CUB         3F
-2531 2633 1 0140 00 0000      2       1 140000000
+2631 2633 1 0140 00 0000      2       1 140000000
 2623 2634 0 0000 00 0000        THISE
 2632 2635 1 0000 02 3284      3       1           STC   PART2
      2636 0 0000 12 0220                          STA   PROCT
@@ -3279,7 +3279,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
 2690 2697 0 0000 00 0011      5                11
 2688 2698 0 0000 00 0019      6                19
 2692 2699 0 0000 64 4017      4                   CAD   TEMP5
-     2700 0 7000 74 0000¤                         ADD         1F 5
+     2700 0 7000 74 0000¤                         ADD         1F 7
      2701 0 0000 38 0000¤                         CCB         4F   N9
      2702 0 0000 14 0002                        2 SLT
      2703 0 0000 30 2674                          CUB   FMT2
@@ -3402,7 +3402,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
 2813 2820 0 7000 64 0000¤     2                   CAD         5F 7
      2821 0 0000 30 2721                          CUB   FOR6
 2816 2822 0 0000 30 2720      4                   CUB   FOR5
-2820 2823 0 0000 10 0000      5            10000
+2820 2823 0 0000 10 0000      5            100000
 2789 2824 0 7000 64 0000¤     8                   CAD         4F 7
      2825 0 0000 30 1055                          CUB   FIXT3
 2824 2826 0 0000 30 0000¤     4                   CUB         8F
@@ -3414,7 +3414,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2832 0 7000 04 0000¤                         CNZ         1F 7 U9
      2833 0 0000 30 1187      3                   CUB   PRESC
 2831 2834 0 4208 00 0000      2        4208000000
-2932 2835 0 0000 72 4007      1                   LDB   COP
+2832 2835 0 0000 72 4007      1                   LDB   COP
      2836 0 7000 64 0000¤                         CAD         3F 7
      2837 0 0000 74 4001                          ADD   DRUML
      2838 0 0000 74 4002                          ADD   LOOPL      U10
@@ -3439,7 +3439,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2857 0 0000 75 4000                          SUB   ONE
      2858 0 0000 12 2854¤                         STA   CDOO
      2859 0 0000 75 0450                          SUB   OUT
-     2960 0 7000 74 0000¤                         ADD         1F 7
+     2860 0 7000 74 0000¤                         ADD         1F 7
      2861 0 0000 04 7865                          CNZ         4& 7
      2862 0 7000 64 0000¤                         CAD         2F 7
      2863 0 0000 74 4002                          ADD   LOOPL
@@ -3450,7 +3450,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
 2862 2868 0 0000 19 7000      2            197000
 1494 2869 0 0000 13 0008        I-O             8 SRT
      2870 0 7000 04 0000¤                         CNZ         1F 7
-1005 2871 0 0003 73 4008        OUTPT     3000000 LDB   CNAME
+1005 2871 0 0003 72 4008        OTPUT     3000000 LDB   CNAME
      2872 1 0000 64 3862              1           CAD   NSTAK      S1
      2873 0 7000 72 0000¤                         LDB         3F 7
      2874 0 0000 30 0532                          CUB   GET
@@ -3504,7 +3504,7 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2922 0 0000 30 0310                          CUB   OUTPT      S6
      2923 0 7000 64 0000¤     7                   CAD         6F 7
      2924 0 0000 30 1055                          CUB   FIXT3
-2929 2925 0 0000 41 0004      1            410004
+2919 2925 0 0000 41 0004      1            410004
      2926 0 7000 64 0000¤     9                   CAD         5F 7
      2927 0 0000 12 4014                          STA   TEMP1
      2928 0 7000 64 0000¤                         CAD         3F 7
@@ -3567,11 +3567,11 @@ FWD  ADDR CODE                P LABEL SVVVVCCAAAA OP    ADDR  PP L COMMENT
      2985 0 0000 64 0980                          CAD   CURNT
      2986 0 0000 03 8410                     8410 PTW
      2987 0 0000 22 7982                          DBB         5- 7
-     2988 0 0000 20 2988                          BUN
+     2988 0 0000 20 2988                          BUN         0&
  132 2989 0 0000 00 0999        TRANS         999
      2990 0 0000 00 0000
      2991 0 0000 00 0000
-     2992 0 0000 00 0000                103000000
+     2992 0 0103 00 0000                103000000
      2993 1 0900 59 0000              1 900590000
      2994 0 0000 00 0000
      2995 0 0000 00 0000

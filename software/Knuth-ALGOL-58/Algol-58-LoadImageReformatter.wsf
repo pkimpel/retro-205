@@ -1,0 +1,117 @@
+<package>
+<job id="Algol-58-LoadImageReformatter">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 Algol-58-LoadImageReformatter.wsf
+' Copyright (c) 2015, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to read a tape image dumped from a memory image of the Algol-58
+' compiler object code, after the compiler has been assembled by MEASY and
+' loaded to memory using the MEASY loader. This should have put the object
+' words in their proper memory locations and fixed up any forward reference
+' linkages. The memory image from the tape is then written in decimal, one
+' word per line, to the output text file. The primary purpose of this program
+' is to prepare the output of the MEASY assembly so it can be compared with
+' Tom Sawyer's transcription of his Burroughs Algebraic Compiler tape dump.
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of assembler output list file (required).
+'   Name of resulting zero-suppressed file (optional - by default will have
+'       name of output list file with "-ZS.lst" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-07-11  P.Kimpel
+'   Original version, cloned from retro-205/software/EASY-MEASY/MEASY-ListingZeroSuppress.wsf.
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-DUMP.txt"
+Const blockSize = 20
+
+Dim args
+Dim dumpFile
+Dim dumpName
+Dim fso
+Dim tapeFile
+Dim tapeName
+
+'---------------------------------------
+Sub CreateImageDump
+  'Creates the tape image dump file.
+  Dim block
+  Dim blockLen
+  Dim val
+  Dim word
+  Dim words
+  Dim wTop
+  Dim x
+  
+  Do While Not tapeFile.AtEndOfStream
+    block = RTrim(tapeFile.ReadLine)
+    blockLen = Len(block)
+    words = Split(block, ",")
+    wTop = UBound(words)  
+    If wTop >= blockSize Then
+      wTop = blockSize-1
+    End If
+    
+    For x = 0 To wTop
+      word = Trim(words(x))
+      If Len(word) = 0 Then
+        dumpFile.WriteLine "0"
+      Else
+        val = CCur(word)
+        dumpFile.WriteLine FormatNumber(val, 0, False, False, False)
+      End If
+    Next
+
+    For x=wTop+2 To blockSize
+      dumpFile.WriteLine "0"
+    Next
+  Loop
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the memory tape image file."
+  WScript.Quit 9
+Else
+  tapeName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    dumpName = Trim(args.Item(1))
+  Else
+    dumpName = fso.BuildPath(fso.GetParentFolderName(tapeName), fso.GetBaseName(tapeName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(tapeName) Then
+  MsgBox "Tape image file does not exist: " & vbCrLf & tapeName
+Else
+  Set tapeFile = fso.OpenTextFile(tapeName, ForReading, False, False)
+  Set dumpFile = fso.CreateTextFile(dumpName, True, False)
+  CreateImageDump
+  dumpFile.Close
+  Set dumpFile = Nothing
+  tapeFile.Close
+  Set tapeFile = Nothing
+  MsgBox "Tape image dump file created: " & vbCrLf & dumpName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+</script>
+</job>
+</package>

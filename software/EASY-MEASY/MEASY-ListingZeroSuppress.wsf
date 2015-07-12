@@ -6,16 +6,16 @@
 Option Explicit
 '-----------------------------------------------------------------------
 ' retro-205 MEASY-ListingZeroSuppress.wsf
-' Copyright (c) 2015, Paul Kimpel, 
+' Copyright (c) 2015, Paul Kimpel,
 ' Licensed under the MIT License, see
 '       http://www.opensource.org/licenses/mit-license.php
 '-----------------------------------------------------------------------
-' VBScript to apply zero-suppression to fields in a MEASY output listing. 
+' VBScript to apply zero-suppression to fields in a MEASY output listing.
 ' Zero suppression ends in 1-relative columns 4, 9, 34, 42, 43, 66, 69.
 ' Uses Scripting Runtime FileSystemObject.
 ' Parameters:
 '   Name of assembler output list file (required).
-'   Name of resulting zero-suppressed file (optional - by default will have 
+'   Name of resulting zero-suppressed file (optional - by default will have
 '       name of output list file with "-ZS.lst" concatenated.
 '-----------------------------------------------------------------------
 ' Modification Log.
@@ -46,9 +46,9 @@ Sub BuildZeroSuppressedFile
   Dim stopx
   Dim topStop
   Dim ztxt
-  
+
   topStop = UBound(zStops)
-  
+
   While Not listFile.AtEndOfStream
     line = RTrim(listFile.ReadLine)
     lineLen = Len(line)
@@ -57,7 +57,7 @@ Sub BuildZeroSuppressedFile
     Else
       ztxt = Left(line, zStops(0)-1)
     End If
-    
+
     For stopx = 0 To topStop
       colx = zStops(stopx)
       If stopx < topStop Then
@@ -65,10 +65,10 @@ Sub BuildZeroSuppressedFile
       Else
         nextCol = lineLen+1
       End If
-      
+
       If colx > lineLen Then
         colx = lineLen+1
-        nextCol = colx      
+        nextCol = colx
       ElseIf nextCol > lineLen Then
         nextCol = lineLen+1
       End If
@@ -81,7 +81,7 @@ Sub BuildZeroSuppressedFile
           Exit Do
         End If
       Loop
-      
+
       If colx < nextCol Then
         ztxt = ztxt & Mid(line, colx, nextCol-colx)
       End If
@@ -99,7 +99,7 @@ Set args = WScript.Arguments
 If args.Count < 1 Then
   MsgBox "Must supply at least the name of the MEASY listing file."
   WScript.Quit 9
-Else  
+Else
   listName = Trim(args.Item(0))
   If args.Count > 1 Then
     zsName = Trim(args.Item(1))
@@ -121,7 +121,7 @@ Else
   Set zsFile = Nothing
   listFile.Close
   Set listFile = Nothing
-  MsgBox "Program load file created: " & vbCrLf & zsName
+  MsgBox "Zero-suppressed MEASY listing created: " & vbCrLf & zsName
 End If
 
 Set fso = Nothing
