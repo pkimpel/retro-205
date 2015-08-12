@@ -1,0 +1,194 @@
+<package>
+<job id="Simple-Disassembler">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 Simple-Disassembler.wsf
+' Copyright (c) 2015, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to read a text file containing one decimal word per line, format the
+' line in the canonical 1-4-3-4 object code notation, and do a very simple-minded
+' disassembly of each word.
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of assembler output list file (required).
+'   Name of resulting zero-suppressed file (optional - by default will have
+'       name of output list file with "-ZS.lst" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-07-11  P.Kimpel
+'   Original version, cloned from retro-205/software/EASY-MEASY/MEASY-ListingZeroSuppress.wsf.
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-DISASM.txt"
+
+Dim args
+Dim codeDict
+Dim codeFile
+Dim codeName
+Dim disFile
+Dim disName
+Dim fso
+
+'---------------------------------------
+Function Pic9n(byVal v, byVal d)
+  'Expands or truncates the value "v" to a length of "d", right-justified
+  'over zeroes.
+  Dim length
+  Dim s
+  
+  s = Trim(CStr(v))
+  length = Len(s)
+  If length > d Then
+    Pic9n = Right(s, d)
+  ElseIf length < d Then
+    Pic9n = String(d-length, "0") & s
+  Else
+    Pic9n = s
+  End If
+End Function
+
+'---------------------------------------
+Sub DisassembleCode
+  'Creates the disassembled text file.
+  Dim text
+  Dim val
+  Dim word
+  Dim wordLen
+  Dim x
+  
+  Do While Not codeFile.AtEndOfStream
+    word = codeFile.ReadLine
+    word = Pic9n(word, 11)
+    text = Mid(word, 1, 1) & " " & Mid(word, 2, 4) & " " & Mid(word, 6, 2) & " " & Mid(word, 8, 4)
+    val = Mid(word, 6, 2)
+    If codeDict.Exists(val) Then
+      text = text & Space(24) & codeDict(val)
+    Else
+      text = text & Space(28)
+    End If
+    
+    text = text & Space(2) & Mid(word, 8, 4)
+
+    disFile.WriteLine text
+  Loop
+End Sub
+
+'---------------------------------------------------------------
+
+Set codeDict = CreateObject("Scripting.Dictionary")
+codeDict.Add "00", "PTR "
+codeDict.Add "01", "CIRA"
+codeDict.Add "02", "STC "
+codeDict.Add "03", "PTW "
+codeDict.Add "04", "CNZ "
+codeDict.Add "06", "UA  "
+codeDict.Add "07", "PTWF"
+codeDict.Add "08", "HLT "
+codeDict.Add "10", "DAD "
+codeDict.Add "11", "BA  "
+codeDict.Add "12", "STA "
+codeDict.Add "13", "SRT "
+codeDict.Add "14", "SLT "
+codeDict.Add "15", "NOR "
+codeDict.Add "16", "ASC "
+codeDict.Add "17", "SSC "
+codeDict.Add "20", "BUN "
+codeDict.Add "21", "CUR "
+codeDict.Add "22", "DB  "
+codeDict.Add "23", "RND "
+codeDict.Add "24", "BF4 "
+codeDict.Add "25", "BF5 "
+codeDict.Add "26", "BF6 "
+codeDict.Add "27", "BF7 "
+codeDict.Add "28", "BOF "
+codeDict.Add "29", "CCR "
+codeDict.Add "30", "CUB "
+codeDict.Add "31", "CUBR"
+codeDict.Add "32", "IB  "
+codeDict.Add "33", "CLR "
+codeDict.Add "34", "BT4 "
+codeDict.Add "35", "BT5 "
+codeDict.Add "36", "BT6 "
+codeDict.Add "37", "BT7 "
+codeDict.Add "38", "CCB "
+codeDict.Add "39", "CCBR"
+codeDict.Add "40", "MRD "
+codeDict.Add "42", "MTS "
+codeDict.Add "44", "CRD "
+codeDict.Add "45", "CRI "
+codeDict.Add "48", "CRF "
+codeDict.Add "50", "MOW "
+codeDict.Add "52", "MRW "
+codeDict.Add "54", "CWR "
+codeDict.Add "55", "CWI "
+codeDict.Add "58", "CWF "
+codeDict.Add "60", "MUL "
+codeDict.Add "61", "DIV "
+codeDict.Add "63", "EXT "
+codeDict.Add "64", "CAD "
+codeDict.Add "65", "CSU "
+codeDict.Add "66", "CAA "
+codeDict.Add "67", "CSA "
+codeDict.Add "70", "MRO "
+codeDict.Add "71", "EXC "
+codeDict.Add "72", "LDB "
+codeDict.Add "73", "OSD "
+codeDict.Add "74", "ADD "
+codeDict.Add "75", "SUB "
+codeDict.Add "76", "ADA "
+codeDict.Add "77", "SUA "
+codeDict.Add "80", "FAD "
+codeDict.Add "81", "FSU "
+codeDict.Add "82", "FMU "
+codeDict.Add "83", "FDV "
+codeDict.Add "85", "MSH "
+codeDict.Add "87", "MSE "
+codeDict.Add "90", "FAA "
+codeDict.Add "91", "FSA "
+codeDict.Add "92", "FMA "
+codeDict.Add "93", "FDA "
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the decimal code file."
+  WScript.Quit 9
+Else
+  codeName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    disName = Trim(args.Item(1))
+  Else
+    disName = fso.BuildPath(fso.GetParentFolderName(codeName), fso.GetBaseName(codeName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(codeName) Then
+  MsgBox "Decimal code file does not exist: " & vbCrLf & codeName
+Else
+  Set codeFile = fso.OpenTextFile(codeName, ForReading, False, False)
+  Set disFile = fso.CreateTextFile(disName, True, False)
+  DisassembleCode
+  disFile.Close
+  Set disFile = Nothing
+  codeFile.Close
+  Set codeFile = Nothing
+  MsgBox "Disassembled file created: " & vbCrLf & disName
+End If
+
+Set fso = Nothing
+Set codeDict = Nothing
+
+WScript.Quit 0
+
+</script>
+</job>
+</package>
