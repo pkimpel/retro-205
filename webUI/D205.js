@@ -35,12 +35,13 @@ window.addEventListener("load", function() {
     function systemStartup(ev) {
         /* Establishes the system components */
 
+        ev.target.disabled = true;
         p = new D205Processor(devices);
         devices.ControlConsole = new D205ControlConsole(p);
-        devices.SupervisoryPanel = new D205SupervisoryPanel(p, systemShutDown);
         devices.CardatronControl = new D205CardatronControl(p);
         devices.MagTapeControl = new D205MagTapeControl(p);
-        ev.target.disabled = true;
+        // Supervisory panel must be instantiated last
+        devices.SupervisoryPanel = new D205SupervisoryPanel(p, systemShutDown);
     }
 
     /**************************************/

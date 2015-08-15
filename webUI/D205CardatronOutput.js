@@ -597,8 +597,12 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
             D205Util.bindMethod(this, D205CardatronOutput.prototype.ClearBtn_onClick));
 
     if (!this.isPrinter) {
+        this.$$("COEndOfSupplyBtn").innerHTML = "OUT OF<br>CARDS";
+        this.$$("CORunoutSupplyBtn").innerHTML = "RUNOUT<br>CARDS";
         this.$$("COGreenbarCheck").disabled = true;
     } else {
+        this.$$("COEndOfSupplyBtn").innerHTML = "OUT OF<br>PAPER";
+        this.$$("CORunoutSupplyBtn").innerHTML = "FORM<br>FEED";
         this.$$("COGreenbarSpan").style.display = "inline";
         this.$$("COGreenbarCheck").addEventListener("click",
                 D205Util.bindMethod(this, D205CardatronOutput.prototype.COGreenbarCheck_onClick), false);

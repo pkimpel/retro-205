@@ -86,6 +86,34 @@ D205SupervisoryPanel.prototype.storePrefs = function storePrefs(prefs) {
 };
 
 /**************************************/
+D205SupervisoryPanel.prototype.powerOnSystem = function powerOnSystem() {
+    /* Powers on the system */
+
+    if (!this.p.poweredOn) {
+        this.p.powerUp();
+        this.powerLamp.set(1);
+        this.window.focus();
+        if (!this.intervalToken) {
+            this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+        }
+    }
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.powerOffSystem = function powerOffSystem() {
+    /* Powers off the system */
+
+    if (this.p.poweredOn) {
+        this.systemShutdown();
+        this.powerLamp.set(0);
+        if (this.intervalToken) {       // if the display auto-update is running
+            this.window.clearInterval(this.intervalToken);  // kill it
+            this.intervalToken = 0;
+        }
+    }
+};
+
+/**************************************/
 D205SupervisoryPanel.prototype.beforeUnload = function beforeUnload(ev) {
     var msg = "Closing this window will make the panel unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
@@ -490,23 +518,10 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
 
     switch(ev.target.id) {
     case "PowerOnBtn":
-        if (!this.p.poweredOn) {
-            this.p.powerUp();
-            this.powerLamp.set(1);
-            if (!this.intervalToken) {
-                this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
-            }
-        }
+        this.powerOnSystem();
         break;
     case "PowerOffBtn":
-        if (this.p.poweredOn) {
-            this.systemShutdown();
-            this.powerLamp.set(0);
-            if (this.intervalToken) {               // if the display auto-update is running
-                this.window.clearInterval(this.intervalToken);  // kill it
-                this.intervalToken = 0;
-            }
-        }
+        this.powerOffSystem();
         break;
     }
     this.updatePanel();
@@ -824,11 +839,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("EmulatorVersion").textContent = D205Processor.version;
 
     // Power on the system by default...
-    setCallback(this.mnemonic, this, 4000, function() {
-        this.p.powerUp();
-        this.powerLamp.set(1);
-        this.window.focus();
-        this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205SupervisoryPanel.displayRefreshPeriod);
+    setCallback(this.mnemonic, this, 1000, function powerOnTimer() {
+        this.powerOnSystem();
     });
 };
 

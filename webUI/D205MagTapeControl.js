@@ -40,6 +40,7 @@ function D205MagTapeControl(p) {
     this.boundWriteInitiate = D205Util.bindMethod(this, D205MagTapeControl.prototype.writeInitiate);
     this.boundSearchComplete = D205Util.bindMethod(this, D205MagTapeControl.prototype.searchComplete);
     this.boundDirectionLampSet = D205Util.bindMethod(this, D205MagTapeControl.prototype.directionLampSet);
+    this.boundTestDisabled = D205Util.bindMethod(this, D205MagTapeControl.prototype.testDisabled);
 
     this.currentUnit = null;            // stashed tape unit object
     this.memoryBlockCallback = null;    // stashed block-sending/receiving call-back function
@@ -79,6 +80,7 @@ D205MagTapeControl.prototype.clear = function clear() {
     this.Z = 0;                         // Z register (unit designate)
 
     this.controlBusy = false;           // control unit is busy with read/write/search
+    this.disabled = false;              // DISABLE button pressed
 };
 
 /**************************************/
@@ -114,6 +116,13 @@ D205MagTapeControl.prototype.directionLampSet = function directionLampSet(fwd) {
 };
 
 /**************************************/
+D205MagTapeControl.prototype.testDisabled = function testDisabled() {
+    /* Returns the current state of this.disabled. Used by D205MagTapeDrive.search */
+
+    return this.disabled;
+};
+
+/**************************************/
 D205MagTapeControl.prototype.SuppressB_onClick = function SuppressB_onclick(mask) {
     /* Handles the click to flip the B Suppress switch */
 
@@ -126,7 +135,7 @@ D205MagTapeControl.prototype.SuppressB_onClick = function SuppressB_onclick(mask
 D205MagTapeControl.prototype.DisableBtn_onClick = function DisableBtn_onClick(ev) {
     /* Handle the click event for the tape control DISABLE button */
 
-    // ... TO BE IMPLEMENTED ...
+    this.disabled = true;
 };
 
 /**************************************/
@@ -219,7 +228,7 @@ D205MagTapeControl.prototype.readReceiveBlock = function readReceiveBlock(block,
     var lastBlock;
     var t = D205Processor.bcdBinary(this.T);
 
-    if (abortRead) {
+    if (abortRead || this.disabled) {
         this.readTerminate();
         this.memoryBlockCallback(null, true);
     } else {
@@ -255,6 +264,7 @@ D205MagTapeControl.prototype.read = function read(unitNr, blocks, blockSender) {
     var unit;                           // tape unit object
     var ux;                             // internal unit index
 
+    this.disabled = false;
     if (this.controlBusy) {
         result = true;
     } else {
@@ -316,7 +326,7 @@ D205MagTapeControl.prototype.writeSendBlock = function writeSendBlock(abortWrite
     block = this.memoryBlockCallback(lastBlock);
     if (abortWrite || !block) {
         this.writeTerminate(false);
-    } else if (lastBlock) {
+    } else if (lastBlock || this.disabled) {
         this.currentUnit.writeBlock(block, this.boundWriteTerminate, true);
     } else {
         this.currentUnit.writeBlock(block, this.boundWriteSendBlock, false);
@@ -329,6 +339,7 @@ D205MagTapeControl.prototype.writeInitiate = function writeInitiate(blockReceive
     written is buffered in one of the high-speed loops. Once this block is
     buffered, the drive can start tape motion and begin writing to tape */
 
+    this.disabled = false;
     this.forwardLamp.set(1);
     this.recordLamp.set(1);
     this.memoryBlockCallback = blockReceiver;
@@ -403,6 +414,7 @@ D205MagTapeControl.prototype.search = function search(unitNr, laneNr, addr) {
     var unit;                           // tape unit object
     var ux;                             // internal unit index
 
+    this.disabled = false;
     if (this.controlBusy) {
         result = true;
     } else {
@@ -419,7 +431,8 @@ D205MagTapeControl.prototype.search = function search(unitNr, laneNr, addr) {
             this.controlBusy = true;
             unit = this.tapeUnit[ux];
             this.searchLamp.set(1);
-            result = unit.search(laneNr, blockNr, this.boundSearchComplete, this.boundDirectionLampSet);
+            result = unit.search(laneNr, blockNr, this.boundSearchComplete,
+                    this.boundDirectionLampSet, this.boundTestDisabled);
             if (result) {
                 this.controlBusy = false;
             }
@@ -436,6 +449,7 @@ D205MagTapeControl.prototype.rewind = function rewind(unitNr) {
     var result = false;                 // return value
     var ux;                             // internal unit index
 
+    this.disabled = false;
     if (this.controlBusy) {
         result = true;
     } else {

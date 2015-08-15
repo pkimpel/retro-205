@@ -131,7 +131,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.04f";
+D205Processor.version = "0.05";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -1468,12 +1468,10 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
         break;
     } // switch loop
 
-    for (x=0; x<D205Processor.loopSize; ++x) {
+    for (x=D205Processor.loopSize; x>0; --x) {
         this.MM[addr] = loopMem[addr%D205Processor.loopSize];
-        if ((++addr)%D205Processor.trackSize == 0) {
-            addr %= 4000;           // handle main memory address wraparound
-        }
-    } // for x
+        addr = (addr+1) % 4000;         // handle main memory address wraparound
+    }
 
     /* According to TM4001, the memory control circuits added 200 to the C-register
     address, but only if the blocking operation crossed a main-memory track boundary.
@@ -1501,7 +1499,13 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     C3-C6 to the designated loop. After an appropriate delay for drum latency,
     the successor function is called. Sets the memory access toggles as
     necessary.
-    Note: the words SHOULD be copied at the END of the drum latency delay,
+    Note 1: Knuth's MEASY assembler and the Shell assembler both use instructions
+    of the form BTn 8000. Normally, this would mean an effective address of 0000,
+    but considering the special use of addresses >= 8000 for magnetic tape
+    instructions, and the apparent intention of this use in both assemblers,
+    we conclude that BTn with the high-order bit of the address set causes 20
+    words of zeroes to be written to the designated loop.
+    Note 2: the words SHOULD be copied at the END of the drum latency delay,
     but we do it here, so that the updated registers will show on the panels
     during the delay for drum latency */
     var addr;                           // main binary address, mod 4000
@@ -1511,9 +1515,13 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     var loopMem;                        // reference to the loop memory array
     var x;                              // iteration control
 
-    addr = D205Processor.bcdBinary(this.CADDR % 0x4000);
+    addr = D205Processor.bcdBinary(this.CADDR);
     this.memACCESS = 1;
-    this.memMAIN = this.memLM = this.memRWL = this.memWDBL = 1;
+    this.memLM = this.memRWL = this.memWDBL = 1;
+    if (addr < 8000) {
+        addr %= 4000;
+        this.memMAIN = 1;
+    }
     switch (loop) {
     case 4:
         this.memL4 = 1;
@@ -1533,12 +1541,16 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
         break;
     } // switch loop
 
-    for (x=0; x<D205Processor.loopSize; ++x) {
-        loopMem[addr%D205Processor.loopSize] = this.MM[addr];
-        if ((++addr)%D205Processor.trackSize == 0) {
-            addr %= 4000;           // handle main memory address wraparound
+    if (addr >= 8000) {
+        for (x=D205Processor.loopSize; x>0; --x) {
+            loopMem[x] = 0;
         }
-    } // for x
+    } else {
+        for (x=D205Processor.loopSize; x>0; --x) {
+            loopMem[addr%D205Processor.loopSize] = this.MM[addr];
+            addr = (addr+1) % 4000;     // handle main memory address wraparound
+        }
+    }
 
     // See the comment on C address field adjustment at this point in blockFromLoop()
     this.CADDR = this.bcdAdd(this.CADDR, 0x20)%0x10000;
@@ -2026,7 +2038,7 @@ D205Processor.prototype.magTapeInitiateSend = function magTapeInitiateSend(write
 
 /**************************************/
 D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) {
-    /* Sends a block of data from a loop buffer to the tape control unit and 
+    /* Sends a block of data from a loop buffer to the tape control unit and
     initiates the load of the alternate loop buffer. this.togMT1BV4 and
     this.togMT1BV5 control alternation of the loop buffers. "lastBlock" indicates
     this will be the last block requested by the control unit and no further
@@ -2066,8 +2078,8 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
             }
         }
 
-        this.A = loop[loop.length-1];       // for display only
-        this.D = 0;                         // for display only
+        this.A = loop[loop.length-1];   // for display only
+        this.D = 0;                     // for display only
     }
 
     return loop;                        // give the loop data to the control unit
@@ -3131,8 +3143,8 @@ D205Processor.prototype.powerUp = function powerUp() {
     if (!this.poweredOn) {
         this.clear();
         this.poweredOn = 1;
-        this.cardatron = this.devices.CardatronControl;
         this.console = this.devices.ControlConsole;
+        this.cardatron = this.devices.CardatronControl;
         this.magTape = this.devices.MagTapeControl;
     }
 };

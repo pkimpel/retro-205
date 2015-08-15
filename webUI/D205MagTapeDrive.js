@@ -78,7 +78,8 @@ function D205MagTapeDrive(mnemonic, unitIndex) {
 // this.tapeState enumerations
 D205MagTapeDrive.prototype.tapeUnloaded = 0;
 D205MagTapeDrive.prototype.tapeLocal = 1;
-D205MagTapeDrive.prototype.tapeRemote = 2;
+D205MagTapeDrive.prototype.tapeRewinding = 2;
+D205MagTapeDrive.prototype.tapeRemote = 3;
 
 D205MagTapeDrive.prototype.density = 100;
                                         // 800 bits/inch
@@ -161,7 +162,7 @@ D205MagTapeDrive.prototype.spinReel = function spinReel(inches) {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, callBack) {
+D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, testDisabled, callBack) {
     /* Delays the I/O during tape motion, during which it animates the reel image
     icon. At the completion of the "delay" time in milliseconds, "callBack" is
     called with no parameters. */
@@ -183,29 +184,34 @@ D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, callBack)
         var stamp = performance.now();
         var interval = stamp - lastStamp;
 
-        if (interval <= 0) {
-            interval = this.spinUpdateInterval/2;
-            if (interval > delayLeft) {
-                interval = delayLeft;
+        if (testDisabled && testDisabled()) {
+            spinFinish.call(this);
+        } else {
+            if (interval <= 0) {
+                interval = this.spinUpdateInterval/2;
+                if (interval > delayLeft) {
+                    interval = delayLeft;
+                }
             }
-        }
 
-        if ((delayLeft -= interval) > this.spinUpdateInterval) {
-            lastStamp = stamp;
-            this.timer = setCallback(this.mnemonic, this, this.spinUpdateInterval, spinDelay);
-        } else {
-            this.timer = setCallback(this.mnemonic, this, delayLeft, spinFinish);
+            if ((delayLeft -= interval) > this.spinUpdateInterval) {
+                lastStamp = stamp;
+                this.timer = setCallback(this.mnemonic, this, this.spinUpdateInterval, spinDelay);
+            } else {
+                this.timer = setCallback(this.mnemonic, this, delayLeft, spinFinish);
+            }
+            motion = inches*interval/delay;
+            if (inchesLeft*direction <= 0) { // inchesLeft crossed zero
+                motion = inchesLeft = 0;
+            } else if (motion*direction <= inchesLeft*direction) {
+                inchesLeft -= motion;
+            } else {
+                motion = inchesLeft;
+                inchesLeft = 0;
+            }
+
+            this.spinReel(motion);
         }
-        motion = inches*direction*interval/delay;
-        if (inchesLeft*direction <= 0) { // inchesLeft crossed zero
-            motion = inchesLeft = direction = 0;
-        } else if (motion <= inchesLeft) {
-            inchesLeft -= motion;
-        } else {
-            motion = inchesLeft;
-            inchesLeft = 0;
-        }
-        this.spinReel(motion);
     }
 
     spinDelay.call(this);
@@ -253,7 +259,7 @@ D205MagTapeDrive.prototype.setTapeReady = function setTapeReady(makeReady) {
 
     this.ready = this.remote && makeReady && loaded;
     this.notReadyLamp.set(this.ready ? 0 : 1);
-    if (loaded) {
+    if (loaded && this.tapeState != this.tapeRewinding) {
         if (this.remote) {
             this.tapeState = this.tapeRemote;
         } else {
@@ -573,6 +579,7 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
     function rewindFinish() {
         this.timer = 0;
         this.busy = false;
+        this.tapeState = this.tapeLocal;
         D205Util.removeClass(this.$$("MTRewindingLight"), "annunciatorLit");
         this.setTapeReady(this.rewindReady);
     }
@@ -606,10 +613,12 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
         clearCallback(this.timer);
         this.timer = 0;
     }
-    if (this.tapeState != this.tapeUnloaded && !this.atBOT) {
+    if (this.tapeState != this.tapeUnloaded &&
+            this.tapeState != this.tapeRewinding && !this.atBOT) {
         this.busy = true;
         this.setTapeReady(false);
         this.setAtEOT(false);
+        this.tapeState = this.tapeRewinding;
         D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
         this.timer = setCallback(this.mnemonic, this, 1000, rewindStart);
     }
@@ -639,7 +648,7 @@ D205MagTapeDrive.prototype.UnloadBtn_onclick = function UnloadBtn_onclick(ev) {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.RewindBtn_onclick = function RewindBtn(ev) {
+D205MagTapeDrive.prototype.RewindBtn_onclick = function RewindBtn_onclick(ev) {
     /* Handle the click event for the REWIND button */
 
     if (!this.busy && !this.remote && this.tapeState != this.tapeUnloaded) {
@@ -654,6 +663,20 @@ D205MagTapeDrive.prototype.RemoteSwitch_onclick = function RemoteSwitch_onclick(
     this.remoteSwitch.flip();
     this.remote = (this.remoteSwitch.state != 0);
     this.setTapeReady(this.remote);
+};
+
+/**************************************/
+D205MagTapeDrive.prototype.UnitDesignate_onchange = function UnitDesignate_onchange(ev) {
+    /* Handle the change event for the UNIT DESIGNATE select list */
+    var sx = ev.target.selectedIndex;
+
+    if (sx >= 0) {
+        if (sx < 9) {
+            this.unitDesignate = sx+1;  // units 1-9
+        } else {
+            this.unitDesignate = 0;     // unit 10
+        }
+    }
 };
 
 /**************************************/
@@ -732,6 +755,8 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
             D205Util.bindMethod(this, D205MagTapeDrive.prototype.NotWriteSwitch_onclick), false);
     this.$$("RewindBtn").addEventListener("click",
             D205Util.bindMethod(this, D205MagTapeDrive.prototype.RewindBtn_onclick), false);
+    this.unitDesignateList.addEventListener("change",
+            D205Util.bindMethod(this, D205MagTapeDrive.prototype.UnitDesignate_onchange), false);
 };
 
 /**************************************/
@@ -751,7 +776,7 @@ D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock) {
         if (this.atBOT) {
             this.setAtBOT(false);
         }
-        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function readBlockComplete() {
+        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, null, function readBlockComplete() {
             ++this.blockNr;
             receiveBlock(this.image[this.laneNr].subarray(wx, wx+this.blockWords), false);
         });
@@ -819,7 +844,7 @@ D205MagTapeDrive.prototype.writeBlock = function writeBlock(block, sendBlock, la
         }
 
         // Tape motion occurs regardless of the NOT WRITE switch
-        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function writeBlockComplete() {
+        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, null, function writeBlockComplete() {
             ++this.blockNr;
             sendBlock(false);
             if (lastBlock) {
@@ -858,7 +883,7 @@ D205MagTapeDrive.prototype.writeReadyTest = function writeReadyTest() {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.search = function search(laneNr, blockNr, complete, lampSet) {
+D205MagTapeDrive.prototype.search = function search(laneNr, blockNr, complete, lampSet, testDisabled) {
     /* Initiates a search operation on the unit. If the drive is busy or not ready,
     returns true.  Otherwise, delays for an appropriate amount of time depending
     on how far up-tape the desired block is, and calls the "complete" function.
@@ -887,10 +912,10 @@ D205MagTapeDrive.prototype.search = function search(laneNr, blockNr, complete, l
             if (this.atBOT && targetBlock > 0) {
                 this.setAtBOT(false);
             }
-            this.moveTape(inches, delay, function searchForwardComplete() {
+            this.moveTape(inches, delay, testDisabled, function searchForwardComplete() {
                 // Now back up to reposition the tape in front of the target block
                 lampSet(false);
-                mt.moveTape(-mt.blockLength, mt.searchTurnaroundTime, function repositionTapeComplete() {
+                mt.moveTape(-mt.blockLength, mt.searchTurnaroundTime, testDisabled, function repositionTapeComplete() {
                     mt.busy = false;
                     mt.blockNr = targetBlock;
                     mt.designatedLamp.set(0);
@@ -910,14 +935,14 @@ D205MagTapeDrive.prototype.search = function search(laneNr, blockNr, complete, l
             // Search backward on the tape, but first search forward one block
             // so the control unit will learn it needs to search backward
             delay = this.blockLength/this.tapeSpeed + this.startupTime;
-            this.moveTape(this.blockLength, delay, function searchBackwardInitiate() {
+            this.moveTape(this.blockLength, delay, testDisabled, function searchBackwardInitiate() {
                 inches = (mt.blockNr+1-blockNr)*mt.blockLength;
                 delay = (inches/mt.tapeSpeed + mt.startupTime);
                 lampSet(false);         // indicate backward motion
                 if (mt.atEOT && blockNr < mt.imgMaxBlocks) {
                     mt.setAtEOT(false);
                 }
-                mt.moveTape(-inches, delay, function searchBackwardComplete() {
+                mt.moveTape(-inches, delay, testDisabled, function searchBackwardComplete() {
                     mt.busy = false;
                     mt.blockNr = blockNr;
                     mt.designatedLamp.set(0);
