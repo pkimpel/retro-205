@@ -899,3 +899,290 @@
       0898   1763  0 0000 64 6000                 CAD     SSEQ        SUPPRESS SEQUENCE ADVANCE
       0899   1764  0 0000 75 7773                 SU      &B
       0900   1765  0 0000 02 6000                 STC     SEQ
+      0901   1766  0 0000 64 6003                 CAD     KAY         INCREASE K BY 1
+      0902   1767  0 0000 74 7773                 AD      &B
+      0903   1768  0 0000 02 6003                 STC     KAY
+      0904   1769  0 0000 30 1775                 CUB     &C
+      0905   1770  0 0000 64 7773   .E            CAD     &B          SET K TO 1
+      0906   1771  0 0000 02 6003                 STC     KAY
+      0907   1772  0 0000 30 1775                 CUB     &C
+      0908   1773  0 0000 00 0001   .B            NUM     0000000001
+      0909   1774  0 0000 00 0005   .A            NUM     0000000005
+      0910   1775  0 0000 64 7786   .C            CAD     &A          PRODUCE 70XXXXKKKK
+      0911   1776  0 0000 74 6002                 AD      MACNO
+      0912   1777  0 0000 01 0003                 CIRA     0003
+      0913   1778  0 0000 74 6003                 AD      KAY
+      0914   1779  0 0000 72 1779                 SB    X
+      0915   1780  0 0000 30 2013                 CUB     OPRND       STORE IN SYMBOL TABLE
+      0916   1781  0 0000 02 4018                 STC     NDEX2       STORE INDEX 2
+      0917   1782  0 0000 64 4009                 CAD     STAG
+      0918   1783  0 0000 04 7785                 CNZ          &0002  IS TAG BLANK
+      0919   1784  0 0000 30 1787                 CUB     CNTRL       YES
+      0920   1785  0 0000 30 1714                 CUB     -S   &0004  NO
+      0921   1786  0 0000 70 0000   .A            NUM     0000700000
+      0922   1787  0 0000 64 6000   CNTRL         CAD     SEQ
+      0923   1788  0 0000 72 1788                 SB    X
+      0924   1789  0 0000 30 1909                 CUB     LOCTN       TREAT LOCATION
+      0915   1790  0 0000 64 4008                 CAD     SADR
+      0926   1791  0 0000 72 1791                 SB    X
+      0927   1792  0 0000 30 2013                 CUB     OPRND       TREAT OPERAND
+      0928   1793  0 0000 12 4019                 ST      NDEX1       STORE INDEX 1
+      0929   1794  0 0000 73 7794                 OSGD                HAS ASSIGNMENT BEEN MADE
+      0930   1795  0 0000 28 7803                 CC           &0008  NO
+      0931   1796  0 0000 64 4008                 CAD     SADR        YES
+      0932   1797  0 0000 04 7799                 CNZ          &0002  IS ADR BLANK
+      0933   1798  0 0000 20 7803                 CU           &0005  YES
+      0934   1799  0 0000 64 4009                 CAD     STAG        NO- ADR IS ABSOLUTE
+      0935   1800  0 0000 14 0001                 SL       0001           SET TAG TO ZERO
+      0936   1801  0 0000 13 0001                 SR       0001
+      0937   1802  0 0000 02 4009                 STC     STAG
+      0938   1803  0 0000 30 1804                 CUB          &0001
+      0939   1804  0 0000 64 4011                 CAD     SPARE       TRANSLATE SPARES
+      0940   1805  0 0000 04 7807                 CNZ          &0002  IS SPARE BLANK
+      0941   1806  0 0000 30 1853                 CUB     WRITE       YES
+      0942   1807  0 0000 13 0008                 SR       0008       NO
+      0943   1808  0 0000 04 7810                 CNZ          &0002  IS M BLANK
+      0944   1809  0 0000 30 1827                 CUB     &L          YES
+      0945   1810  0 0000 13 0001                 SR       0001       NO
+      0946   1811  0 0000 75 7823                 SU      &B
+      0947   1812  0 0000 04 7814                 CNZ          &0002  IS M NUMERICAL
+      0948   1813  0 0000 30 1824                 CUB     &C          YES
+      0949   1814  0 0000 74 7823                 AD      &B          NO
+      0950   1815  0 0000 14 0001                 SL       0001
+      0951   1816  0 0000 75 7822                 SU      &D
+      0952   1817  0 0000 04 7820                 CNZ     &E          IS M HYPHEN
+      0953   1818  0 0000 64 7821                 CAD     &F          YES
+      0954   1819  0 0000 30 1827                 CUB     &L
+      0955   1820  0 0000 30 1905   .E            CUB     &G
+      0956   1821  0 0000 01 0000   .F            NUM     0000010000
+      0957   1822  0 0000 00 0020   .D            NUM     0000000020
+      0958   1823  0 0000 00 0008   .B            NUM     0000000008
+      0959   1824  0 0000 14 0001   .C            SL       0001
+      0960   1825  0 0000 33 7825                 CR
+      0961   1826  0 0000 14 0004                 SL       0004
+      0962   1827  0 0000 02 4017   .L            STC     ABSPR
+      0963   1828  0 0000 64 4011                 CAD     SPARE
+      0964   1829  0 0000 14 0002                 SL       0002
+      0965   1830  0 0000 04 7833                 CNZ          &0003  ARE SPARES BLANK
+      0966   1831  0 0000 64 4017   .Q            CAD     ABSPR       YES
+      0967   1832  0 0000 30 1851                 CUB     &Q
+      0968   1833  0 0000 12 6008                 ST      TEMP        NO
+      0969   1834  0 0000 63 7841                 EX      &E
+      0970   1835  0 0000 75 7840                 SU      &B
+      0971   1836  0 0000 15 7842                 NOR     &C          ARE SPARES NUMERICAL
+      0972   1837  0 0000 21 2634                 CUR   X ERROR       NO
+      0973   1838  0 0430 54 2683            0430 CDW   X ERR7        WRITE INVALID SPARES
+      0974   1839  0 0000 20 7831                 CU      -1
+      0975   1840  0 8080 80 8000   .B            NUM     808080808000
+      0976   1841  0 1010 10 1000   .E            NUM     101010101000
+      0977   1842  0 0000 64 6008   .C            CAD     TEMP        CONVERT SPARES TO NUMERICAL
+      0978   1843  0 0000 30 1844                 CUB          &0001    FORM
+      0979 1844    0 0000 72 7849                 SB      &A
+      0980   1845  0 0000 13 0001                 SR       0001
+      0981   1846  0 0000 01 0009                 CIRA     0009
+      0982   1847  0 0000 22 7845                 DB           -0002
+      0983   1848  0 0000 02 7848                 STC
+      0984   1849  0 0000 14 0004   .A            SL       0004
+      0985   1850  0 0000 74 4017                 AD      ABSPR       AFFIX SIGN TO SPARES
+      0986   1851  0 0000 01 0005   .Q            CIRA     0005
+      0987   1852  0 0000 02 4017                 STC     ABSPR
+      0988   1853  0 0110 50 8000   WRITE    0110 MTW      8000       WRITE TAPE RECORD
+      0989   1854  0 0000 28 7853                 CC           -0001
+      0990   1855  0 0000 08 1855                 STOP
+      0991   1856  0 0000 64 6000   .T            CAD     SEQ         EPSILON IS ONE
+      0992   1857  0 0000 75 7867                 SU      &C
+      0993   1858  0 0000 04 7860                 CNZ          &0002  IS SEQ 3999
+      0994   1859  0 0000 20 1902                 CU    X &E          YES
+      0995   1860  0 0000 74 7866                 AD      &D          NO- INCREASE SEQ BY ONE
+      0996   1861  0 0000 02 6000                 STC     SEQ
+      0997   1862  0 0000 20 7865                 CU      ETA
+      0998   1863  0 0000 64 7868   .V            CAD     EPS1        EPSILON IS 3- SET TO ONE
+      0999   1864  0 0000 02 1855                 STC   X EPSLN
+      1000   1865  0 0000 08 1865   ETA           STOP
+      1001   1866  0 0000 00 4000   .D            NUM     0000004000
+      1002   1867  0 0000 00 3999   .C            NUM     0000003999
+      1003   1868  0 0000 30 1856   EPS1          CUB     -T
+      1004   1869  0 0000 30 1863   EPS3          CUB     -V
+      1005   1870  0 0010 44 4000   .I       0010 CDR      4000       READ THE NEXT CARD
+      1006   1871  0 0000 30 1564                 CUB     TROPR       RETURN TO THE BEGINNING
+      1007   1872  0 0000 30 1870   ETA1          CUB     -I
+      1008   1873  0 0000 64 7885   .J            CAD     ETA3        SET ETA TO 3 TO FORCE DATAFILE
+      1009   1874  0 0000 02 1865                 STC   X ETA          INPUT OF INSTRUCTIONS
+      1010   1875  0 0000 72 6001                 SB      MCTAL
+      1011   1876  0 0000 11 7876                 BA                  IF MACNO EQUALS MCTAL THEN
+      1012   1877  0 0000 75 6002                 SU      MACNO        FIRST MOVEMENT IS COMPLETE
+      1013   1878  0 0000 15 7886                 NOR     BUM
+      1014   1879  1 0000 66 1000          -      CADA  X MCTBL       RETRIEVE MTS COMMAND FROM
+      1015   1880  0 0000 12 7881                 ST           &0001   MACRO TABLE AND PERFORM
+      1016   1881  0 0000 08 1881                 STOP
+      1017   1882  0 0000 28 7881                 CC           -0001
+      1018   1883  0 0000 02 6006                 STC     TAPE
+      1019   1884  0 0000 30 1887                 CUB     &B
+      1020   1885  0 0000 30 1895   ETA3          CUB     &K
+      1021   1886  0 0000 30 2772   BUM           CUB     OUT
+      1022   1887  0 0000 32 7887   .B            IB                  INCREMENT MCTAL
+      1023   1888  0 0000 11 7888                 BA
+      1024   1889  0 0000 02 6001                 STC     MCTAL       IF ENTRY IN MCTBL DOES NOT
+      1025   1890  1 0000 64 0999          -      CAD   X MCTBL-0001   REPRESENT A SUBROUTINE
+      1026   1891  0 0000 73 7890                 OSGD         -0001   OVERLOAD WITH SEQUENCE
+      1027   1892  0 0000 28 7895                 CC      &K           COUNTER
+      1028   1983  0 0000 64 6000                 CAD     SEQ
+      1029   1894  1 0000 02 0999          -      STC   X MCTBL-0001
+      1030   1895  0 0100 40 8000   .K       0100 MTR      8000       OBTAIN NEXT INSTRUCTION FROM
+      1031   1896  0 0000 28 7895                 CC           -0001  DATA FILE
+      1032   1897  0 0000 64 6006                 CAD     TAPE        RECORD LOCATION IN DATAFILE
+      1033   1898  0 0000 74 7001                 AD      &A
+      1034   1899  0 0000 02 6006                 STC     TAPE
+      1035   1900  0 0000 30 1564                 CUB     TROPR
+      1036   1901  0 0000 00 0001   .A            NUM     0000000001
+      1037   1902  0 0000 21 2634   .E            CUR   X ERROR
+      1038   1903  0 0430 54 2689            0430 CDW   X ERR8        WRITE MEMORY OVERFLOW
+      1039   1904  0 0000 30 2792                 CUB     EXIT
+      1040   1905  0 0000 21 2634   .G            CUR   X ERROR       WRITE INVALID SIGN
+      1041   1906  0 0430 54 2695            0430 CDW   X ERR9
+      1042   1907  0 0000 30 1827                 CUB     -L
+      1043   1908  0 0000 30 1873   ETA2          CUB     -J
+      1044   1909  0 0000 02 6009   LOCTN         STC     TEMP &0001  STORE SEQ
+      1045   1910  0 0000 11 7010                 BA                  SET UP EXIT
+      1046   1911  0 0000 74 7028                 AD      &C
+      1047   1912  0 0000 12 1918                 ST    X &D
+      1048   1913  0 0000 02 7018                 STC     &D
+      1049   1914  0 0000 64 4012                 CAD     SLOC        TEST FOR BLANK SYMBOLIC
+      1050   1915  0 0000 04 7019                 CNZ     &E            ADDRESS
+      1051   1916  0 0000 64 6009   .F            CAD     TEMP &0001  IT IS BLANK
+      1052   1917  0 0000 02 4014                 STC     ABLOC       ASSIGN ABSOLUTE ADDRESS
+      1053   1918  0 0000 08 1918   .D            STOP                EXIT
+      1054   1919  0 0000 63 7027   .E            EX      &U          TEST FOR SPECIAL FIRST
+      1055   1920  0 0000 75 7026                 SU      &A           CHARACTER
+      1056   1921  0 0000 73 7021                 OSGD
+      1057   1922  0 0000 38 1979                 CCB     &B
+      1058   1923  0 0000 64 4012                 CAD     SLOC        STORE SLOC IN TEMP 2
+      1059   1924  0 0000 12 6010                 ST      TEMP &0002
+      1060   1925  0 0000 30 1929                 CUB     &D
+      1061   1926  0 4000 00 0000   .A            NUM     4000000000
+      1062   1927  0 1100 00 0000   .U            NUM     1100000000
+      1063   1928  0 0000 30 0002   .C            CUB      0002
+      1064   1929  0 7000 75 7029   .D     0 7000 SU
+      1065   1930  0 0000 73 7045   .D            OSGD    &H
+      1066   1931  0 0000 28 2007                 CC    X &E
+      1067   1932  0 0000 13 0010                 SR       0010
+      1068   1933  0 0000 02 6011   .D            STC     TEMP &0003  ZERO TO V. V IS IN TEMP 3
+      1069   1934  0 0000 64 6010                 CAD     TEMP &0002  SCRAMBLE TEMP 2 FOR INITIAL
+      1070   1035  0 0000 60 7046                 M       &G            SEARCH POINT K
+      1071   1936  0 0000 12 6012                 ST      TEMP &0004
+      1072   1937  0 0000 14 0010                 SL       0010
+      1073   1938  0 0000 74 6012                 AD      TEMP &0004
+      1074   1939  0 0000 28 7040                 CC           &0001
+      1075   1940  0 0000 63 7045                 EX      &H
+      1076   1941  0 0000 13 0003                 SR       0003
+      1077   1942  0 0000 12 7042                 ST
+      1078   1943  0 0000 72 7042                 SB           -0001
+      1079   1944  0 0000 30 1947                 CUB     &P
+      1080   1945  1 0000 11 1000   .H            NUM   1 0000111000
+      1981   1946  0 5326 58 1308   .G            NUM     5326581308
+      1082   1947  1 0000 64 0000   .P     -      CAD   X SYMBL       SEARCH SYMBOL TABLE
+      1083   1948  0 0000 04 7054                 CNZ     &Z
+      1084   1949  0 0000 64 6010                 CAD     TEMP &0002    NOT THERE--
+      1085   1950  1 0000 02 0000          -      STC   X SYMBL          PLACE SYMBOL IN TABLE
+      1086   1951  0 0000 64 6009                 CAD     TEMP &0001     AND MAKE ASSIGNMENT
+      1087   1952  1 0000 02 3000          -      STC   X ASIGN
+      1088   1953  0 0000 30 1916                 CUB     -F
+      1089   1954  0 0000 75 6010   .Z            SU      TEMP &0002    CELL OCCUPIED, IT IS SLOC--
+      1090   1955  0 0000 04 7057                 CNZ          &0002
+      1091   1956  0 0000 30 1969                 CUB     &Y             YES
+      1092   1957  0 0000 64 6011                 CAD     TEMP &0003     NO
+      1093   1958  0 0000 74 7064                 AD      &Q             COUNT NUMBER OF ATTEMPTS
+      1094   1959  0 0000 38 1966                 CCB     &X              TOO MANY--TABLE FULL
+      1095   1960  0 0000 02 6011                 STC     TEMP &0003
+      1096   1961  0 0000 22 7047                 DB      -P
+      1097   1962  0 0000 72 7065                 SB      &R          MAKE ANOTHER ATTEMPT
+      1098   1963  0 0000 20 7047                 CU      -P
+      1099   1964  0 0010 00 0000   .Q            NUM     0010000000
+      1100   1965  0 0000 00 0999   .R            NUM     0000000999
+      1101   1966  0 0000 21 2634   .X            CUR   X ERROR         W.E.M. SYMBOL TABLE PACKED
+      1102   1967  0 0430 54 2707            0430 CDW   X ERR11
+      1103   1968  0 0000 30 2792                 CUB     EXIT
+      1104   1969  1 0000 64 3000   .Y     -      CAD   X ASIGN         HAS A PREVIOUS ASSIGNMENT
+      1105   1970  0 0000 74 7078                 AD      &Q            BEEN MADE--
+      1106   1971  0 0000 28 7075                 CC      &X             YES
+      1107   1972  0 0000 21 2634                 CUR   X ERROR         W.E.M. DUPLICATE LOCATION
+      1108   1973  0 0430 54 2713            0430 CDW   X ERR12
+      1109   1974  0 0000 30 1916                 CUB     -F
+      1110   1975  0 0000 64 6009   .X            CAD     TEMP &0001     NO
+      1111   1976  1 0000 02 3000          -      STC   X ASIGN         MAKE ASSIGNMENT
+      1112   1977  0 0000 30 1916                 CUB     -F
+      1113   1978  0 0000 00 0001   .Q            NUM     0000000001
+      1114   1979  0 0000 74 7093   .B            AD      &R          IS FIRST CHARACTER .
+      1115   1980  0 0000 04 2007                 CNZ   X &E
+      1116   1981  0 0000 64 4012                 CAD     SLOC        YES
+      1117   1982  0 0000 63 7092                 EX      &N          IS SECOND CHARACTER A-Z
+      1118   1983  0 0000 75 7091                 SU      &M
+      1119   1984  0 0000 73 7084                 OSGD
+      1120   1985  0 0000 28 2007                 CC    X &E          NO
+      1121   1986  0 0000 75 7090                 SU      &L
+      1122   1987  0 0000 73 7087                 OSGD
+      1123   1988  0 0000 38 1994                 CCB     &B
+      1124   1989  0 0000 20 2007                 CU    X &E          NO
+      1125   1990  0 0029 00 0000   .L            NUM     0029000000
+      1126   1991  0 0040 00 0000   .M            NUM     0040000000
+      1127   1992  0 0011 00 0000   .N            NUM     0011000000
+      1128   1993  0 3700 00 0000   .R            NUM     3700000000
+      1129   1994  0 0000 64 4012   .B            CAD     SLOC        TEST FOR LAST THREE CHARACTERS
+      1130   1995  0 0000 63 7012                 EX      &Q           OF ADDRESS BEING ZERO
+      1131   1996  0 0000 04 7007                 CNZ     &E
+      1132   1997  0 0000 64 4012                 CAD     SLOC
+      1133   1998  0 0000 63 7011                 EX      &R
+      1134   1999  0 0000 13 0006                 SR       0006
+      1135   2000  0 0000 12 7000                 ST
+      1136   2001  0 0000 72 7000                 AB           -0001
+      1137   2002  1 0000 64 2789          -      CAD   X POINT-0041  FIND SYMBOL IN POINT TABLE
+      1139   2004  0 0000 74 7010                 AD      &O          ADVANCE SYMBOL IN POINT TABLE
+      1140   2005  1 0000 02 2789          -      STC   X POINT-0041
+      1141   2006  0 0000 30 1933                 CUB     -D
+      1142   2007  0 0000 21 2634   .E            CUR   X ERROR       W.E.M INVALID LOCATION
+      1143   2008  0 0430 54 2701            0430 CDW   X ERR10
+      1144   2009  0 0000 30 1916                 CUB     -F
+      1145   2010  0 0000 00 0001   .O            NUM     0000000001
+      1146   2011  0 0011 00 0000   .R            NUM     0011000000
+      1147   2012  0 0000 11 1111   .Q            NUM     0000111111
+      1148   2013  0 0000 04 7016   OPRND         CNZ     &Z          TREAT OPERAND SYMBOL
+      1149   2014  0 0000 64 6000                 CAD     SEQ
+      1150   2015  1 0000 30 0002         -       CUB      0002        IF BLANK USE SEQUENCE COUNTER
+      1151   2016  0 0000 12 6010   .Z            ST      TEMP &0002    AND EXIT IMMEDIATELY
+      1152   2017  0 0000 11 0003                 BA       0003
+      1153   2018  0 0000 02 6009                 STC     TEMP &0001  STORE SYMBOL AND STORE EXIT
+      1154   2019  0 0000 64 6010                 CAD     TEMP &0002
+      1155   2020  0 0000 13 0008                 SR       0008
+      1156   2021  0 0000 04 7023                 CNZ          &0002
+      1157   2022  0 0000 20 7027                 CU      &N          TEST HIGH ORDER CHARACTER
+      1158   2023  0 0000 75 7030                 CU      &F           OF SYMBOL
+      1159   2024  0 0000 73 7024                 OSGD
+      1160   2025  0 0000 38 2049                 CCB     &L
+      1161   2026  0 0000 30 2110                 CUB     &M
+      1162   2027  0 0000 02 6008   .N            STC     TEMP            ZERO TO TEMP
+      1163   2028  0 0000 72 7017                 SB      -Z     &0001
+      1164   2029  0 0000 30 2031                 CUB     &B
+      1165   2030  0 0000 00 0040   .F            NUM     0000000040
+      1166   2031  0 0000 14 0001   .B            SL       0001           TEST NEXT DIGIT FOR
+      1167   2032  0 0000 04 7034                 CNZ          &0002  ZERO OR EIGHT
+      1168   2033  0 0000 20 7036                 CU      &K
+      1169   2034  0 0000 75 7043                 SU      &G
+      1170   2035  0 0000 04 7044                 CNZ     &E
+      1171   2036  0 0000 64 6008   .K            CAD     TEMP
+      1172   2037  0 0000 14 0001                 SL       0001           INSERT NEXT DIGIT IN TEMP
+      1173   2038  0 0000 02 6008                 STC     TEMP
+      1174   2039  0 0000 22 7031                 DB      -B
+      1175   2040  0 0000 64 6008                 CAD     TEMP            ABSOLUTE ADDRESS IN TEMP
+      1176   2041  0 0000 72 6009   .A            SB      TEMP &0001
+      1177   2042  1 0000 30 0002          -      CUB      0002           EXIT
+      1178   2043  0 0000 00 0008   .G            NUM     0000000008
+      1179   2044  0 0000 21 2634   .E            CUR   X ERROR           INVALID OPERAND
+      1180   2045  0 0430 54 2719            0430 CDW   X ERR13
+      1181   2046  0 0000 64 2048                 CAD   X &N              WRITE ERROR MESSAGE AND
+      1182   2047  0 0000 20 2041                 CU    X -A               USE 9999 FOR ADDRESS
+      1183   2048  0 0000 00 9999   .N            NUM     0000009999
+      1184   2049  0 0000 64 6010   .L            CAD     TEMP &0002      TESTING
+      1185   2050  0 0000 63 7068                 EX      &N               FOR
+      1186   2051  0 0000 75 7067                 SU      &P                VALID
+      1187   2052  0 0000 04 7054                 CNZ          &0002           OR - OR #
+      1188   2053  0 0000 30 2075                 CUB     &W                  SIGN
