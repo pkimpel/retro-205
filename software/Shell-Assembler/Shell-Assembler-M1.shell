@@ -1,4 +1,4 @@
-      ####   LLLL  S CCCC II AAAA   LOC    S CNTL OPR   T OPERAND     REMARKS
+      ####   LLLL  S CCCC II AAAA   LOC    S CNTL OPR   T OPERAND     REMARKS - SHELL ASM MOVEMENT 1
       0001                          ASIGN         EQU      3000
       0002                          MCTBL         EQU      1000
       0003                          SYMBL         EQU      0000
@@ -1136,10 +1136,11 @@
       1135   2000  0 0000 12 7000                 ST
       1136   2001  0 0000 72 7000                 AB           -0001
       1137   2002  1 0000 64 2789          -      CAD   X POINT-0041  FIND SYMBOL IN POINT TABLE
+      1138   2003  0 0000 12 6010                 ST      TEMP &0002  PUT IN TEMPORARY  LOC
       1139   2004  0 0000 74 7010                 AD      &O          ADVANCE SYMBOL IN POINT TABLE
       1140   2005  1 0000 02 2789          -      STC   X POINT-0041
       1141   2006  0 0000 30 1933                 CUB     -D
-      1142   2007  0 0000 21 2634   .E            CUR   X ERROR       W.E.M INVALID LOCATION
+      1142   2007  0 0000 21 2634   .E            CUR   X ERROR       W.E.M. INVALID LOCATION
       1143   2008  0 0430 54 2701            0430 CDW   X ERR10
       1144   2009  0 0000 30 1916                 CUB     -F
       1145   2010  0 0000 00 0001   .O            NUM     0000000001
@@ -1906,3 +1907,204 @@
       1906   2769  0 4163 49 5655
       1907   2770  0 2056 57 4559
       1908   2771  0 6245 64 4456
+      1909   2772  0 4555 44 0057
+      1910   2773  0 0000 36 8000   OUT           BT6      8000       BLANK OUT CARD IMAGE
+      1911   2774  0 0000 64 7791                 CAD     &A
+      1912   2775  0 0000 02 4000                 STC     PRCOD       SET PROCESS CODE 8 FOR END
+      1913   2776  0 0110 50 8000            0110 MTW      8000         OF TAPE SENTINEL AND WRITE
+      1914   2777  0 0000 28 7776                 CC           -0001
+      1915   2778  0 0010 52 0000            0010 MTRW     0000       REWIND DATA-READER
+      1916   2779  0 0000 28 7778                 CC           -0001
+      1917   2780  0 8900 42 0290            8900 MTS      0290       SEARCH FOR SECOND MOVEMENT
+      1918   2781  0 0000 28 7780                 CC           -0001
+      1919   2782  0 0020 42 0000            0020 MTS      0000
+      1920   2783  0 0000 28 7782                 CC           -0001
+      1921   2784  0 0010 42 0000          0 0010 MTS      0000
+      1922   2785  0 0000 28 7784                 CC           -0001
+      1923   2786  0 0830 58 6000            0830 CDWF     6000
+      1924   2787  0 1830 54 6000          0 1830 CDW      6000       EJECT PAGE ON PRINTER
+      1925   2788  0 8400 40 1200            8400 MTR      1200       READ IN SECOND MOVEMENT AND
+      1926   2789  0 0000 28 7788                 CC           -0001   EXECUTE
+      1927   2790  0 0001 30 1200          0 0001 CUB      1200
+      1928   2791  0 0000 00 0008   .A            NUM     0000000008
+      1929   2792  0 0010 52 0000   EXIT   0 0010 MTRW     0000       ERROR SITUATION WITHOUT
+      1930   2793  0 0000 28 7792                 CC           -0001   SUITABLE FALL-BACK
+      1931   2794  0 8900 42 0000            8900 MTS      0000
+      1932   2795  0 0000 28 7794                 CC           -0001       REWIND TAPES, LOAD AND
+      1933   2796  0 1500 40 3700            1500 MTR      3700            EXECUTE AL
+      1934   2797  0 0000 28 7796                 CC           -0001
+      1935   2798  0 0010 44 6000            0010 CDR      6000
+      1936   2799  0 0000 20 7798                 CU           -0001
+      1937                                        ORG      2880
+      1938   2880  0 0000 00 0000   LANE          NUM     0000000000  THE LANE TABLE COMTAINS THE
+      1939   2881  0 9999 99 9999                 NUM     9999999999   LIST OF AVAILABLE SPACE IN
+      1940   2882  0 9999 99 9999                 NUM     9999999999   THE MACRO-INSTRUCTION LIBRARY
+      1941   2883  0 9999 99 9999                 NUM     9999999999
+      1942   2884  0 9999 99 9999                 NUM     9999999999
+      1943   2885  0 9999 99 9999                 NUM     9999999999       FOR I FROM 0 TO 9
+      1944   2886  0 9999 99 9999                 NUM     9999999999       WORD I GIVES THE FIRST
+      1945   2887  0 9999 99 9999                 NUM     9999999999       OPEN BLOCK IN THE LANE
+      1946   2888  0 9999 99 9999                 NUM     9999999999       GIVEN IN WORD I&10
+      1947   2889  0 9999 99 9999                 NUM     9999999999
+      1948   2890  0 8000 00 0000                 NUM     8000000000
+      1949   2891  0 0000 00 0000                 NUM     0000000000
+      1950   2892  0 0000 00 0000                 NUM     0000000000
+      1951   2893  0 0000 00 0000                 NUM     0000000000       THIS TABLE IS PERMANENTLY
+      1952   2894  0 0000 00 0000                 NUM     0000000000       CHANGED BY THE PSEUDO-
+      1953   2895  0 0000 00 0000                 NUM     0000000000       OPERATION  NEW  AND
+      1954   2896  0 0000 00 0000                 NUM     0000000000       TEMPORARILY BY  MACRO
+      1955   2897  0 0000 00 0000                 NUM     0000000000
+      1956   2898  0 0000 00 0000                 NUM     0000000000
+      1957   2899  0 0000 00 0000                 NUM     0000000000
+      1958                                        ORG      0000
+      1959   0000  0 0000 64 7002   MUCK1         CAD     PHI1        SET PHI TO 1
+      1960   0001  0 0000 20 7004                 CU      &E
+      1961   0002  0 0000 30 0061   PHI1          CUB     &G
+      1962   0003  0 0000 64 7018   MUCK2         CAD     PHI2        SET PHI TO 2
+      1963   0004  0 0000 02 0059   .E            STC   X PHI
+      1964   0005  0 0000 64 4008                 CAD     SADR        SEARCH CATALOG FOR MACRO
+      1965   0006  0 0000 73 0006                 SB    X              INSTRUCTION NAME
+      1966   0007  0 0000 30 2545                 CUB     MACSR
+      1967   0008  0 0000 20 7014                 CU      &Y          IN CATALOG
+      1968   0009  0 0000 30 0019                 CUB     &C          NOT IN CATALOG
+      1969   0010  0 0000 34 2860                 BT4     BLOCK
+      1970   0011  0 0000 21 2634                 CUR   X ERROR       W.E.M. MACRO CATALOG PACKED
+      1971   0012  0 0430 54 2737            0430 CDW   X ERR16
+      1972   0013  0 0000 30 2792                 CUB     EXIT
+      1973   0014  0 0000 34 2860   .Y            BT4     BLOCK
+      1974   0015  0 0000 21 2634                 CUR   X ERROR       W.E.M. DUPLICATE MACRO NAME
+      1975   0016  0 0430 54 2743            0430 CDW   X ERR17
+      1976   0017  0 0000 30 2792                 CUB     EXIT
+      1977   0018  0 0000 30 0075   PHI2          CUB     &P
+      1978   0019  0 0000 35 2880   .C            BT5     LANE
+      1979   0020  0 0000 02 6008                 STC     TEMP        LOCATION OF VACANCY IN TEMP
+      1980   0021  0 0000 72 7030                 SB      &J          SET J TO BE 9
+      1981   0022  0 0000 64 7034                 CAD     &N          SET L TO BE 9S
+      1982   0023  0 0000 02 6009                 STC     TEMP &0001  L IS IN TEMP 1
+      1983   0024  0 0000 64 6009   .Z            CAD     TEMP &0001  COMPARE L AND LJ
+      1984   0025  1 0000 75 5880          -      SU    5 LANE
+      1985   0026  0 0000 73 7026                 OSGD
+      1986   0027  0 0000 28 7032                 CC      &Y
+      1987   0028  1 0000 64 5880          -      CAD   5 LANE        SET L TO BE LJ
+      1988   0029  0 0000 02 6009                 STC     TEMP &0001
+      1989   0030  0 0000 11 0009   .J            BA       0009       SET M TO BE J
+      1990   0032  0 0000 02 6010                 STC     TEMP &0002  M IS TEMP 2
+      1991   0032  0 0000 22 7024   .Y            DB      -Z
+      1992   0033  0 0000 30 0035                 CUB     &Z
+      1993   0034  0 9999 99 9999   .N            NUM     9999999999
+      1994   0035  0 0000 72 6010   .Z            SB      EMP &0002
+      1995   0036  0 0000 64 2871                 CAD   X BLOCK&0001  CONVERT LAMBDA TO NUMERICAL
+      1996   0037  0 0000 63 7050                 EX      &Z            FORM
+      1997   0038  0 0000 13 0003                 SR       0003
+      1998   0039  0 0000 01 0009                 CIRA     0009
+      1999   0040  0 0000 14 0001                 SL       0001
+      2000   0041  0 0000 12 6013                 ST      TEMP &0005  PUT LAMBDA IN TEMP 5
+      2001   0042  0 0000 74 6009                 AD      TEMP &0001
+      2002   0043  1 0000 02 5880          -      STC   5 LANE        UPDATE LANE TABLE
+      2003   0044  0 0000 64 7049                 CAD     &Y
+      2004   0045  1 0000 75 5880          -      SU    5 LANE        TEST FOR SPACE IN MACRO FILE
+      2005   0046  0 0000 73 7046                 OSGD
+      2006   0047  0 0000 28 0051                 CC    X      &0004
+      2007   0048  0 0000 30 0054                 CUB     &X
+      2008   0049  0 0000 00 1000   .Y            NUM     0000001000
+      2009   0050  0 0000 01 0100   .Z            NUM     0000010100
+      2010   0051  0 0000 21 2634                 CUR   X ERROR       W.E.M. MACRO FILE PACKED
+      2011   0052  0 0430 54 2749            0430 CDW   X ERR18
+      2012   0053  0 0000 30 2792                 CUB     EXIT
+      2013   0054  0 0000 64 7060   .X            CAD     &Z          FORM MTS COMMAND TO RETRIEVE
+      2014   0055  1 0000 74 5890          -      AD    5 LANE &0010    MACRO INSTRUCTION
+      2015   0056  0 0000 74 6009                 AD      TEMP &0001
+      2016   0057  0 0000 12 6014                 ST      TEMP &0006
+      2017   0058  0 0000 02 0116                 STC   X &F
+      2018   0059  0 0000 08 0059   PHI           STOP                PHI SWITCH
+      2019   0060  0 0000 42 0000   .Z            NUM     0000420000
+      2020   0061  0 0000 72 6008   .G            SB      TEMP        PHI IS 2
+      2021   0062  0 0000 64 6014                 CAD     TEMP &0006  ENTER NAME AND MTS COMMAND IN
+      2022   0063  1 0000 12 4001          -      ST       4001         MACRO CATALOG
+      2023   0064  0 0000 64 2868                 CAD   X BLOCK&0008
+      2024   0065  1 0000 12 4000          -      ST       4000
+      2025   0066  0 0100 50 8000            0100 MTW      8000
+      2026   0067  0 0000 28 7066                 CC           -0001
+      2027   0068  0 8900 42 0219            8900 MTS      0219       PUT LANE TABLE IN DATA FILE
+      2028   0069  0 0000 28 7068                 CC           -0001
+      2029   0070  0 0000 25 2880                 BF5     LANE
+      2030   0071  0 0100 50 2880            0100 MTW   X LANE
+      2031   0072  0 0000 28 7071                 CC           -0001
+      2032   0073  0 0000 34 2860                 BT4     BLOCK
+      2033   0074  0 0000 30 0116                 CUB     &F
+      2034   0075  0 0000 34 2860   .P            BT4     BLOCK       PHI IS 1
+      2035   0076  0 0000 12 6011                 ST      TEMP &0003  SET V TO ZERO. V IN TEMP 3
+      2036   0077  0 0000 64 4008                 CAD     SADR        SCRAMBLE FOR INITIAL SEARCH
+      2037   0078  0 0000 60 7090                 M       &Z            POINT
+      2038   0079  0 0000 12 6012                 ST      TEMP &0004
+      2039   0080  0 0000 14 0010                 SL       0010
+      2040   0081  0 0000 74 6012                 AD      TEMP &0004
+      2041   0082  0 0000 28 7083                 CC      &P
+      2042   0083  0 0000 63 7089   .P            EX      &Y
+      2043   0084  0 0000 60 7088                 M       &X
+      2044   0085  0 0000 12 7085                 ST
+      2045   0086  0 0000 72 7085                 SB           -0001
+      2046   0087  0 0000 30 0091                 CUB     &P
+      2047   0088  0 0002 00 0000   .X            NUM     0002000000
+      2048   0089  0 0000 11 1000   .Y            NUM     0000111000
+      2049   0090  0 5326 58 1308   .Z            NUM     5326581308
+      2050   0091  1 0000 64 1164   .P     -      CAD   X OPTBL       SEARCH OPERATION TABLE FOR
+      2051   0092  0 0000 04 7094                 CNZ     &W            NAME OF MACRO INSTRUCTION
+      2052   0093  0 0000 30 0111                 CUB     &E          NOT IN TABLE
+      2053   0094  0 0000 75 4008   .W            SU      SADR        TEST FOR MACRO ALREADY IN
+      2054   0095  0 0000 04 7099                 CNZ          &0004   TABLE
+      2055   0096  0 0000 21 2634                 CUR   X ERROR       W.E.M. DUPLICATE MACRO NAME
+      2056   0097  0 0430 54 2743            0430 CDW   X ERR17
+      2057   0098  0 0000 30 2792                 CUB     EXIT
+      2058   0099  0 0000 22 7101                 DB           &0002
+      2059   0100  0 0000 72 7107                 SB      &K          SET K TO 199
+      2060   0101  0 0000 64 6011                 CAD     TEMP &0003  INCREASE V
+      2061   0102  0 0000 74 7106                 AD      &T
+      2062   0103  0 0000 28 0108                 CC    X      &0005  TEST FOR PACKED TABLE
+      2063   0104  0 0000 12 6011                 ST      TEMP &0003  NOT PACKED
+      2064   0105  0 0000 20 7091                 CU      -P
+      2065   0106  0 0050 00 0000   .T            NUM     0050000000
+      2066   0107  0 0000 00 0199   .K            NUM     0000000199
+      2067   0108  0 0000 21 2634                 CUR   X ERROR       PACKED
+      2068   0109  0 0430 54 2755            0430 CDW   X ERR19       W.E.MOPERATION TABLE PACKED
+      2069   0110  0 0000 30 2792                 CUB     EXIT
+      2070   0111  0 0000 64 4008   .E            CAD     SADR
+      2071   0112  1 0000 12 1164          -      ST    X OPTBL       PUT IN TABLE
+      2072   0113  0 0000 67 7116                 CSUA    &F
+      2073   0114  1 0000 12 1364          -      ST    X EQTBL
+      2074   0115  0 0000 25 2880                 BF5     LANE
+      2075   0116  0 0000 08 0116   .F            STOP                EXECUTE MTS COMMAND
+      2076   0117  0 0000 28 7116                 CC           -0001
+      2077   0118  0 0000 72 6013                 SB      TEMP &0005  SET K TO LAMBDA
+      2078   0119  0 0000 22 7121                 DB           &0002
+      2079   0120  0 0000 20 0136                 CU    X &F
+      2080   0121  0 0000 24 2860                 BF4     BLOCK
+      2081   0122  0 0000 30 0123                 CUB     &G
+      2082   0123  0 0010 44 4000   .G       0010 CDR      4000       READ CARD
+      2083   0124  0 0100 50 8000            0100 MTW      8000
+      2084   0125  0 0000 28 7124                 CC           -0001
+      2085   0126  0 0000 64 4010                 CAD     SOPR
+      2086   0127  0 0000 75 7153                 SU      &L
+      2087   0128  0 0000 22 7131                 DB      &Z
+      2088   0129  0 0000 04 0136                 CNZ   X &F
+      2089   0130  0 0000 30 0139                 CUB     &H
+      2090   0131  0 0000 04 7123   .Z            CNZ     -G
+      2091   0132  0 0000 21 2634                 CUR   X ERROR       W.E.M. LENGTH INDICATION
+      2092   0133  0 0430 54 2761            0430 CDW   X ERR20        TOO LARGE
+      2093   0134  0 0000 30 0139                 CUB     &H
+      2094   0135  0 4555 44 0000   .L            ALF     END
+      2095   0136  0 0000 21 2634   .F            CUR   X ERROR       W.E.M END PSEUDO-OPERATION
+      2096   0137  0 0430 54 2767            0430 CDW   X ERR21             MISSING
+      2097   0138  0 0000 30 2792                 CUB     EXIT
+      2098   0139  0 8900 43 0270   .H     0 8900 MTS      0270
+      2099   0140  0 0000 28 7139                 CC           -0001
+      2100   0141  0 1000 40 0000          0 1000 MTR      0000
+      2101   0142  0 0000 28 7141                 CC           -0001
+      2102   0143  0 0000 34 2860                 BT4     BLOCK
+      2103   0144  0 0000 64 7149                 CAD     &Q
+      2104   0145  0 0000 02 4000                 STC     PRCOD
+      2105   0146  0 0000 64 1869                 CAD   X EPS3
+      2106   0147  0 0000 02 1855                 STC   X EPSLN
+      2107   0148  0 0000 30 1853                 CUB     WRITE
+      2108   0149  0 0000 00 0001   .Q            NUM     0000000001
+      2109                                        END

@@ -1,0 +1,37 @@
+      ####   LLLL  S CCCC II AAAA   LOC    S CNTL OPR   T OPERAND     REMARKS - SHELL ASM MOVEMENT 2
+      0001                                        TAG   7
+      0002                                        ORG      1200
+      0003                          MCTBL         EQU      1000
+      0004                          ASIGN         EQU      3000
+      0005                          FBDS          EQU      0000
+      0006                          FBWS          EQU      0520
+      0007                          IMAGE         EQU      0320
+      0008                          SAVE          EQU      0500
+      0009                          PRCOD         EQU      4000       ASSIGN TAPE RECORD VARIABLES
+      0010                          REMRK         EQU      4001
+      0011                          SINC          EQU      4007
+      0012                          SADR          EQU      4008
+      0013                          STAG          EQU      4009
+      0014                          SPARE         EQU      4011
+      0015                          SOPR          EQU      4010
+      0016                          SLOC          EQU      4012
+      0017                          INSTR         EQU      4013
+      0018                          ABLOC         EQU      4014
+      0019                          NUMB          EQU      4015
+      0020                          FLAG          EQU      4016
+      0021                          ABSPR         EQU      4017
+      0022                          NDEX2         EQU      4018
+      0023                          NDEX1         EQU      4019
+      0024                          SEQ           EQU      6000       ASSIGN PROBLEM VARIABLES
+      0025                          QUANT         EQU      6001
+      0026                          CTR           EQU      6002
+      0027                          CLTLY         EQU      6003
+      0028                          FDTLY         EQU      6004
+      0029                          SNTLY         EQU      6005
+      0030                          RPTLY         EQU      6006
+      0031                          TEMP          EQU      6007
+      0032                          NMBR          EQU      5013
+      0033                          CLINC         EQU      5014
+      0034                          MCTAL         EQU      5015
+      0035                          SUM           EQU      5016
+      0036                          SRL           EQU      5017
