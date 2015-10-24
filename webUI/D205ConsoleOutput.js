@@ -58,7 +58,7 @@ D205ConsoleOutput.midSwitch = "./resources/ToggleMid.png";
 D205ConsoleOutput.onSwitch = "./resources/ToggleUp.png";
 
 D205ConsoleOutput.cardatronXlate = [        // translate internal Cardatron code to ANSI
-        " ", "?", "?", ".", "¤", "?", "?", "?", "?", "?",       // 00-09
+        " ", "?", "?", ".", "\u00A4", "?", "?", "?", "?", "?",  // 00-09
         "&", "?", "?", "$", "*", "?", "?", "?", "?", "?",       // 10-19
         "-", "/", "?", ",", "%", "?", "?", "?", "?", "?",       // 20-29
         "?", "?", "?", "#", "@", "?", "?", "?", "?", "?",       // 30-39

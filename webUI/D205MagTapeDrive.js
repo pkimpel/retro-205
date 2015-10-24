@@ -136,6 +136,13 @@ D205MagTapeDrive.prototype.clear = function clear() {
 };
 
 /**************************************/
+D205MagTapeDrive.prototype.showBlockNr = function showBlockNr() {
+    /* Formats and displays the current tape block number on the panel */
+
+    this.$$("MTBlockNrText").textContent = (this.blockNr+10000).toString().substring(1);
+};
+
+/**************************************/
 D205MagTapeDrive.prototype.spinReel = function spinReel(inches) {
     /* Rotates the reel image icon an appropriate amount based on the "inches"
     of tape to be moved. The rotation is limited to this.maxSpinAngle degrees
@@ -162,7 +169,7 @@ D205MagTapeDrive.prototype.spinReel = function spinReel(inches) {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, testDisabled, callBack) {
+D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, callBack) {
     /* Delays the I/O during tape motion, during which it animates the reel image
     icon. At the completion of the "delay" time in milliseconds, "callBack" is
     called with no parameters. */
@@ -184,34 +191,30 @@ D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, testDisab
         var stamp = performance.now();
         var interval = stamp - lastStamp;
 
-        if (testDisabled && testDisabled()) {
-            spinFinish.call(this);
-        } else {
-            if (interval <= 0) {
-                interval = this.spinUpdateInterval/2;
-                if (interval > delayLeft) {
-                    interval = delayLeft;
-                }
+        if (interval <= 0) {
+            interval = this.spinUpdateInterval/2;
+            if (interval > delayLeft) {
+                interval = delayLeft;
             }
-
-            if ((delayLeft -= interval) > this.spinUpdateInterval) {
-                lastStamp = stamp;
-                this.timer = setCallback(this.mnemonic, this, this.spinUpdateInterval, spinDelay);
-            } else {
-                this.timer = setCallback(this.mnemonic, this, delayLeft, spinFinish);
-            }
-            motion = inches*interval/delay;
-            if (inchesLeft*direction <= 0) { // inchesLeft crossed zero
-                motion = inchesLeft = 0;
-            } else if (motion*direction <= inchesLeft*direction) {
-                inchesLeft -= motion;
-            } else {
-                motion = inchesLeft;
-                inchesLeft = 0;
-            }
-
-            this.spinReel(motion);
         }
+
+        if ((delayLeft -= interval) > this.spinUpdateInterval) {
+            lastStamp = stamp;
+            this.timer = setCallback(this.mnemonic, this, this.spinUpdateInterval, spinDelay);
+        } else {
+            this.timer = setCallback(this.mnemonic, this, delayLeft, spinFinish);
+        }
+        motion = inches*interval/delay;
+        if (inchesLeft*direction <= 0) { // inchesLeft crossed zero
+            motion = inchesLeft = 0;
+        } else if (motion*direction <= inchesLeft*direction) {
+            inchesLeft -= motion;
+        } else {
+            motion = inchesLeft;
+            inchesLeft = 0;
+        }
+
+        this.spinReel(motion);
     }
 
     spinDelay.call(this);
@@ -227,6 +230,7 @@ D205MagTapeDrive.prototype.setAtBOT = function setAtBOT(atBOT) {
             D205Util.removeClass(this.$$("MTAtBOTLight"), "annunciatorLit");
         } else {
             this.blockNr = 0;
+            this.showBlockNr();
             this.tapeInches = 0;
             this.reelAngle = 0;
             D205Util.addClass(this.$$("MTAtBOTLight"), "annunciatorLit");
@@ -287,6 +291,7 @@ D205MagTapeDrive.prototype.setTapeUnloaded = function setTapeUnloaded() {
         this.reelIcon.style.visibility = "hidden";
         this.$$("MTFileName").value = "";
         D205Util.addClass(this.$$("MTUnloadedLight"), "annunciatorLit");
+        D205Util.removeClass(this.$$("MTBlockNrLight"), "annunciatorLit");
         if (this.timer) {
             clearCallback(this.timer);
             this.timer = 0;
@@ -331,6 +336,8 @@ D205MagTapeDrive.prototype.loadTape = function loadTape() {
         mt.setTapeReady(true);
         mt.reelIcon.style.visibility = "visible";
         D205Util.removeClass(mt.$$("MTUnloadedLight"), "annunciatorLit");
+        D205Util.addClass(mt.$$("MTBlockNrLight"), "annunciatorLit");
+        mt.showBlockNr();
         win.close();
     }
 
@@ -581,6 +588,7 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
         this.busy = false;
         this.tapeState = this.tapeLocal;
         D205Util.removeClass(this.$$("MTRewindingLight"), "annunciatorLit");
+        D205Util.addClass(this.$$("MTBlockNrLight"), "annunciatorLit");
         this.setTapeReady(this.rewindReady);
     }
 
@@ -619,6 +627,7 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
         this.setTapeReady(false);
         this.setAtEOT(false);
         this.tapeState = this.tapeRewinding;
+        D205Util.removeClass(this.$$("MTBlockNrLight"), "annunciatorLit");
         D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
         this.timer = setCallback(this.mnemonic, this, 1000, rewindStart);
     }
@@ -776,8 +785,9 @@ D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock) {
         if (this.atBOT) {
             this.setAtBOT(false);
         }
-        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, null, function readBlockComplete() {
+        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function readBlockComplete() {
             ++this.blockNr;
+            this.showBlockNr();
             receiveBlock(this.image[this.laneNr].subarray(wx, wx+this.blockWords), false);
         });
     }
@@ -844,8 +854,9 @@ D205MagTapeDrive.prototype.writeBlock = function writeBlock(block, sendBlock, la
         }
 
         // Tape motion occurs regardless of the NOT WRITE switch
-        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, null, function writeBlockComplete() {
+        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function writeBlockComplete() {
             ++this.blockNr;
+            this.showBlockNr();
             sendBlock(false);
             if (lastBlock) {
                 this.designatedLamp.set(0);
@@ -883,17 +894,73 @@ D205MagTapeDrive.prototype.writeReadyTest = function writeReadyTest() {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.search = function search(laneNr, blockNr, complete, lampSet, testDisabled) {
+D205MagTapeDrive.prototype.search = function search(laneNr, targetBlock, complete, lampSet, testDisabled) {
     /* Initiates a search operation on the unit. If the drive is busy or not ready,
-    returns true.  Otherwise, delays for an appropriate amount of time depending
-    on how far up-tape the desired block is, and calls the "complete" function.
-    If the target block number is after the last block on the tape, the drive is
-    made not ready */
-    var delay;
-    var inches;
-    var mt = this;
+    returns true.  Otherwise, searches forward until past the target block, then
+    reverses direction and searches backward to the target block. Finally, calls
+    the "complete" function. The reason for going one block too far is that the
+    control unit had to read the block header to know where it was, so it had to
+    go past the header for the target block in order to find it. If the target
+    block number is after the last block on the tape, the drive is made not ready */
+    var delay = this.blockLength/this.tapeSpeed;
     var result = false;
-    var targetBlock;
+
+    function finishSearch() {
+        /* Wraps up the search and sets completion status */
+
+        this.busy = false;
+        this.designatedLamp.set(0);
+        if (this.blockNr == 0) {
+            this.setAtBOT(true);
+        } else if (this.blockNr > this.imgMaxBlocks) {
+            this.setTapeReady(false);
+            this.setAtEOT(true);
+        }
+        complete(this.blockNr == targetBlock);
+    }
+
+    function searchBackward() {
+        /* While the tape is beyond the target block, moves backward one block and
+        is called by moveTape to evaluate the new block position */
+
+        --this.blockNr;
+        this.showBlockNr();
+        if (this.atEOT) {
+            this.setAtEOT(false);
+        }
+
+        if (testDisabled()) {
+            finishSearch.call(this);
+        } else if (this.blockNr > targetBlock) {
+            this.moveTape(-this.blockLength, delay, searchBackward);
+        } else {
+            finishSearch.call(this);
+        }
+    }
+
+    function searchForward() {
+        /* Searches forward until the tape is beyond the target block, then
+        reverses direction and does a backward search */
+
+        ++this.blockNr;
+        this.showBlockNr();
+        if (this.atBOT) {
+            this.setAtBOT(false);
+        }
+
+        if (testDisabled()) {
+            finishSearch.call(this);
+        } else if (this.blockNr > this.imgMaxBlocks) {
+            finishSearch.call(this);
+        } else if (this.blockNr <= targetBlock) {
+            this.moveTape(this.blockLength, delay, searchForward);
+        } else {
+            // We have searched forward (or are already forward) of the target block.
+            // Now change direction and search backwards to the target.
+            lampSet(false);             // indicate backward motion
+            this.moveTape(-this.blockLength, this.searchTurnaroundTime, searchBackward);
+        }
+    }
 
     if (this.busy) {
         result = true;                  // report unit busy
@@ -903,56 +970,10 @@ D205MagTapeDrive.prototype.search = function search(laneNr, blockNr, complete, l
         this.busy = true;
         this.laneNr = laneNr & 0x01;    // TSU uses only low-order lane bit
         this.designatedLamp.set(1);
-        lampSet(true);                  // always start in the forward direction
-        if (blockNr >= this.blockNr) {
-            // Search forward on the tape
-            targetBlock = (blockNr < this.imgMaxBlocks ? blockNr : this.imgMaxBlocks);
-            inches = (targetBlock-this.blockNr+1)*this.blockLength;
-            delay = inches/this.tapeSpeed + this.startupTime;
-            if (this.atBOT && targetBlock > 0) {
-                this.setAtBOT(false);
-            }
-            this.moveTape(inches, delay, testDisabled, function searchForwardComplete() {
-                // Now back up to reposition the tape in front of the target block
-                lampSet(false);
-                mt.moveTape(-mt.blockLength, mt.searchTurnaroundTime, testDisabled, function repositionTapeComplete() {
-                    mt.busy = false;
-                    mt.blockNr = targetBlock;
-                    mt.designatedLamp.set(0);
-                    if (targetBlock == blockNr) {
-                        if (targetBlock == 0) {
-                            mt.setAtBOT(true);
-                        }
-                        complete(true);
-                    } else {
-                        mt.setTapeReady(false);
-                        mt.setAtEOT(true);
-                        complete(false);
-                    }
-                });
-            });
-        } else {
-            // Search backward on the tape, but first search forward one block
-            // so the control unit will learn it needs to search backward
-            delay = this.blockLength/this.tapeSpeed + this.startupTime;
-            this.moveTape(this.blockLength, delay, testDisabled, function searchBackwardInitiate() {
-                inches = (mt.blockNr+1-blockNr)*mt.blockLength;
-                delay = (inches/mt.tapeSpeed + mt.startupTime);
-                lampSet(false);         // indicate backward motion
-                if (mt.atEOT && blockNr < mt.imgMaxBlocks) {
-                    mt.setAtEOT(false);
-                }
-                mt.moveTape(-inches, delay, testDisabled, function searchBackwardComplete() {
-                    mt.busy = false;
-                    mt.blockNr = blockNr;
-                    mt.designatedLamp.set(0);
-                    if (blockNr == 0) {
-                        mt.setAtBOT(true);
-                    }
-                    complete(true);
-                });
-            });
-        }
+
+        // Begin by searching forward until we are past the target block
+        lampSet(true);                  // indicate forward motion
+        this.moveTape(this.blockLength, delay+this.startupTime, searchForward);
     }
     //console.log(this.mnemonic + " search:           result=" + result.toString());
 

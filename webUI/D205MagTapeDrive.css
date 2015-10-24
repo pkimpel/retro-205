@@ -157,6 +157,10 @@ SELECT {
     top:                114px;
     right:              8px}
 
+#MTBlockNrLight {
+    top:                124px;
+    right:              8px}
+
 #MTStatusDiv {
     position:           absolute;
     top:                128px;

@@ -26,7 +26,7 @@ D205Util.xlateASCIIToAlgolGlyph = {
         "%": "(",
         "&": "+",
         "<": ")",
-        "\xA4": ")"};   // the lozenge (¤)
+        "\u00A4": ")"};         // the lozenge (¤)
 
 D205Util.xlateAlgolToASCIIRex =         // For translation of Algol-ASCII glyphs to 205-ASCII
         /[^\r\n\xA0 #$%&*,-./0-9<@A-Za-z\xA4]/g;
@@ -34,7 +34,7 @@ D205Util.xlateAlgolToASCIIGlyph = {
         "=": "#",
         "(": "%",
         "+": "&",
-        ")": "\xA4"};   // the lozenge (¤)
+        ")": "\u00A4"};         // the lozenge (¤)
 
 /**************************************/
 D205Util.$$ = function $$(e) {
