@@ -1,0 +1,633 @@
+                ALGOL 58Compiler Overlay read into location 2200 after FINISH$ is detected.
+
+                      19                 59
+
+             200       0            7342180  2200        Restore the 4000 loop lost in the read
+                       1             664008  2201        Check if things balance
+                       2             764007  2202
+                       3             764009  2203
+                       4             764006  2204
+                       5             757214  2205
+                       6              41000  2206        Not in balance, report a .1000 error
+                       7             647217  2207        We can generate more code
+                       8             124014  2208
+                       9             640087  2209        Pick up the tape search command
+                      10             747215  2210        bump it by the 22 blocks just read
+                      11             126000  2211        save it
+                      12             647216  2212        pick up the return CUB 2218
+                      13             300305  2213        go to 305
+                      14                 29  2214          Used in the balance eqation
+                      15                 22  2215          Block length of this Overlay
+                      16             302218  2216
+                      17             400969  2217
+                      18             674001  2218
+                      19             761840  2219
+
+             201       0             737227  2220
+                       1             280986  2221
+                       2            7643981  2222
+                       3             757229  2223
+                       4              47227  2224
+                       5             727230  2225
+                       6             302232  2226
+                       7             727231  2227
+                       8             302232  2228
+                       9              80000  2229
+                      10                 90  2230
+                      11                 30  2231
+                      12             640304  2232
+                      13             754000  2233
+                      14             330000  2234
+                      15             140007  2235
+                      16             740304  2236
+                      17             747240  2237
+                      18             122505  2238
+                      19             302249  2239
+
+             202       0             639999  2240
+                       1             644014  2241Return from writing word to program output
+                       2             757258  2242        Did we just write 7011?
+                       3              47246  2243        Not done, do more
+                       4             647259  2244        We are done, now do subroutines???
+                       5             302260  2245
+                       6             725003  2246
+                       7             227249  2247
+                       8             302277  2248
+                       9             110000  2249
+                      10             125003  2250
+                      11       1     642398  2251        Pick up next prep address
+                      12             124014  2252
+                      13       1     642489  2253        Pick up next prep word
+                      14             124013  2254
+                      15             647257  2255
+                      16             303957  2256        Go write them out!
+                      17             302241  2257
+                      18               7011  2258
+                      19             302246  2259        a different return to go in 3971 (write instruction)
+
+             203       0             123971  2260
+                       1             724005  2261
+                       2             227264  2262
+                       3             203971  2263
+                       4             647274  2264
+                       5       1     120049  2265
+                       6             647275  2266
+                       7       1     120050  2267
+                       8             110000  2268
+                       9             747276  2269
+                      10             380092  2270
+                      11             320000  2271
+                      12             320000  2272
+                      13             207264  2273
+                      14               7012  2274
+                      15                 19  2275
+                      16         9999999983  2276
+                      17             727286  2277
+                      18             320000  2278
+                      19             110000  2279
+
+             204       0             122286  2280
+                       1             747285  2281
+                       2             382370  2282
+                       3             646000  2283
+                       4             302287  2284
+                       5         9999999992  2285
+                       6                  0  2286
+                       7             127299  2287
+                       8       1     742306  2288
+                       9             126000  2289
+                      10             637306  2290
+                      11             130008  2291
+                      12       1     742306  2292
+                      13             140008  2293
+                      14             127300  2294
+                      15       1     653032  2295
+                      16             737306  2296
+                      17             382277  2297
+                      18            1242180  2298
+                      19             420223  2299
+
+             205       0             400400  2300
+                       1             287300  2301
+                       2             342180  2302
+                       3       1     643032  2303
+                       4             125004  2304
+                       5             302314  2305
+                       6           10400400  2306
+                       7                  2  2307
+                       8                  9  2308
+                       9                  8  2309
+                      10                 18  2310
+                      11                  7  2311        Blocks to read for SIN
+                      12                  4  2312
+                      13                  4  2313
+                      14             125005  2314        Read additional blocks for subroutines
+                      15             727321  2315        then go write them out
+                      16       1     640400  2316        2314 - 2340 - 2360 - 3957
+                      17             207321  2317
+                      18             725006  2318
+                      19             645000  2319
+
+             206       0             140001  2320
+                       1             320000  2321
+                       2             125000  2322
+                       3       1     640400  2323
+                       4             124013  2324
+                       5             130010  2325
+                       6              10000  2326
+                       7             747333  2327
+                       8             287330  2328
+                       9             302340  2329
+                      10              25001  2330
+                      11             140010  2331
+                      12             302334  2332
+                      13         9999999998  2333
+                      14             765004  2334
+                      15             130010  2335
+                      16             645001  2336
+                      17              10009  2337
+                      18             140010  2338
+                      19             124013  2339
+
+             207       0             645000  2340
+                       1             130006  2341
+                       2             637351  2342
+                       3             125001  2343
+                       4             157352  2344
+                       5             147351  2345
+                       6             287348  2346
+                       7             302353  2347
+                       8             735000  2348
+                       9             382277  2349
+                      10             302316  2350
+                      11         1000001000  2351
+                      12             302360  2352
+                      13             644013  2353
+                      14             637369  2354
+                      15             745001  2355
+                      16             130010  2356
+                      17             644013  2357
+                      18             140010  2358
+                      19             124013  2359
+
+             208       0              11000  2360
+                       1             125006  2361
+                       2             665005  2362
+                       3             124014  2363
+                       4             744000  2364
+                       5             125005  2365
+                       6             647368  2366
+                       7             303957  2367
+                       8             302318  2368
+                       9         1111110011  2369
+                      10             647376  2370
+                      11             124014  2371
+                      12             647377  2372
+                      13             124013  2373
+                      14             647378  2374
+                      15             303957  2375
+                      16               7011  2376
+                      17            7300071  2377
+                      18             302379  2378
+                      19             647396  2379
+
+             209       0             302260  2380
+                       1             664001  2381Come here for final wrap-up
+                       2              38510  2382        Print availible remaining memory on Flexowriter
+                       3             671840  2383
+                       4              38010  2384
+                       5             640092  2385
+                       6              87570  2386        Halt with "domino 8"
+                       7             643955  2387
+                       8             127392  2388
+                       9             637397  2389
+                      10             747393  2390
+                      11             127393  2391
+                      12             420000  2392
+                      13          100400000  2393
+                      14             287393  2394
+                      15             300000  2395
+                      16             302381  2396
+                      17           10000000  2397
+                      18               7011  2398        address of word added at end of program         92   7011  0 0001 20 5000
+                      19               5019  2399        address of word added at end of program         91   5019  0 1111 11 0000
+
+             210       0               5018  2400        address of word added at end of program         90   5018  0 0010 00 0001
+                       1               5017  2401        address of word added at end of program         89   5017  0 0000 20 5009
+                       2               5016  2402        address of word added at end of program         88   5016  1 0000 12 0001
+                       3               5015  2403        address of word added at end of program         87   5015  0 0000 74 6001
+                       4               5014  2404        address of word added at end of program         86   5014  0 0000 63 5019
+                       5               5013  2405        address of word added at end of program         85   5013  0 0000 12 6000
+                       6               5012  2406        address of word added at end of program         84   5012  1 0000 64 0001
+                       7               5011  2407        address of word added at end of program         83   5011  0 0000 20 5000
+                       8               5010  2408        address of word added at end of program         82   5010  0 0000 22 5012
+                       9               5009  2409        address of word added at end of program         81   5009  0 0000 72 6000
+                      10               5008  2410        address of word added at end of program         80   5008  0 0000 12 6001
+                      11               5007  2411        address of word added at end of program         79   5007  0 0000 13 0006
+                      12               5006  2412        address of word added at end of program         78   5006  0 0000 14 0002
+                      13               5005  2413        address of word added at end of program         77   5005  0 0000 12 6000
+                      14               5004  2414        address of word added at end of program         76   5004  0 9990 64 3999
+                      15               5003  2415        address of word added at end of program         75   5003  0 0000 12 5004
+                      16               5002  2416        address of word added at end of program         74   5002  0 0000 28 7017
+                      17               5001  2417        address of word added at end of program         73   5001  0 0000 74 5018
+                      18               5000  2418        address of word added at end of program         72   5000  0 0000 64 5004
+                      19                 69  2419        address of word added at end of program         71   0069  1 0003 30 0000
+
+             211       0                 68  2420        address of word added at end of program         70   0068  0 0000 03 8010
+                       1                 67  2421        address of word added at end of program         69   0067  0 0000 08 7270
+                       2                 66  2422        address of word added at end of program         68   0066  0 0000 72 4002
+                       3                 65  2423        address of word added at end of program         67   0065  0 0000 03 8010
+                       4                 64  2424        address of word added at end of program         66   0064  0 0000 64 4001
+                       5                 63  2425        address of word added at end of program         65   0063  0 0000 03 5810
+                       6                 62  2426        address of word added at end of program         64   0062  0 0000 08 7070
+                       7                 61  2427        address of word added at end of program         63   0061  0 0000 11 0000
+                       8                 60  2428        address of word added at end of program         62   0060  1 0000 00 0000
+                       9               7011  2429        address of word added at end of program         61   7011  0 0001 20 7013
+                      10               6008  2430        address of word added at end of program         60   6008  0 3333 33 3333
+                      11               6007  2431        address of word added at end of program         59   6007  0 3333 33 3333
+                      12               6006  2432        address of word added at end of program         58   6006  0 3333 33 3333
+                      13               6005  2433        address of word added at end of program         57   6005  0 3333 33 3333
+                      14               6004  2434        address of word added at end of program         56   6004  0 3333 33 3333
+                      15               6003  2435        address of word added at end of program         55   6003  0 3333 33 3333
+                      16               6002  2436        address of word added at end of program         54   6002  0 3333 33 3333
+                      17               6001  2437        address of word added at end of program         53   6001  0 3333 33 3333
+                      18               6000  2438        address of word added at end of program         52   6000  0 3333 33 3333
+                      19               5999  2439        address of word added at end of program         51   5999  0 3333 33 3333
+
+             212       0               5998  2440        address of word added at end of program         50   5998  0 3333 33 3333
+                       1               5997  2441        address of word added at end of program         49   5997  0 3333 33 3333
+                       2               5996  2442        address of word added at end of program         48   5996  0 3333 33 3333
+                       3               5995  2443        address of word added at end of program         47   5995  0 3301 11 1111
+                       4               5994  2444        address of word added at end of program         46   5994  1 1101 11 1111
+                       5               5993  2445        address of word added at end of program         45   5993  1 1101 11 1111
+                       6               5992  2446        address of word added at end of program         44   5992  1 1101 11 1111
+                       7               5991  2447        address of word added at end of program         43   5991  1 1101 11 1111
+                       8               5990  2448        address of word added at end of program         42   5990  1 1101 11 1111
+                       9               5989  2449        address of word added at end of program         41   5989  1 1101 11 1111
+                      10               5988  2450        address of word added at end of program         40   5988  1 1101 11 1111
+                      11               5987  2451        address of word added at end of program         39   5987  1 1101 11 1111
+                      12               5986  2452        address of word added at end of program         38   5986  1 1101 11 1111
+                      13               5985  2453        address of word added at end of program         37   5985  1 1101 11 1111
+                      14               5984  2454        address of word added at end of program         36   5984  1 1101 11 1111
+                      15               5983  2455        address of word added at end of program         35   5983  1 1101 11 1111
+                      16               5982  2456        address of word added at end of program         34   5982  1 1101 11 1111
+                      17               5981  2457        address of word added at end of program         33   5981  1 1101 11 1111
+                      18               5980  2458        address of word added at end of program         32   5980  1 1133 33 3333
+                      19               7011  2459        address of word added at end of program         31   7011  0 0001 20 7015
+
+             213       0               6008  2460        address of word added at end of program         30   6008  1 1131 11 1111
+                       1               6007  2461        address of word added at end of program         29   6007  1 1131 11 1111
+                       2               6006  2462        address of word added at end of program         28   6006  1 1131 11 1111
+                       3               6005  2463        address of word added at end of program         27   6005  1 1131 11 1111
+                       4               6004  2464        address of word added at end of program         26   6004  1 1131 11 1111
+                       5               6003  2465        address of word added at end of program         25   6003  1 1131 11 1111
+                       6               6002  2466        address of word added at end of program         24   6002  1 1131 11 1111
+                       7               6001  2467        address of word added at end of program         23   6001  1 1131 11 1111
+                       8               6000  2468        address of word added at end of program         22   6000  1 1131 11 1111
+                       9               5999  2469        address of word added at end of program         21   5999  1 1131 11 1111
+                      10               5998  2470        address of word added at end of program         20   5998  1 1131 11 1111
+                      11               5997  2471        address of word added at end of program         19   5997  1 1131 11 1111
+                      12               5996  2472        address of word added at end of program         18   5996  1 1131 11 1111
+                      13               5995  2473        address of word added at end of program         17   5995  1 1131 11 1111
+                      14               5994  2474        address of word added at end of program         16   5994  1 1131 11 1111
+                      15               5993  2475        address of word added at end of program         15   5993  1 1131 11 1111
+                      16               5992  2476        address of word added at end of program         14   5992  1 1131 11 1111
+                      17               5991  2477        address of word added at end of program         13   5991  1 1131 11 1111
+                      18               5990  2478        address of word added at end of program         12   5990  1 1131 11 1111
+                      19               5989  2479        address of word added at end of program         11   5989  1 1131 11 1111
+
+             214       0               5988  2480        address of word added at end of program         10   5988  1 1131 11 1111
+                       1               5987  2481        address of word added at end of program          9   5987  1 1131 11 1111
+                       2               5986  2482        address of word added at end of program          8   5986  1 1131 11 1111
+                       3               5985  2483        address of word added at end of program          7   5985  1 1131 11 1111
+                       4               5984  2484        address of word added at end of program          6   5984  1 1100 00 0000
+                       5               5983  2485        address of word added at end of program          5   5983  0 0000 00 0000
+                       6               5982  2486        address of word added at end of program          4   5982  0 0000 00 0000
+                       7               5981  2487        address of word added at end of program          3   5981  0 0000 00 0000
+                       8               5980  2488        address of word added at end of program          2   5980  0 0000 00 0000
+                       9            1205000  2489        a word added at end of program                  92   7011  0 0001 20 5000
+                      10         1111110000  2490        a word added at end of program                  91   5019  0 1111 11 0000
+                      11           10000001  2491        a word added at end of program                  90   5018  0 0010 00 0001
+                      12             205009  2492        a word added at end of program                  89   5017  0 0000 20 5009
+                      13       1     120001  2493        a word added at end of program                  88   5016  1 0000 12 0001
+                      14             746001  2494        a word added at end of program                  87   5015  0 0000 74 6001
+                      15             635019  2495        a word added at end of program                  86   5014  0 0000 63 5019
+                      16             126000  2496        a word added at end of program                  85   5013  0 0000 12 6000
+                      17       1     640001  2497        a word added at end of program                  84   5012  1 0000 64 0001
+                      18             205000  2498        a word added at end of program                  83   5011  0 0000 20 5000
+                      19             225012  2499        a word added at end of program                  82   5010  0 0000 22 5012
+
+             215       0             726000  2500        a word added at end of program                  81   5009  0 0000 72 6000
+                       1             126001  2501        a word added at end of program                  80   5008  0 0000 12 6001
+                       2             130006  2502        a word added at end of program                  79   5007  0 0000 13 0006
+                       3             140002  2503        a word added at end of program                  78   5006  0 0000 14 0002
+                       4             126000  2504        a word added at end of program                  77   5005  0 0000 12 6000
+                       5             640000  2505        a word added at end of program                  76   5004  0 9990 64 3999
+                       6             125004  2506        a word added at end of program                  75   5003  0 0000 12 5004
+                       7             287017  2507        a word added at end of program                  74   5002  0 0000 28 7017
+                       8             745018  2508        a word added at end of program                  73   5001  0 0000 74 5018
+                       9             645004  2509        a word added at end of program                  72   5000  0 0000 64 5004
+                      10       1    3300000  2510        a word added at end of program                  71   0069  1 0003 30 0000
+                      11              38010  2511        a word added at end of program                  70   0068  0 0000 03 8010
+                      12              87270  2512        a word added at end of program                  69   0067  0 0000 08 7270
+                      13             724002  2513        a word added at end of program                  68   0066  0 0000 72 4002
+                      14              38010  2514        a word added at end of program                  67   0065  0 0000 03 8010
+                      15             644001  2515        a word added at end of program                  66   0064  0 0000 64 4001
+                      16              35810  2516        a word added at end of program                  65   0063  0 0000 03 5810
+                      17              87070  2517        a word added at end of program                  64   0062  0 0000 08 7070
+                      18             110000  2518        a word added at end of program                  63   0061  0 0000 11 0000
+                      19       1          0  2519        a word added at end of program                  62   0060  1 0000 00 0000
+
+             216       0            1207013  2520        a word added at end of program                  61   7011  0 0001 20 7013
+                       1         3333333333  2521        a word added at end of program                  60   6008  0 3333 33 3333
+                       2         3333333333  2522        a word added at end of program                  59   6007  0 3333 33 3333
+                       3         3333333333  2523        a word added at end of program                  58   6006  0 3333 33 3333
+                       4         3333333333  2524        a word added at end of program                  57   6005  0 3333 33 3333
+                       5         3333333333  2525        a word added at end of program                  56   6004  0 3333 33 3333
+                       6         3333333333  2526        a word added at end of program                  55   6003  0 3333 33 3333
+                       7         3333333333  2527        a word added at end of program                  54   6002  0 3333 33 3333
+                       8         3333333333  2528        a word added at end of program                  53   6001  0 3333 33 3333
+                       9         3333333333  2529        a word added at end of program                  52   6000  0 3333 33 3333
+                      10         3333333333  2530        a word added at end of program                  51   5999  0 3333 33 3333
+                      11         3333333333  2531        a word added at end of program                  50   5998  0 3333 33 3333
+                      12         3333333333  2532        a word added at end of program                  49   5997  0 3333 33 3333
+                      13         3333333333  2533        a word added at end of program                  48   5996  0 3333 33 3333
+                      14         3301111111  2534        a word added at end of program                  47   5995  0 3301 11 1111
+                      15       1 1101111111  2535        a word added at end of program                  46   5994  1 1101 11 1111
+                      16       1 1101111111  2536        a word added at end of program                  45   5993  1 1101 11 1111
+                      17       1 1101111111  2537        a word added at end of program                  44   5992  1 1101 11 1111
+                      18       1 1101111111  2538        a word added at end of program                  43   5991  1 1101 11 1111
+                      19       1 1101111111  2539        a word added at end of program                  42   5990  1 1101 11 1111
+
+             217       0       1 1101111111  2540        a word added at end of program                  41   5989  1 1101 11 1111
+                       1       1 1101111111  2541        a word added at end of program                  40   5988  1 1101 11 1111
+                       2       1 1101111111  2542        a word added at end of program                  39   5987  1 1101 11 1111
+                       3       1 1101111111  2543        a word added at end of program                  38   5986  1 1101 11 1111
+                       4       1 1101111111  2544        a word added at end of program                  37   5985  1 1101 11 1111
+                       5       1 1101111111  2545        a word added at end of program                  36   5984  1 1101 11 1111
+                       6       1 1101111111  2546        a word added at end of program                  35   5983  1 1101 11 1111
+                       7       1 1101111111  2547        a word added at end of program                  34   5982  1 1101 11 1111
+                       8       1 1101111111  2548        a word added at end of program                  33   5981  1 1101 11 1111
+                       9       1 1133333333  2549        a word added at end of program                  32   5980  1 1133 33 3333
+                      10            1207015  2550        a word added at end of program                  31   7011  0 0001 20 7015
+                      11       1 1131111111  2551        a word added at end of program                  30   6008  1 1131 11 1111
+                      12       1 1131111111  2552        a word added at end of program                  29   6007  1 1131 11 1111
+                      13       1 1131111111  2553        a word added at end of program                  28   6006  1 1131 11 1111
+                      14       1 1131111111  2554        a word added at end of program                  27   6005  1 1131 11 1111
+                      15       1 1131111111  2555        a word added at end of program                  26   6004  1 1131 11 1111
+                      16       1 1131111111  2556        a word added at end of program                  25   6003  1 1131 11 1111
+                      17       1 1131111111  2557        a word added at end of program                  24   6002  1 1131 11 1111
+                      18       1 1131111111  2558        a word added at end of program                  23   6001  1 1131 11 1111
+                      19       1 1131111111  2559        a word added at end of program                  22   6000  1 1131 11 1111
+
+             218       0       1 1131111111  2560        a word added at end of program                  21   5999  1 1131 11 1111
+                       1       1 1131111111  2561        a word added at end of program                  20   5998  1 1131 11 1111
+                       2       1 1131111111  2562        a word added at end of program                  19   5997  1 1131 11 1111
+                       3       1 1131111111  2563        a word added at end of program                  18   5996  1 1131 11 1111
+                       4       1 1131111111  2564        a word added at end of program                  17   5995  1 1131 11 1111
+                       5       1 1131111111  2565        a word added at end of program                  16   5994  1 1131 11 1111
+                       6       1 1131111111  2566        a word added at end of program                  15   5993  1 1131 11 1111
+                       7       1 1131111111  2567        a word added at end of program                  14   5992  1 1131 11 1111
+                       8       1 1131111111  2568        a word added at end of program                  13   5991  1 1131 11 1111
+                       9       1 1131111111  2569        a word added at end of program                  12   5990  1 1131 11 1111
+                      10       1 1131111111  2570        a word added at end of program                  11   5989  1 1131 11 1111
+                      11       1 1131111111  2571        a word added at end of program                  10   5988  1 1131 11 1111
+                      12       1 1131111111  2572        a word added at end of program                   9   5987  1 1131 11 1111
+                      13       1 1131111111  2573        a word added at end of program                   8   5986  1 1131 11 1111
+                      14       1 1131111111  2574        a word added at end of program                   7   5985  1 1131 11 1111
+                      15       1 1100000000  2575        a word added at end of program                   6   5984  1 1100 00 0000
+                      16                  0  2576        a word added at end of program                   5   5983  0 0000 00 0000
+                      17                  0  2577        a word added at end of program                   4   5982  0 0000 00 0000
+                      18                  0  2578        a word added at end of program                   3   5981  0 0000 00 0000
+                      19                  0  2579        a word added at end of program                   2   5980  0 0000 00 0000
+
+             219       0             727590  2580
+                       1          810446013  2581
+                       2             646019  2582
+                       3       1     120400  2583
+                       4             320000  2584
+                       5             646018  2585
+                       6       1     120400  2586
+                       7             320000  2587
+                       8             646017  2588
+                       9       1     120400  2589
+                      10             320000  2590
+                      11             646016  2591
+                      12       1     120400  2592
+                      13             320000  2593
+                      14             646015  2594
+                      15       1     120400  2595
+                      16             320000  2596
+                      17             302598  2597
+                      18             646014  2598
+                      19       1     120400  2599
+
+             220       0             320000  2600
+                       1             646013  2601
+                       2       1     120400  2602
+                       3             320000  2603
+                       4             646019  2604
+                       5             737599  2605
+                       6             382581  2606
+                       7             110000  2607
+                       8             747613  2608
+                       9             130010  2609
+                      10             617614  2610
+                      11             726020  2611
+                      12             302915  2612
+                      13                 19  2613
+                      14                 20  2614
+                      15       1     121706  2615
+                      16             640087  2616
+                      17             637624  2617
+                      18             130008  2618
+                      19       1     741706  2619
+
+             221       0             140008  2620
+                       1             127622  2621
+                       2             500400  2622
+                       3             302580  2623
+                       4           10190400  2624
+                       5             640087  2625
+                       6             127629  2626
+                       7             637634  2627
+                       8             127630  2628
+                       9             420201  2629
+                      10             502200  2630
+                      11             287630  2631
+                      12              82222  2632
+                      13             302200  2633
+                      14         2210192200  2634
+                      15                  0  2635
+                      16                  0  2636
+                      17                  0  2637
+                      18                  0  2638
+                      19                  0  2639
+
+             222       0             779100  2640
+                       1             124001  2641
+                       2             110013  2642
+                       3             124002  2643
+                       4             674001  2644
+                       5       2     810014  2645
+                       6       2     740014  2646
+                       7          700009101  2647
+                       8             130008  2648
+                       9       2      40012  2649
+                      10             130002  2650
+                      11             644001  2651
+                      12             140010  2652
+                      13       1    3300000  2653
+                      14         7000709102  2654
+                      15        20000720001  2655
+                      16             300061  2656
+                      17         5810000000  2657
+                      18             330060  2658
+                      19       2     150024  2659
+
+             223       0             130010  2660
+                       1           70009103  2661
+                       2              24001  2662
+                       3             170000  2663
+                       4       2     740015  2664
+                       5             130002  2665
+                       6             644001  2666
+                       7             140010  2667
+                       8       1  900000104  2668
+                       9       1    3300000  2669
+                      10             170000  2670
+                      11       2     740015  2671
+                      12             130002  2672
+                      13             644001  2673
+                      14             140010  2674
+                      15             744000  2675
+                      16             124014  2676
+                      17             647439  2677
+                      18             303957  2678
+                      19             300421  2679
+
+             224       0            7709200  2680
+                       1             124001  2681
+                       2       2     110051  2682
+                       3             124005  2683
+                       4       2     640001  2684
+                       5       2     200007  2685
+                       6              24001  2686
+                       7            7779201  2687
+                       8             110005  2688
+                       9              24002  2689
+                      10             644001  2690
+                      11       2     720006  2691
+                      12       2     740018  2692
+                      13       2     280013  2693
+                      14          770009202  2694
+                      15             300061  2695
+                      16       2     630016  2696
+                      17       2     800017  2697
+                      18       2     300019  2698
+                      19         4811111113  2699
+
+             225       0         4831622777  2700
+                       1           70009203  2701
+                       2         9999999998  2702
+                       3             124003  2703
+                       4       2     810030  2704
+                       5             834003  2705
+                       6             124003  2706
+                       7             824003  2707
+                       8          707709204  2708
+                       9             124004  2709
+                      10       2     640037  2710
+                      11             824004  2711
+                      12       3     800031  2712
+                      13       2     220026  2713
+                      14       2     300038  2714
+                      15               9205  2715
+                      16         4863245553  2716
+                      17         5120000002  2717
+                      18         5066666171  2718
+                      19         4040019303  2719
+
+             226       0         5028243357  2720
+                       1         5025034109  2721
+                       2               9206  2722
+                       3         4957228327  2723
+                       4         5041059704  2724
+                       5             824003  2725
+                       6             124004  2726
+                       7             644001  2727
+                       8             130002  2728
+                       9         7770009807  2729
+                      10       2     630048  2730
+                      11       2     810049  2731
+                      12       2     820050  2732
+                      13             804004  2733
+                      14             724002  2734
+                      15       1   33000000  2735
+                      16               9208  2736
+                      17         4811000000  2737
+                      18         4850500000  2738
+                      19         5523025851  2739
+
+             227       0             824000  2740
+                       1             724003  2741
+                       2             124001  2742
+                       3         7070009209  2743
+                       4       2     820067  2744
+                       5             124000  2745
+                       6       2     810058  2746
+                       7             130010  2747
+                       8         5820060051  2748
+                       9             140018  2749
+                      10           70009210  2750
+                      11             124003  2751
+                      12             140012  2752
+                      13       2     800058  2753
+                      14             814000  2754
+                      15             124005  2755
+                      16             824005  2756
+                      17            7709211  2757
+                      18       2     300068  2758
+                      19       1 5043429448  2759
+
+             228       0             124004  2760
+                       1       2     820081  2761
+                       2       2     800082  2762
+                       3             824004  2763
+                       4         7070009212  2764
+                       5       2     800083  2765
+                       6             824004  2766
+                       7       2     800084  2767
+                       8             824005  2768
+                       9             124005  2769
+                      10             664000  2770
+                      11         7000009213  2771
+                      12       2     740085  2772
+                      13       2     380105  2773
+                      14       2     300086  2774
+                      15         4617158520  2775
+                      16         4848932819  2776
+                      17         5016920387  2777
+                      18           70709214  2778
+                      19         5099571148  2779
+
+             229       0         4752000000  2780
+                       1       2     640101  2781
+                       2             824004  2782
+                       3       2     800102  2783
+                       4             824004  2784
+                       5         7070079215  2785
+                       6       2     800103  2786
+                       7             824004  2787
+                       8       2     800104  2788
+                       9             124004  2789
+                      10             814005  2790
+                      11       2     120086  2791
+                      12           70009216  2792
+                      13             654005  2793
+                      14             814004  2794
+                      15       2     830086  2795
+                      16             824003  2796
+                      17       1    3300000  2797
+                      18         4741730363  2798
+                      19             709217  2799

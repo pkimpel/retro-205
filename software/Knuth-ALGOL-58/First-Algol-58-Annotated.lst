@@ -1,0 +1,63 @@
+X=40$
+
+Y=50$
+
+Z=60$
+
+COMMENT HERE IS SOME COMPLICATED STUFF$
+
+X1=X + Y + 3.14.X + 7.98/Z + (X-Y).(X+Z)$
+                    0071  0 0000 64 7086  CAD  7086  load A from address 86
+                    0072  0 0004 12 6019  STA  6019  store A to address 6019 (X)
+                    0073  0 0000 64 7087  CAD  7087  load A from address 87
+                    0074  0 0004 12 6018  STA  6018  store A to address 6018 (Y)
+                    0075  0 0000 64 7088  CAD  7088  load A from address 88
+                    0076  0 0004 12 6017  STA  6017  store A to address 6017 (Z)
+                    0077  0 0000 64 6019  CAD  6019  load A from address 6019 (X)
+                    0078  0 0000 82 7089  FMU  7089  floating multiply from address 89
+                    0079  0 0000 02 5019  STC  5019  store and clear A to 5019 (a temp cell)
+                    0080  0 0000 64 7090  CAD  7090  load A from address 90
+                    0081  0 0000 33 0010  CLR        clear R (extension to A)
+                    0082  0 0000 83 6017  FDV  6017  floating divide from address 6017 (Z)
+                    0083  0 0000 02 5018  STC  5018  store and clear A to 5018 (a temp cell)
+                    0084  0 0000 65 6018  CSU  6018  load negative A from address 6018 (Y)
+                    0085  0 0001 30 0091  CUB  0091  block and branch to address 91
+                    0086  0 5240 00 0000             floating literal 40.0
+                    0087  0 5250 00 0000             floating literal 50.0
+                    0088  0 5260 00 0000             floating literal 60.0
+                    0089  0 5131 40 0000             floating literal 3.14
+                    0090  0 5179 80 0000             floating literal 7.98
+
+X2=X-Y$
+
+X3=X.Y$
+
+X4=X/Z$
+
+STOP$
+                    0091  0 0000 80 6019  FAD  6019  floating add address 6019 (X)
+                    0092  0 0000 02 5017  STC  5017  store and clear A to address 5017 (temp)
+                    0093  0 0000 64 6017  CAD  6017  load A from 6017 (Z)
+                    0094  0 0000 80 6019  FAD  6019  floating add from 6019 (X)
+                    0095  0 0000 82 5017  FMU  5017  floating multiply from 5017 (temp: X-Y)
+                    0096  0 0000 80 5018  FAD  5018  floating add from 5018 (temp: 7.98/Z)
+                    0097  0 0000 80 5019  FAD  5019  floating add from 5019 (temp: X*3.14)
+                    0098  0 0000 80 6018  FAD  6018  floating add from 6018 (Y)
+                    0099  0 0000 80 6019  FAD  6019  floating add from 6019 (X)
+                    0100  0 0004 12 6016  STA  6016  store A to 6016 (X1)
+                    0101  0 0000 65 6018  CSU  6018  load negative A from 6018 (Y)
+                    0102  0 0000 80 6019  FAD  6019  floating add from 6019 (X)
+                    0103  0 0004 12 6015  STA  6015  store A to 6015 (X2)
+                    0104  0 0000 64 6018  CAD  6018  load A from 6018 (Y)
+                    0105  0 0000 82 6019  FMU  6019  floating multiply from 6019 (X)
+                    0106  0 0004 12 6014  STA  6014  store A to 6014 (X3)
+                    0107  0 0000 64 6019  CAD  6019  load A from 6019 (X)
+                    0108  0 0000 33 0010  CLR        clear R (extension to A)
+                    0109  0 0000 83 6017  FDV  6017  floating divide from 6017 (Z)
+                    0110  0 0001 30 0111  CUB  0111  block and branch to address 111
+
+FINISH$
+                    0111  0 0004 12 6013  STA  6013  store A to 6013 (X4)
+                    0112  0 0000 08 0137  HLT  0137  halt
+                    0113  0 0001 30 0114  CUB  0114  block and branch to 114 (?)
+

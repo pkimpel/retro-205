@@ -12,19 +12,22 @@ Option Explicit
 '-----------------------------------------------------------------------
 ' VBScript to read a text file containing one decimal word per line, format the
 ' line in the canonical 1-4-3-4 object code notation, and do a very simple-minded
-' disassembly of each word.
+' disassembly of each word in MEASY listing format.
 ' Uses Scripting Runtime FileSystemObject.
 ' Parameters:
 '   Name of assembler output list file (required).
 '   Name of resulting zero-suppressed file (optional - by default will have
-'       name of output list file with "-ZS.lst" concatenated.
+'       name of output list file with "-DISASM.measy" concatenated.
 '-----------------------------------------------------------------------
 ' Modification Log.
 ' 2015-07-11  P.Kimpel
 '   Original version, cloned from retro-205/software/EASY-MEASY/MEASY-ListingZeroSuppress.wsf.
+' 2015-08-26  P.Kimpel
+'   Implement MEASY output format.
 '-----------------------------------------------------------------------
 
-Const defaultSuffix = "-DISASM.txt"
+Const defaultSuffix = "-DISASM.measy"
+Const startAddr = 2200
 
 Dim args
 Dim codeDict
@@ -53,26 +56,69 @@ Function Pic9n(byVal v, byVal d)
 End Function
 
 '---------------------------------------
+Function PicZn(byVal v, byVal d)
+  'Expands or truncates the value "v" to a length of "d", right-justified
+  'over spaces.
+  Dim length
+  Dim s
+  
+  s = Trim(CStr(v))
+  length = Len(s)
+  If length > d Then
+    PicZn = Right(s, d)
+  ElseIf length < d Then
+    PicZn = Space(d-length) & s
+  Else
+    PicZn = s
+  End If
+End Function
+
+'---------------------------------------
 Sub DisassembleCode
   'Creates the disassembled text file.
+  Dim addr
+  Dim ctl
+  Dim opcode
+  Dim operand
+  Dim sign
   Dim text
-  Dim val
   Dim word
   Dim wordLen
   Dim x
   
+  addr = startAddr
+  
   Do While Not codeFile.AtEndOfStream
     word = codeFile.ReadLine
     word = Pic9n(word, 11)
-    text = Mid(word, 1, 1) & " " & Mid(word, 2, 4) & " " & Mid(word, 6, 2) & " " & Mid(word, 8, 4)
-    val = Mid(word, 6, 2)
-    If codeDict.Exists(val) Then
-      text = text & Space(24) & codeDict(val)
+    sign = Mid(word, 1, 1)
+    ctl = Mid(word, 2, 4)
+    opcode = Mid(word, 6, 2)
+    operand = Mid(word, 8, 4)
+    text = Space(8) & PicZn(addr, 4) & " " & _
+           sign & " " & ctl & " " & opcode & " " & operand & Space(14)
+    If sign = "0" Then       
+      text = text & " "
     Else
-      text = text & Space(28)
+      text = text & sign
     End If
     
-    text = text & Space(2) & Mid(word, 8, 4)
+    If ctl = "0000" Then
+      text = text & "    "
+    Else
+      text = text & ctl
+    End If
+           
+    If codeDict.Exists(opcode) Then
+      text = text & Space(7) & codeDict(opcode) & Space(2) & operand
+      If operand > "3999" And operand < "8000" Then
+        text = text & Space(5) & Mid(operand, 1, 1)
+      End If
+    Else
+      text = text & opcode & operand
+    End If
+    
+    addr = addr+1
 
     disFile.WriteLine text
   Loop

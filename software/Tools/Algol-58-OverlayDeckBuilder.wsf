@@ -1,0 +1,143 @@
+<package>
+<job id="Algol-58-OverlayDeckBuilder">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 Algol-58-OverlayDeckBuilder.wsf
+' Copyright (c) 2015, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to generate a 205 card-load deck from a one-word-per-line file.
+' The purpose of this program is to create a card-load deck from the tape
+' image of the subroutine library section of Tom Sawyer's transcription of
+' the Burroughs Algebraic Compiler tape.
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of one-word-per-line file (required).
+'   Name of resulting load-deck file (optional - by default will have
+'       name of the input file with "-Load.card" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-08-24  P.Kimpel
+'   Original version, cloned from software/Tools/EASY-LoadDeckBuilder.wsf
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-Load.card"
+Const startAddr = 2200
+
+Dim args
+Dim fso
+Dim loadFile
+Dim loadName
+Dim wplFile
+Dim wplName
+
+'---------------------------------------
+Function Pic9n(ByVal v, ByVal chars)
+  'Formats a numeric value "v" as a string of "chars" length with leading zeroes.
+  Dim s
+  Dim sz
+
+  s = CStr(v)
+  sz = Len(s)
+  If sz > chars Then
+    Pic9n = Right(s, chars)
+  ElseIf sz < chars Then
+    Pic9n = String(chars-sz, "0") & s
+  Else
+    Pic9n = s
+  End If
+End Function
+
+'---------------------------------------
+Sub WriteCard(byVal card)
+  'Fills out the card image with sufficient spaces and "666" for format
+  'control in columns 1-3, then writes the image.
+
+  While Len(card) < 66
+    card = "           " & card
+  Wend
+
+  While Len(card) < 77
+    card = " " & card
+  Wend
+
+  loadFile.WriteLine "666" & card
+End Sub
+
+'---------------------------------------
+Sub BuildLoadFile
+  'Creates the card-load file from the one-word-per-line file.
+  Dim addr
+  Dim card
+  Dim line
+  Dim word
+  Dim wordCount
+
+  addr = startAddr
+  card = "4081044" & Pic9n(startAddr, 4)
+  wordCount = 1
+
+  Do While Not wplFile.AtEndOfStream
+    line = wplFile.ReadLine
+    word = Pic9n(Left(Trim(line), 11), 11)
+    If wordCount < 6 Then
+      card = word & card
+      wordCount = wordCount + 1
+    Else
+      card = "6081044" & addr & card
+      WriteCard card
+      card = word
+      wordCount = 1
+    End If
+
+    addr = addr + 1
+  Loop
+
+  card = "6000030" & startAddr & card
+  WriteCard card
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the one-word-per-line file."
+  WScript.Quit 9
+Else
+  wplName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    loadName = Trim(args.Item(1))
+  Else
+    loadName = fso.BuildPath(fso.GetParentFolderName(wplName), fso.GetBaseName(wplName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(wplName) Then
+  MsgBox "One-word-per-line file does not exist: " & vbCrLf & wplName
+Else
+  Set wplFile = fso.OpenTextFile(wplName, ForReading, False)
+  Set loadFile = fso.CreateTextFile(loadName, True)
+  BuildLoadFile
+  loadFile.Close
+  Set loadFile = Nothing
+  wplFile.Close
+  Set wplFile = Nothing
+  MsgBox "Overlay load file created: " & vbCrLf & loadName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+</script>
+</job>
+</package>
