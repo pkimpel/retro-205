@@ -1,0 +1,215 @@
+<package>
+<job id="SHELL-Xscript-Reformatter">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 SHELL-Xscript-Reformatter.wsf
+' Copyright (c) 2015, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to extract source and object code from the Shell Assembler
+' transcriptions. It reads the transcription files for the first and
+' second movements, and outputs:
+'   1. An assembler card deck for the first movement's source.
+'   2. An assembler card deck for the second movement's source.
+'   3. A tape image containing the loadable object code for the assembler.
+'
+' This script should be executed in the currentpath of the transcription
+' files. Output files will be written to that path as well.
+'
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   None.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-10-25  P.Kimpel
+'   Original version.
+'-----------------------------------------------------------------------
+
+Const blockSize = 20
+Const startBlock = 120
+Const tapeImageName = "Shell-Assembler-Load.tape"
+Const tapeLane = 1
+Const xScriptM1 = "Shell-Assembler-M1.shell"
+Const xScriptM2 = "Shell-Assembler-M2.shell"
+
+Dim blk
+Dim fso
+Dim tapeFile
+
+Dim M1(3999)
+Dim M2(3999)
+
+'---------------------------------------
+Sub ExtractCode(byVal xScriptName, byRef M)
+  'Extracts source and object code from an assembler transcription file.
+  'The assembler source is written as card images to a file with the same
+  'name as the transcription file, but modified with a ".card" extension.
+  'The code is converted to double-precision floating-point words and
+  'stored at their respective zero-relative addresses in M. M is cleared
+  'to zeroes at the start.
+  Dim addr
+  Dim card
+  Dim cardFile
+  Dim lastAddr
+  Dim line
+  Dim lineNr
+  Dim text
+  Dim word
+  Dim xFile
+
+  For addr = UBound(M) To 0 Step -1
+    M(addr) = CDbl(0)
+  Next
+
+  Set xFile = fso.OpenTextfile(xScriptName, ForReading, False, False)
+  line = xFile.ReadLine '-- skip the column heading line
+  lineNr = 1
+
+  text = fso.BuildPath(fso.GetParentFolderName(xScriptName), fso.GetBaseName(xScriptName)) & ".card"
+  Set cardFile = fso.OpenTextFile(text, ForWriting, True, False)
+  cardfile.WriteLine "2  " & UCase(xScriptName)  '-- output the header card
+
+  Do While Not xFile.AtEndOfStream
+    line = xFile.ReadLine
+    lineNr = lineNr+1
+
+    '-- If the op code blank and object code is not present, generate a REM card
+    '-- If the source text is blank and object code IS present, do not generate a card
+    If Len(RTrim(Mid(line, 51, 5))) = 0 And Len(RTrim(Mid(line, 14, 20))) = 0 Then
+      cardFile.WriteLine "1" & Space(18) & "REM  " & RTrim(Mid(line, 57))
+    ElseIf Len(RTrim(Mid(line, 37, 64))) > 0 Or Len(RTrim(Mid(line, 14, 20))) = 0 Then
+      '-- Reformat and write the assembler card image
+      card = "1" & Space(8) & Mid(line, 37, 5) & Mid(line, 44, 1) & Mid(line, 46, 4) & _
+             Mid(line, 51, 5) & Mid(line, 57, 1) & Mid(line, 59, 10)
+      If Len(line) >= 71 Then
+        card = card & Mid(line, 71)
+      End If
+
+      cardFile.WriteLine RTrim(card)
+    End If
+
+    '-- If a word of code exists on this line, convert and store it in M
+    If Len(line) >= 33 Then
+      text = Mid(line, 14, 4)
+      If text <> "    " Then
+        If IsNumeric(text) Then
+          addr = CInt(text)
+          If Not IsEmpty(lastAddr) Then
+            If lastAddr+1 <> addr Then
+              MsgBox "WARNING: Address sequence error, line " & lineNr & _
+                     ", addr=" & addr & ", last=" & lastAddr & vbCrLf & _
+                     "file: " & xScriptName
+            End If
+          End If
+
+          lastAddr = addr
+          text = Mid(line, 20, 1) & Mid(line, 22, 4) & Mid(line, 27, 2) & Mid(line, 30, 4)
+          If IsNumeric(text) Then
+            M(addr) = CDbl(text)
+            If Left(text, 1) > "3" Then
+              MsgBox "WARNING: Sign digit > 3, line " & lineNr & ", addr=" & addr
+            End If
+          End If
+        End If
+      End If
+    End If
+  Loop
+
+  cardFile.Close
+  Set cardFile = Nothing
+  xfile.Close
+  Set xFile = Nothing
+End Sub
+
+'---------------------------------------
+Sub DumpToTape(byVal tapeFile, byVal lane, byVal M, byVal startAddr, byVal blocks)
+  'Dump 20-word blocks to the tape file from memory M, starting at memory
+  'address startAddr for blocks tape blocks. If lane is odd, 20 words of zeroes
+  'are prefixed to the block data.
+  Dim addr
+  Dim ex
+  Dim prefix
+  Dim wx
+
+  addr = startAddr
+  prefix = String(20, ",")
+
+  Do While blocks > 0
+    ex = -1
+    For wx = 19 To 0 Step -1
+      If M(addr+wx) <> 0 Then
+        ex = wx
+        Exit For
+      End If
+    Next
+
+    If ex < 0 Then
+      tapeFile.WriteLine "0,"
+    Else
+      If lane Mod 2 <> 0 Then
+        tapeFile.Write prefix
+      End If
+
+      For wx = 0 To ex
+        tapeFile.Write FormatNumber(M(addr+wx), 0, False, False, False) & ","
+      Next
+
+      tapeFile.WriteLine
+    End If
+
+    addr = addr + 20
+    blocks = blocks - 1
+  Loop
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+
+'-- Main Line --
+If Not fso.FileExists(xScriptM1) Then
+  MsgBox "First Movement transcription file does not exist: " & vbCrLf & xScriptM1
+ElseIf Not fso.FileExists(xScriptM2) Then
+  MsgBox "Second Movement transcription file does not exist: " & vbCrLf & xScriptM2
+Else
+  ExtractCode xScriptM1, M1
+  ExtractCode xScriptM2, M2
+
+  Set tapeFile = fso.OpenTextFile(tapeImageName, ForWriting, True, False)
+
+  '-- Create zero-filled blocks up to the starting block on the tape
+  For blk = startBlock-1 To 0 Step -1
+    tapeFile.WriteLine "0,"
+  Next
+
+  '-- Write the code for the first movement to tape
+  DumpToTape tapeFile, tapeLane, M1, 900, 100
+
+  '-- Write 60 blocks of zeroes for the Macro Catalog and Storage Area
+  For blk = 1 to 60
+    tapeFile.WriteLine "0,"
+  Next
+
+  '-- Write the code for the first movement overlay to tape
+  DumpToTape tapeFile, tapeLane, M1, 0, 10
+
+  '-- Write the code for the second movement to tape
+  DumpToTape tapeFile, tapeLane, M2, 1200, 60
+
+  tapeFile.Close
+  Set tapeFile = Nothing
+  MsgBox "Shell Assembler load file created: " & vbCrLf & tapeImageName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+</script>
+</job>
+</package>

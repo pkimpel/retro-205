@@ -1,0 +1,1186 @@
+2  SHELL-ASSEMBLER-M2.SHELL
+1                  TAG  7
+1                  ORG    1200
+1        MCTBL     EQU    1000
+1        ASIGN     EQU    3000
+1        FBDS      EQU    0000
+1        FBWS      EQU    0520
+1        IMAGE     EQU    0320
+1        SAVE      EQU    0500
+1        PRCOD     EQU    4000     ASSIGN TAPE RECORD VARIABLES
+1        REMRK     EQU    4001
+1        SINC      EQU    4007
+1        SADR      EQU    4008
+1        STAG      EQU    4009
+1        SPARE     EQU    4011
+1        SOPR      EQU    4010
+1        SLOC      EQU    4012
+1        INSTR     EQU    4013
+1        ABLOC     EQU    4014
+1        NUMB      EQU    4015
+1        FLAG      EQU    4016
+1        ABSPR     EQU    4017
+1        NDEX2     EQU    4018
+1        NDEX1     EQU    4019
+1        SEQ       EQU    6000     ASSIGN PROBLEM VARIABLES
+1        QUANT     EQU    6001
+1        CTR       EQU    6002
+1        CLTLY     EQU    6003
+1        FDTLY     EQU    6004
+1        SNTLY     EQU    6005
+1        RPTLY     EQU    6006
+1        TEMP      EQU    6007
+1        NMBR      EQU    5013
+1        CLINC     EQU    5014
+1        MCTAL     EQU    5015
+1        SUM       EQU    5016
+1        SRL       EQU    5017
+1        RTNPT     EQU    5018
+1        ENDPT     EQU    5019
+1                  REM  
+1        MOV2      CAD  XNU1       SET NU SWITCH TO ONE
+1                  STC  XNU
+1                  CAD  XTHET1     SET THETA SWITCH TO ONE
+1                  STC  XTHETA
+1                  BT6    8000
+1                  BF6   SAVE
+1                  BT5   SAVE      ZERO QAB 5
+1                  CAD   &Z        SET CTR TO EIGHT
+1                  STC   CTR
+1                  AD    &Z   &0001SET FMB SELECT DIGITS TO BE
+1                  ST     5000
+1                  ST     5012
+1                  CUB   &G
+1        .Z        NUM   0000000008
+1                  NUM   0000000001
+1        .G    0110MTR    8000     READ A COMMAND
+1                  CC         -0001
+1        DAHM      SB    PRCOD     DIVIDE COMMANDS ACCORDING TO
+1             -    CU    &Z          PROCESS CODE
+1        .Z        CUB   &A        PROCESS CODE IS ZERO
+1                  CUB   SUE                       ONE
+1                  CUB   CRY                       TWO
+1                  STOP                            THREE
+1                  CUB   CUB                       FOUR
+1                  CUB   &C                        FIVE
+1                  CUB   CRY                       SIX
+1                  CUB   FEED                      SEVEN
+1                  CUB   LAST                      EIGHT
+1        .A        CAD   &Z   -0001
+1                  STC  X&I
+1                  CAD   NDEX1     TEST FOR ABSOLUTE ADDRESS
+1                  OSGD
+1                  CC    &X
+1                  SU    &Z   -0002IS ABSOLUTE ADDRESS 9999
+1                  CNZ        &0002
+1                  CUB   THETA     YES
+1                  CUB   &P
+1        .X        SB    NDEX1     GO GET ASSIGNMENT
+1             -    CAD  XASIGN
+1                  AD    &Z   -0003HAS THE SYMBOL BEEN ASSIGNED
+1                  CCB   &Z
+1                  SU    &Z   -0003YES. RESTORE IT
+1                  ST    NDEX1
+1                  CUB   &P
+1                  NUM   0000000001
+1                  NUM   0000009999
+1                  AD    TEMP &0003
+1        .Z    0050CUR  XMARK      W.E.M. UNDEFINED OPERAND
+1                  CAD   &Z
+1                  ST    NDEX1
+1                  CUB   THETA
+1        .Z        NUM   0000009999
+1        .P        CAD   SINC
+1                  CNZ        &0002IS SINC BLANK
+1                  CUB   &E        YES
+1                  EX    &Z        NO. GET SIGN OF INCREMENT
+1                  SU    &W        IS IT &
+1                  CNZ        &0002
+1                  CU    &Z   -0004
+1                  SU    &W        NO. IS IT -
+1                  CNZ   &V
+1                  CAD  X&I        YES
+1                  AD    &X
+1                  STC  X&I
+1                  CAD   SINC      CONVERT SINC TO NUMERICAL FORM
+1                  SR     0008       AND TEST FOR VALID NUMBER
+1                  CUB   &R
+1        .V        CUB   &Y
+1        .Z        NUM   1100000000
+1        .W        NUM   1000000000
+1        .X        NUM   0000010000
+1        .R        STC   TEMP &0003CLEAR A AND TEMP&0003             ?? OPCODE AND OPERANDS WERE BLANK ON LISTING.
+1                  SB    &Z
+1                  STC   TEMP &0003
+1                  SL     0001
+1                  CNZ   &I   &0003
+1                  AD    TEMP &0003
+1                  SL     0001
+1                  DB    -R   &0002IS THE CONVERSION COMPLETE
+1                  STC   TEMP &0003YES
+1                  CAD   NDEX1     INCREMENT THE ADDRESS
+1        .I        AD    TEMP &0003
+1                  ST    NDEX1
+1                  CUB   &E
+1                  SU    &Z   &0001
+1                  CNZ   &Y
+1                  CU    -I   -0005
+1        .Z        NUM   0000000003
+1                  NUM   0000000008
+1        .Y    0060CUR  XMARK      W.E.M. INVALID INCREMENT
+1                  CUB   &E
+1        .E        CAD   &Z        COMPARE NDEX1 WITH 4000
+1                  SU    NDEX1
+1                  OSGD
+1                  CC         &0004
+1                  CAD   STAG      IS TAG ZERO
+1                  SR     0006
+1                  CNZ        &0002
+1                  CUB   THETA
+1                  STC   TEMP &0003
+1                  CAD   NDEX1     MAKE Q.A.B. ADDRESS
+1                  SL     0007
+1                  AD    &Y
+1                  CC         &0002
+1                  SU    &Y
+1                  SR     0007
+1                  AD    TEMP &0003
+1                  ST    NDEX1
+1                  CUB   THETA
+1        .Y        NUM   1000000000
+1        .Z        NUM   0000004000
+1        CNVRT     CAD   INSTR     CONVERT CARDATRON CODE
+1                  SR     0010       TO FLEXOWRITER CODE
+1                  SB    &F
+1                  STC   INSTR
+1        MOAN      SL     0002
+1                  AD    &I
+1                  STC        &0001
+1                  STOP
+1                  SR     0002
+1                  CAD   INSTR
+1                  SL     0002
+1                  STC   INSTR
+1                  DB    MOAN
+1                  CUB   CRY
+1        .F        NUM   0000000004
+1        .I        CAD  XTABLE
+1        TABLE     NUM           34BLANK
+1                  NUM
+1                  NUM
+1                  NUM           32.
+1                  NUM           33)     APOSTROPHE
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM           24
+1                  NUM
+1                  NUM
+1                  NUM           26$    SEMICOLON
+1                  NUM            7)    STOP
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM           25
+1                  NUM            1/    BACK SPACE
+1                  NUM
+1                  NUM           31,
+1                  NUM            4)    TABULATE
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM            5#    CARRIAGE RETURN
+1                  NUM           35)    COLOR SHIFT
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM           30PLUS ZERO     UPPER CASE
+1                  NUM           20A
+1                  NUM           61B
+1                  NUM           62C
+1                  NUM           63D
+1                  NUM           64E
+1                  NUM           65F
+1                  NUM           66G
+1                  NUM           67H
+1                  NUM           70I
+1                  NUM           27MINUS ZERO     LOWER CASE
+1                  NUM           71J
+1                  NUM           72K
+1                  NUM           36L
+1                  NUM           73M
+1                  NUM           74N
+1                  NUM           75O
+1                  NUM           76P
+1                  NUM           77Q
+1                  NUM           21R
+1                  NUM
+1                  NUM
+1                  NUM           22S
+1                  NUM           23T
+1                  NUM           52U
+1                  NUM           53V
+1                  NUM           54W
+1                  NUM           55X
+1                  NUM           56Y
+1                  NUM           57Z
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM
+1                  NUM           40
+1                  NUM           411
+1                  NUM           422
+1                  NUM           433
+1                  NUM           444
+1                  NUM           455
+1                  NUM           466
+1                  NUM           477
+1                  NUM           508
+1                  NUM           519
+1        THETA     CADA  ABSPR     MAKE INSTRUCTION
+1                  AD    NDEX1
+1                  AD    INSTR
+1                  SR     0010
+1                  CAD   ABSPR
+1                  SL     0010
+1                  STC   INSTR
+1                  CUB   CRY
+1        CRY       SB    CTR       SET UP TO PUNCH FIVE PER CARD
+1                  CAD   ABLOC
+1             -    ST     5002
+1                  CAD   INSTR
+1             -    ST     5001
+1                  DB         &0002
+1                  CUB   NU   &0001
+1                  DB         &0001
+1                  BA
+1                  ST    CTR
+1        .F    4030CDW    4001     PRINT A LINE
+1              0120MTW    8000     WRITE A BLOCK
+1                  CC         -0001
+1                  CAD   SUM       FORM CHECK SUM
+1                  ADA   INSTR
+1                  CC         &0001
+1                  STC   SUM
+1        NU        CUB   -G
+1              0020CDW    5000     PUNCH A CARD
+1                  CAD   &Z
+1                  ST    CTR
+1                  SB    SRL
+1                  IB
+1                  BA
+1                  ST     5011
+1                  ST    SRL
+1                  CUB   -F
+1        .Z        NUM   0000000008
+1        SUE   4230CDW    4000     PRINT PSEUDO-OPERATION
+1              0120MTW    8000
+1                  CC         -0001
+1                  CUB   -G
+1        .C        CAD   THET2     SET THETA SWITCH TO TWO
+1                  STC  XTHETA
+1                  CUB   -A        TRANSLATE OPERAND
+1        THET2     CUB   &D
+1        .D        CAD   NDEX1
+1                  SB    NDEX2
+1             -    ST   XASIGN
+1              0230CDW    4000
+1              0120MTW    8000
+1                  CC         -0001
+1                  CAD   THET1     RESET THETA SWITCH TO ONE
+1                  ST   XTHETA
+1                  CUB   -G
+1        THET1     CADA  ABSPR
+1        LAST  0120MTW    8000
+1                  CC         -0001
+1                  PTWF   0500     WRITE CHECK SUM
+1                  PTWF   0500
+1                  CAD   &Z
+1                  PTW    0410
+1                  CAD   &Z   &0001
+1                  PTW    0410
+1                  CAD   SUM
+1                  PTW    0310
+1                  CUB   SOB
+1        .Z        FLX   CHECK
+1                  FLX    SUM
+1        SOB       CAD   CTR
+1                  SU    &Z
+1                  CNZ  X&Y
+1              0010MTRW   0000     REWIND DATA READERS
+1                  CC         -0001
+1              0020MTRW   0000
+1                  CC         -0001
+1                  BT6    8000
+1              0830CDWF   6000
+1              0220CDWF   6000
+1              1830CDW    6000     EJECT TWO PAGES ON PRINTER
+1              1830CDW    6000
+1              0220CDW    6000     EJECT LAST TWO CARDS
+1              0220CDW    6000
+1                  CUB        &0002
+1        .Z        NUM   0000000008
+1                  PTWF   0500
+1                  CAD   &X
+1                  PTW    0410
+1                  SR     0010
+1                  DAD                LOAD, NON-ZERO--DO NOT LOAD
+1                  CNZ        &0003
+1                  CUB   TART
+1        .X        FLX   LOAD
+1              8900MTS    0000     HALT PROCEDURE
+1                  CC         -0001
+1              1500MTR    3700
+1                  CC         -0001
+1              0010CDR    6000
+1        .Y    0020CDW    5000     PUNCH LAST CARD
+1                  CUB   SOB  &0003
+1        CUB       SB    MCTAL
+1                  IB              INCREMENT MACRO TALLY
+1             -    CAD  XMCTBL-0001  GET LOCATION OF MACRO INST.
+1                  SR     0004
+1                  CNZ        -0003  IS IT A LOCATION
+1                  SL     0004
+1                  AD    INSTR     FORM CUB INSTRUCTION
+1                  STC   INSTR
+1                  BA
+1                  STC   MCTAL
+1                  CAD   THET3     SET THETA SWITCH TO THREE
+1                  STC  XTHETA
+1                  CUB   -A        EVALUATE THE OPERAND
+1        THET3     CUB   THET3&0001
+1                  CAD   NDEX1
+1                  SB    NDEX2
+1             -    STC  XASIGN
+1                  CAD        &0003RESET THETA SWITCH
+1                  STC  XTHETA
+1                  CUB   CRY
+1                  CADA  ABSPR
+1        FEED      CAD   NU3         SET NU TO 3
+1                  STC  XNU
+1                  CAD   NUMB
+1                  STC   NMBR
+1                  STC   QUANT     ZERO QUANT
+1                  CAD   &A
+1                  ST   XCROTH-0001
+1                  STC  XMALO -0003
+1                  CAD   SIG1      SET SIGMA TO ONE
+1                  STC  XSIGMA
+1                  CUB   &B
+1        SIG1      CUB   OMEGA
+1        NU3       CUB   &Z
+1        .A        NUM  33333333330
+1        .B        STC   TEMP &0007ZERO TEMP&0007                    ?? MISSING SPACE IN OPERAND ON LISTING
+1                  STC   FDTLY
+1                  STC   SNTLY
+1                  STC   CLTLY
+1                  CAD   &D          SET QUANT CLEAR
+1                  ST    TEMP &0002
+1                  STC   TEMP &0003
+1                  CAD   &E
+1                  STC   TEMP &0004
+1                  CAD   ABLOC
+1                  STC   SEQ
+1                  STC   TEMP &0005ZERO TEMP&0005
+1                  SB    NDEX1       SET PSI FROM INDEX 1
+1             -    CAD  XPSI1
+1                  STC  XPSI
+1        .B        STC   TEMP &   1  SET L TO 0
+1                  CUB   &G
+1        .E        CUB   KICK
+1        .D        STC   QUANT
+1        .G        SB    TEMP &   1
+1             -    BF4   IMAGE     PRESERVE QAB 4
+1                  CAD   &C          SET J TO 5
+1                  STC   TEMP &0006  TEMP &0006 CONTAINS J
+1        KICK      CAD   &E        PUT TWO DIGITS IN THE
+1                  SU    FDTLY       A REGISTER
+1                  OSGD
+1                  CC   X&F        IS FDTLY TOO LARGE
+1                  SB    TEMP &0006NO
+1             -    CAD   REMRK
+1                  CNZ   &D          IS REMRK BLANK
+1                  DB         -0002  YES
+1                  CUB   &A
+1        .D        CR
+1                  CUB   &G
+1        .C        NUM   0000000005
+1        .E        NUM   0000000316
+1        .F    0000CUR  XGOOF        WRITE FORMAT BAND TOO LONG
+1                  CUB   MALO
+1        .G        SL     0002
+1             -    STC   REMRK
+1                  BA
+1                  STC   TEMP &0006
+1                  SL     0010     EXAMINE NEXT TWO DIGITS
+1                  CNZ   PSI       ARE THEY ZERO
+1                  CUB   KICK &0005YES
+1        PSI       STOP            NO
+1        PSI1      CUB   RFBG
+1        PSI2      CUB   PFBG
+1        PSI3      CUB   WFBG
+1        .A    0110MTR    8000       READ A BLOCK OF TAPE
+1                  CC         -0001
+1                  CAD   PRCOD
+1                  SU    &D
+1                  CNZ   &E          IS PROCESS CODE 3
+1                  CAD   TEMP &0001  YES
+1                  AD    &F          INCREASE L BY 20
+1                  CUB   -B
+1        .E        CAD   &D          GO TO PERIOD ROUTINE
+1                  BF4   SAVE
+1                  CU   XPSI
+1        .F        NUM   0000000020
+1        .D        NUM   0000000003
+1        JOIN      STC   TEMP
+1                  STC   TEMP        SET LL TO 0
+1                  STC   TEMP &0002  SET I TO 0
+1        .C        CAD   TEMP
+1                  SU    TEMP &0001
+1                  OSGD
+1                  CCB   &D          IS LL GREATER THAN L
+1                  STC
+1                  SB         &0004
+1             -    STC    4001
+1                  DB         -0001
+1                  CUB   &E
+1                  NUM   0000000015
+1        .D        SB    TEMP        NO
+1             -    BT4   IMAGE
+1        .E        SB    TEMP &   2
+1             -    CAD  XFBWS      WRITE OUT GENERATED
+1                  STC   INSTR       FORMAT BAND
+1                  CAD   SEQ
+1                  ST    ABLOC
+1                  AD    &F        INCREASE SEQ BY 1
+1                  STC   SEQ
+1                  CAD   NMBR
+1                  ST    NUMB
+1                  AD    &F
+1                  STC   NMBR
+1                  CUB   CRY
+1        .F        NUM   0000000001
+1        .Z        CAD   TEMP &0002  NU 3
+1                  AD    &D          INCREASE I BY 1
+1                  ST    TEMP &0002
+1                  SU    &E
+1                  OSGD
+1                  CC    &F          IS I LESS THAN 29
+1                  BT4   SAVE        NO
+1                  CAD   NU1         SE NU TO 1
+1                  STC  XNU
+1                  CUB   DAHM
+1        .F        CAD   TEMP        INCREASE LL BY 20
+1                  AD    &G
+1                  STC   TEMP
+1                  CUB   -C
+1        .G        NUM   0000000020
+1        .E        NUM   0000000028
+1        .D        NUM   0000000001
+1        NU1       CUB   DAHM -0002
+1        RFBG      ST    TEMP           THIS PROGRAM ASSUMES THAT
+1                  SR     0001           TWO FORMAT BAND SPECIFIL
+1                  SU    &X               CATION DIGITS ARE IN
+1                  CNZ   &T                L.O. POSITION OF A R.
+1                  CAD   QUANT              AT START
+1                  SL     0001
+1                  ST    QUANT          TO GET MORE SUCH
+1                  CAD   &A
+1                  STC  XTODOS
+1                  CUB   KICK            DIGITS I CUB TO KICK
+1        .T        SB    &X
+1                  CUB   &S
+1        .A        CUB   BUENO
+1        .X        NUM   0000000008
+1        .S   -    CAD   TABL1          TABLE SEARCH
+1                  SR     0008
+1                  SU    TEMP
+1                  CNZ   &R
+1             -    CU    TABL1
+1        .R        DB    -S
+1              0020CUR  XGOOF           IF NOT IN TABLE, W. E. M.
+1                  CUB   MALO             INVALID CHARACTER
+1        TABL1 0300CUB   ENDI            TABLE DOUBLE STORED WITH
+1              0400CUB   LOZNG           BRANCH COMMANDS
+1              1000CUB   PLUS
+1              4100CUB   AAAA
+1              4200CUB   BBBBI
+1              6900CUB   ZZZZI
+1              5500CUB   NNNNI
+1              5700CUB   PPPPI
+1              6700CUB   XXXXX
+1        PLUS      CAD   SNTLY          IF SNTLY NOT ELEVEN
+1                  CNZ        &0002
+1                  CUB   KICK
+1                  SU    &E              W. E. M. WRONG NUMBER
+1                  CNZ   &F                       OF DIGITS
+1                  STC   &E
+1                  ST    SNTLY
+1                  CUB   KICK
+1        .F    0030CUR  XGOOF
+1                  CUB   MALO
+1        .E        NUM   0000000011
+1        AAAA      SB    FDTLY     FORMAT DIGITS 11
+1                  CAD   &A
+1             -    ST   XFBDS
+1                  IB
+1             -    ST   XFBDS
+1                  AD    CLTLY     INCREASE CLTLY BY 1 AND
+1                  ST    CLTLY       SNTLY BY 2
+1                  CAD   SNTLY
+1                  AD    &A
+1                  AD    &A
+1                  ST    SNTLY
+1                  IB
+1                  CAD   QUANT
+1                  SU    &A        DECREASE QUANT BY 1
+1                  ST    QUANT
+1                  OSGD            IS QUANT LESS THAN 1
+1                  CCB   &B        YES
+1                  CU    AAAA &0001NO
+1        .A        NUM   0000000001
+1        .B        BA                   TEMP&0002 HOLDS STC QUANT
+1                  STC   FDTLY          TEMP&0003 HOLDS STC QUANT
+1                  CU    TEMP &0002     TEMP&0004 HOLDS CUB KICK
+1        ZZZZI     SB    FDTLY     FORMAT DIGIT 0
+1                  CAD   &A
+1                  SR     0001
+1             -    STC  XFBDS
+1                  SL     0001
+1                  AD    SNTLY     INCREASE SNTLY BY 1
+1                  ST    SNTLY
+1                  IB
+1                  CAD   QUANT
+1                  SU    &A        DECREASE QUANT BY 1
+1                  ST    QUANT
+1                  OSGD  ZZZZI&0003IS QUANT LESS THAN 1
+1                  CC    ZZZZI&0001YES
+1                  BA              NO
+1                  ST    FDTLY
+1                  CU    TEMP &0002CLEAR QUANT
+1        .A        NUM   0000000001
+1        PPPPI     CAD   SNTLY
+1                  CNZ   &B        IS SNTLY ZERO
+1                  CUB   ZZZZI     YES
+1        .B    0040CUR  XGOOF      NO   W E M PLUS SIGN MISSING
+1                  CAD  XIMAGE&0016
+1                  SR     0010
+1                  AD   XGOOF -0001
+1                  SL     0008
+1                  STC  XIMAGE&0016
+1                  CUB   ZZZZI
+1        XXXXX     CAD   &H        FORMAT DIGIT 1
+1                  ST    TEMP &0005     TEMP&0005 IS DELTA SWITCH
+1                  SB    FDTLY          IF ZERO, DELTA SET TO ONE
+1             -    ST   XFBDS
+1                  CAD   SNTLY
+1                  AD    &H        INCREASE SNTLY BY ONE
+1                  STC   SNTLY
+1                  IB
+1                  BA
+1                  ST    FDTLY
+1                  CUB   KICK
+1        .H        NUM   0000000001
+1        NNNNI     CAD   TEMP &0005FORMAT DIGITS 31
+1                  SB    FDTLY       1 AFTER X
+1                  CNZ   &W
+1                  CAD   &G
+1             -    STC  XFBDS
+1                  IB
+1                  CU         &0003
+1        .W        STC   TEMP &0005
+1                  ST    TEMP &0005
+1                  CAD   &F
+1             -    ST   XFBDS
+1                  AD    CLTLY     INCREASE CLTLY BY 1
+1                  ST    CLTLY
+1                  CAD   SNTLY     INCREASE SNTLY BY 1
+1                  AD    &F
+1                  CUB   &K
+1        .G        NUM   0000000003
+1        .F        NUM   0000000001
+1        .K        ST    SNTLY
+1                  IB
+1                  CAD   QUANT
+1                  SU    &A        DECREASE QUANT BY 1
+1                  ST    QUANT
+1                  OSGD            IS QUANT LESS THAN 1
+1                  CC         &0002YES
+1                  CUB   NNNNI&0003NO
+1                  BA
+1                  STC   FDTLY
+1                  CU    TEMP &0002CLEAR QUANT
+1        .A        NUM   0000000001
+1        BBBBI     CAD   TEMP &0005FORMAT DIGITS 33
+1                  SB    FDTLY       3 AFTER X
+1                  CNZ   &W
+1                  CAD   &G
+1             -    STC  XFBDS
+1                  IB
+1                  CU         &0003
+1        .W        STC   TEMP &0005
+1                  ST    TEMP &0005
+1                  CAD   &G
+1             -    ST   XFBDS
+1                  CAD   CLTLY
+1                  AD    &F        INCREASE CLTLY BY 1
+1                  ST    CLTLY
+1                  IB
+1                  CAD   QUANT
+1                  SU    &F        DECREASE QUANT BY 1
+1                  CUB   &L
+1        .F        NUM   0000000001
+1        .G        NUM   0000000003
+1        .L        ST    QUANT
+1                  OSGD            IS QUANT LESS THAN 1
+1                  CC         &0002YES
+1                  CUB   BBBBI&0003NO
+1                  BA
+1                  STC   FDTLY
+1                  CU    TEMP &0002CLEAR QUANT
+1        LOZNG     CAD   TEMP &0007REPEAT
+1                  CNZ   &F             TEMP&0007 IS SIGMA SWITCH
+1                  CAD   CLTLY          IF ZERO, SIGMA SET TO 1
+1                  STC   CLINC
+1                  CAD        &0006
+1                  ST    TEMP &0007
+1                  CAD   QUANT          THE VARIABLE L IS KEPT IN
+1                  ST    RPTLY           TEMP&0008
+1                  CAD   FDTLY     STORE FDTLY AT FIRST
+1                  ST    RTNPT       REPEAT SIGN IN RTNPT
+1                  CU    TEMP &0002
+1        .F        CAD   FDTLY     STORE FDTLY AT SECOND
+1                  ST    ENDPT       REPEAT SIGN IN ENDPT
+1                  CAD   CLTLY
+1                  SU    CLINC
+1                  STC   CLINC
+1                  ST    TEMP &0007
+1                  CUB        &0001
+1        .G        ST    TEMP &0008SET L TO ZERO
+1                  CAD   FDTLY
+1                  SU    &A
+1                  OSGD
+1                  CCB        &0004IS FDTLY GREATER THAN 316
+1              0000CUR  XGOOF      YES
+1                  CUB   MALO
+1        .A        NUM   0000000316
+1                  CAD   &H        NO
+1                  SU    RPTLY     IF RPTLY IS GREATER THAN 1,
+1                  OSGD              REPEAT FORMAT DIGITS
+1                  CCB   &R          GENERATED BETWEEN REPEAT
+1                  CU    TEMP &0002  SIGNS
+1        .H        NUM   0000000002
+1        .R        SB    FDTLY
+1                  CAD   &X
+1                  AD    RTNPT
+1                  AD    TEMP &0008
+1                  ST         &0001
+1                  STOP
+1             -    ST   XFBDS
+1                  IB
+1                  CAD   &J
+1                  AD    TEMP &0008
+1                  ST    TEMP &0008
+1                  CSU   ENDPT
+1                  AD    RTNPT     HAVE ALL THE DIGITS
+1                  AD    TEMP &0008  GENERATED BETWEEN REPEAT
+1                  OSGD              SIGNS BEEN REPEATED
+1                  CC    -R   &0001NO
+1                  CUB   &V        YES
+1        .J        NUM   0000000001
+1        .X        CAD  XFBDS
+1        .V        BA
+1                  STC   FDTLY     PREPARE TO REPEAT AGAIN
+1                  CAD   ENDPT
+1                  ST    RTNPT
+1                  AD    TEMP &0008
+1                  ST    ENDPT
+1                  CAD   RPTLY
+1                  SU    &N
+1                  STC   RPTLY
+1                  CAD   CLTLY
+1                  AD    CLINC
+1                  STC   CLTLY
+1                  CUB   -G
+1        .N        NUM   0000000001
+1        ENDI      CAD   CLTLY          THE VARIABLE J IS KEPT IN
+1                  SU    &Z              TEMP&0009
+1                  CNZ   &K
+1                  CAD   &Y             M IS KEPT IN TEMP&0010
+1                  SU    FDTLY
+1                  OSGD
+1                  CC    &T             TEMP&0011 IS THE EPSILON
+1        BUENO     STC   TEMP &0009                        SWITCH
+1                  ST    TEMP &0009     TEMP&0012 IS THE GAMMA
+1                  ST    TEMP &0011                        SWITCH
+1                  ST    TEMP &0006     TEMP&0006 IS THE ETA
+1                  ST    TEMP &0012                        SWITCH
+1                  ST    TEMP &0010     ALL SWITCHES ABOVE ARE
+1                  CUB   SWITZ           SET TO ONE IF  LOCATIONS
+1                  REM                       CONTAIN ZERO
+1        .K    0010CUR  XGOOF           WEM WRONG NUMBER OF
+1                  CUB   OLE                COLUMNS
+1        .T    0000CUR  XGOOF           WEM FORMAT BAND TOO LONG
+1                  CUB   OLE
+1        .Y        NUM   0000000316
+1        .Z        NUM   0000000080
+1        SWITZ     CAD   TEMP &0011     THE PURPOSE OF THE ETA
+1                  CNZ   EPP22           SWITCH IS TO ENABLE THE
+1                  SB    FDTLY            INACTIVE SEGMENT OF THE
+1                  CUB   CROTH             F. B. TO BE MADE MORE
+1        EPP22     CAD   TEMP &0012         QUICKLY
+1                  CNZ        &0005
+1                  CAD   &W
+1                  SR     0001
+1                  STC  X&W
+1                  CUB   ALEPH
+1                  CAD   &W
+1                  CIRA   0009
+1                  SL     0010
+1                  SB    TEMP &0009
+1             -    ST   XFBWS
+1                  CAD  XMALO -0004
+1                  ST   XMALO -0003
+1                  CUB   ALEPH
+1        .W        STOP
+1        CROTH     DB         &0001
+1             -    CAD  XFBDS      COLLECT THE GENERATED
+1                  ST    &R          DIGITS INTO 29 WORDS
+1                  BA
+1                  ST    FDTLY
+1                  CAD   TEMP &0012
+1                  CNZ   &G
+1                  CAD   &R
+1                  SR     0001
+1        .Q        CAD   FDTLY
+1                  CUB   &J
+1        .G        CAD   &R
+1                  CIRA   0009
+1                  SL     0010
+1                  SB    TEMP &0009
+1             -    ST   XFBWS
+1                  CU    -Q
+1        .R        STOP
+1        .J        CNZ   ALEPH
+1                  CU    &T
+1        ALEPH     CAD   TEMP &0010
+1                  SU    &X
+1                  OSGD
+1                  CC    &A
+1                  CUB   &N
+1        .A        CNZ        &0003
+1                  CAD   &D
+1                  ST    TEMP &0012
+1                  CAD   &D
+1                  AD    TEMP &0010
+1                  ST    TEMP &0010
+1                  CUB   SWITZ
+1        .T        CAD   &D
+1                  ST    TEMP &0006
+1                  ST    TEMP &0011
+1                  CU    ALEPH
+1        .X        NUM   0000000009
+1        .D        NUM   0000000001
+1        .N        CAD   TEMP &0009IF ALL THE DIGITS HAVE BEEN
+1                  AD    &U          COLLECTED, GO TO JOIN
+1                  ST    TEMP &0009
+1                  SU    &V
+1                  OSGD
+1                  CC         &0002
+1                  CUB   JOIN
+1                  CAD   TEMP &0006
+1                  CNZ   &A
+1                  CUB   BUENO&0004
+1        .A        SB    TEMP &0009                                  >> WAS LABEL ".1" ON LISTING
+1                  CAD   &W
+1             -    ST   XFBWS
+1                  CAD   &X
+1                  ST    &W
+1                  CU    -N
+1        .X        NUM  33333333333
+1        .W        STOP
+1        .V        NUM   0000000028
+1        .U        NUM   0000000001
+1        MALO  0110MTR    8000          READ THE NEXT BLOCK
+1                  CC         -0001
+1                  CAD   PRCOD
+1                  SU    &A             IS PRCOD 3
+1                  CNZ   OLE            NO
+1                  CAD   TEMP &0001     YES
+1                  AD    &C
+1                  ST    TEMP &0001
+1                  SB    TEMP &0001
+1             -    BF4   IMAGE
+1                  CU    MALO
+1        OLE       BF4   SAVE
+1                  CAD  XIMAGE&0016
+1                  SR     0010
+1                  AD   XGOOF -0001
+1                  SL     0008
+1                  STC  XIMAGE&0016
+1        TODOS     CUB   BUENO
+1        .C        NUM   0000000020
+1        .A        NUM   0000000003
+1        PFBG      STC   TEMP      TEMP HOLDS 2 FB SPEC. DIGITS
+1                  CAD   &A        SET COLNO TO 80
+1                  STC  XCOLNO
+1                  CUB   OFBG
+1        WFBG      STC   TEMP      TEMP HOLDS 2 FB SPEC. DIGITS
+1                  CAD   &C        SET COLNO TO 120
+1                  STC  XCOLNO
+1                  CUB   OFBG
+1        .C        NUM   0000000120
+1        .A        NUM   0000000080
+1        OFBG      CAD   &D
+1                  STC  XPSI
+1                  CAD   &E
+1                  STC  XTODOS
+1                  CAD   TEMP
+1                  ST    TEMP
+1                  SR     0001
+1                  SU    &A
+1                  CNZ   &B        IS CHARACTER NUMERICAL
+1                  CAD   QUANT     YES
+1                  SL     0001
+1                  STC   QUANT
+1                  CUB   KICK
+1        .B        SB    &A
+1                  CUB   &C
+1        .E        CUB   &Z
+1        .A        NUM   0000000008
+1        .D        CUB   OFBG &0005
+1        .C   -    CAD   TABL2     SEARCH TABLE FOR CHARACTER
+1                  SR     0008
+1                  SU    TEMP
+1                  CNZ   &A
+1             -    CU    TABL2     FOUND
+1        .A        DB    -C
+1              0020CUR  XGOOF      W.E.M INVALID CHARACTER
+1                  CUB   MALO
+1        TABL2 0300CUB   ENDO      TABLE
+1              0400CUB   LOZNG
+1              1000CUB   PLUS
+1              4100CUB   AAAA
+1              4200CUB   BBBBO
+1              6900CUB   ZZZZO
+1              5500CUB   NNNNO
+1              5700CUB   PPPPO
+1              6700CUB   XXXXX
+1        ZZZZO     SB    FDTLY     FORMAT BAND DIGIT IS 3
+1                  CAD   &A
+1        .C   -    STC  XFBDS
+1                  CAD   SNTLY       INCREASE SNTLY BY 1
+1                  AD    &B
+1                  STC   SNTLY
+1                  IB                INCREASE FDTLY BY 1
+1                  CAD   QUANT
+1                  SU    &B
+1                  ST    QUANT
+1                  OSGD  -C
+1                  CC    ZZZZO&0001  IS QUANT GREATER THAN 0
+1                  BA
+1                  ST    FDTLY       NO
+1                  CU    TEMP &0002
+1        .B        NUM   0000000001
+1        .A        NUM   0000000003
+1        PPPPO     CAD   SNTLY
+1                  CNZ   &A          IS SNTLY 0
+1                  CUB   ZZZZO       YES
+1        .A    0040CUR  XGOOF      W.E.M. PLUS SIGN MISSING
+1                  CAD  XIMAGE&0016
+1                  SR     0010
+1                  AD   XGOOF -0001
+1                  SL     0008
+1                  STC  XIMAGE&0016
+1                  CUB   ZZZZO
+1        ENDO      CAD   CLTLY     COLLECT THE GENERATED
+1                  SU   XCOLNO       DIGITS INTO 29 WORDS
+1                  CNZ  X&Q        TEST THE NUMBER OF COLUMNS
+1        .Z        STC   TEMP      SET J TO 0
+1                  CAD  X&B        RIGHT NUMBER OF COLUMNS
+1                  SU    FDTLY     NACSG IS KEPT IN TEMP &0002
+1        .D        SU    &A
+1                  OSGD
+1                  CCB   &E        IS NACSG GREATER THAN 22
+1                  STC   TEMP &0002YES
+1                  SB    TEMP
+1             -    STC  XFBWS      INSERT TWO WORDS OF ZEROS
+1                  IB
+1             -    STC  XFBWS
+1                  IB
+1                  BA
+1                  STC   TEMP      INCREASE J BY 2
+1                  CAD   TEMP &0002
+1                  CU    -D
+1        .A        NUM   0000000022
+1        .B        NUM   0000000316
+1        COLNO     STOP
+1        .E        AD    &B
+1                  STC   TEMP &0002
+1                  CAD   &G
+1                  STC   SNTLY     SET M TO 10
+1                  CAD   TEMP &0002DECREASE NACSG BY 2
+1        .H        SU    &D
+1                  OSGD
+1                  CC    &E        IS NCASG NEGATIVE
+1                  SU    &D
+1                  STC   TEMP &0002  NO
+1                  CUB   &F
+1        .B        NUM   0000000022
+1        .G        NUM   0000000010
+1        .D        NUM   0000000001
+1        .E        CAD   SIG2      SET SIGMA TO 2
+1                  STC  XSIGMA
+1        SIG2      CUB   &A
+1        .A        SB    FDTLY
+1                  DB    &B        DECREASE FDTLY BY 1
+1                  CAD   &A
+1                  SL     0009     FDTLY IS   NEGATIVE
+1                  SB    SNTLY
+1             -    SR     0000-0001
+1                  STC  XFBWS &0028
+1                  CUB   JOIN
+1        .B        BA                         NON-NEGATIVE
+1                  ST    FDTLY
+1             -    CAD  XFBDS
+1                  CUB        &0002
+1        .A        NUM   0000000003
+1        .F        SB    SNTLY
+1                  DB    &D        DECREASE M BY 1
+1                  CIRA   0009     M IS 0
+1                  SL     0010
+1                  SB    TEMP
+1             -    STC  XFBWS
+1                  CAD   &A
+1                  STC   SNTLY
+1                  IB
+1                  BA
+1                  ST    TEMP
+1                  CU    SIGMA
+1        .D        SR     0001
+1                  BA
+1                  ST    SNTLY
+1        SIGMA     STOP
+1        .A        NUM   0000000010
+1        OMEGA     CU    &A
+1        .A        CAD   OMEG2     SET OMEGA TO 2
+1                  STC  XOMEGA
+1                  CUB   -F
+1        OMEG2     CU    &B
+1        .B        CAD   OMEG1     SET OMEGA TO 1
+1                  STC  XOMEGA
+1                  CAD   TEMP &0002
+1                  CUB   -H
+1        OMEG1     CU    -A
+1        .Q    0010CUR  XGOOF      W.E.M.WRONG NUMBER OF COLUMNS
+1                  CUB   OLE
+1        NNNNO     CAD   TEMP &0005  TEMP&0005 IS DELTA SWITCH
+1                  CNZ   &A          FEED SETS DELTA TO 1
+1        .F        CAD   &B          DELTA IS 1
+1                  CU    &C
+1        .A        STC   TEMP &0005  DELTA IS 2
+1                  STC   TEMP &0005
+1                  CAD   &D
+1        .C        SB    FDTLY
+1             -    STC  XFBDS
+1                  BA
+1                  AD    &D        INCREASE FDTLY BY 1
+1                  STC   FDTLY
+1                  CAD   CLTLY
+1                  AD    &D        INCREASE CLTLY BY 1
+1                  STC   CLTLY
+1                  CUB   &E
+1        .D        NUM   0000000001
+1        .B        NUM   0000000002
+1        .E        CAD   SNTLY
+1                  AD    &A        INCREASE SNTLY BY 1
+1                  STC   SNTLY
+1                  CAD   QUANT
+1                  SU    &A        DECREASE QUANT BY 1
+1                  OSGD
+1                  CC    TEMP &0002
+1                  STC   QUANT
+1                  CUB   -F
+1        .A        NUM   0000000001
+1        BBBBO     CAD   TEMP &0005
+1                  CNZ   &A
+1        .E        SB    FDTLY     DELTA IS 1
+1             -    STC  XFBDS
+1                  IB              INCREASE FDTLY BY 1
+1                  CU    &B
+1        .A        SB    FDTLY     DELTA IS 2
+1                  STC
+1                  STC   TEMP &0005
+1        .B   -    STC  XFBDS
+1                  IB
+1                  BA              INCREASE FDTLY BY 1
+1                  STC   FDTLY
+1                  CAD   CLTLY
+1                  AD    &C        INCREASE CLTLY BY 1
+1                  STC   CLTLY
+1                  CAD   QUANT     DECREASE QUANT BY 1
+1                  SU    &C
+1                  CUB   &D
+1        .C        NUM   0000000001
+1        .D        OSGD
+1                  CC    TEMP &0002
+1                  STC   QUANT
+1                  CUB   -E
+1                  TAG  X
+1        MARK      STC   T1
+1                  SL     0004       SET UP EXIT
+1                  STC   T1
+1                  PTWF   0500
+1                  CAD   NUMB
+1                  SL     0006
+1                  PTW    0304
+1                  CAD   FLAG        ADD AN E TO FLAG
+1                  SR     0010
+1                  AD    &A
+1                  SL     0008
+1                  STC   FLAG
+1                  CU    &B
+1        .A        ALF       E
+1        GOOF      STC   T1
+1                  SL     0004
+1                  STC   T1
+1                  PTWF   0500       CARRIAGE RETURN
+1                  CAD   NMBR
+1                  SL     0006
+1                  PTW    0304
+1        .B        BA
+1                  STC   T0
+1                  SB    T1
+1                  DB         &0001
+1             -    CAD    0000
+1                  SR     0007
+1                  M     &C
+1                  SL     0010
+1                  AD    &I
+1                  ST    T2
+1                  CAD   &J
+1                  PTW    0406
+1                  SB    T2
+1        .F   -    CAD   MSTBL
+1                  SU    &J
+1                  CNZ   &D
+1        .E        CAD   &F
+1                  AD    T1
+1                  STC   &G
+1                  SB    T0
+1                  CAD   &H
+1                  STC   &C   -0001
+1        .G        STOP
+1        .D   -    CAD   MSTBL
+1                  PTW    0410       WRITE FIVE CHARACTERS
+1                  CAD        &0004
+1                  AD    &G
+1                  CC    -E
+1                  STC        &0001
+1              9940DB    -F
+1        .C        NUM   0000000006
+1        .G        NUM   0010000000
+1        .H    9940DB    -F
+1        .F        CU     0000
+1        .I        NUM   0000000005
+1        .J        FLX
+1        T0        STOP
+1        T1        STOP
+1        T2        STOP
+1                  TAG  7
+1        MSTBL     FLXS   0006     FORMAT BAND TOO LONG
+1                  FLXS   0006     WRONG NUMBER OF COLUMNS
+1                  FLXS   0006     INVALID CHARACTER
+1                  FLXS   0006     WRONG NUMBER OF DIGITS
+1                  FLXS   0006     PLUS SIGN MISSING
+1                  FLXS   0006     UNDEFINED OPERAND
+1                  FLXS   0006     INVALID INCREMENT
+1        TART  0020MTS    0000
+1                  CC         -0001
+1                  BT6    8000
+1                  BF6    0000
+1                  BT4    0000
+1                  BT6   &E          FOR LOADING ASSEMBLED
+1                  BT5   &L          PROGRAM
+1                  CAD   &A
+1                  CUB   &Z
+1        .A    8000BF4    0000
+1        .Z        ST         &0001
+1                  STOP             CLEAR MEMORY
+1                  AD    &C
+1                  CC    &B
+1                  CU    -Z
+1        .C        NUM   0010000020
+1        .B    0120MTR    8000      READ TAPE BLOCK
+1                  CC         -0001
+1                  SB    PRCOD
+1             -    CU    CODE
+1        CODE      CU   5&L        ZERO      MACHINE INSTRUCTION
+1                  CU    -B        ONE       PSEUDO INSTRUCTION
+1                  CU   5&L        TWO       CONSTANT
+1                  CU   5&L        THREE     FORMAT BAND
+1                  CU   5&L        FOUR      MACRO INSTRUCTION
+1                  CU    -B        FIVE      MACRO INSTRUCTION
+1                  CU   5&L        SIX       FLEXOWRITER CODE
+1                  CU   5&L        SEVEN     FORMAT BAND
+1                  CU   6&E        EIGHT     END OF TAPE
+1        .N        FLX   LOW
+1                  TAG  5
+1        .L        SB    ABLOC      PLACE INSTRUCTION IN MEMORY
+1                  CAD   INSTR
+1             -    STC    0000
+1                  BA
+1                  SU    HIGH
+1                  OSGD
+1                  CC         &0003
+1                  BA
+1                  STC   HIGH
+1                  BA
+1                  SU    LOW
+1                  OSGD  -L   &0002
+1                  CC         &0003
+1                  BA
+1                  STC   LOW
+1                  CU   7-B
+1        LOW       NUM   9999999999
+1        HIGH      NUM   0000000000
+1                  TAG  6
+1        .E    0020MTRW   0000       REWIND UNIT TWO
+1                  CC         -0001
+1                  PTWF   0500
+1                  CAD   &M          PRINT OUT PROGRAM
+1                  PTW    0410        DELIMINATION
+1                  CAD  5HIGH
+1                  SL     0006
+1                  PTW    0304
+1                  PTWF   0500
+1                  CAD  7-N
+1                  PTW    0410
+1                  CAD  5LOW
+1                  SL     0006
+1                  PTW    0304
+1              8900MTS    0000     LOAD SLIM AND TRANSFER
+1                  CC         -0001  CONTROL TO IT
+1              1500MTR    3700
+1                  CC         -0001
+1              0010CDR    6000
+1        .M        FLX   HIGH
+1                  END

@@ -1,0 +1,1822 @@
+2  SHELL-ASSEMBLER-M1.SHELL
+1        ASIGN     EQU    3000
+1        MCTBL     EQU    1000
+1        SYMBL     EQU    0000
+1        POINT     EQU    2830
+1        BLOCK     EQU    2860
+1        CTLOG     EQU    0220
+1                  REM  
+1        SEQ       EQU    6000     ASSIGN PROBLEM VARIABLES
+1        MCTAL     EQU    6001
+1        MACNO     EQU    6002
+1        KAY       EQU    6003
+1        TAU       EQU    6004
+1        COUNT     EQU    6005
+1        TAPE      EQU    6006
+1        PAIR      EQU    6007
+1        TEMP      EQU    6008
+1        PRCOD     EQU    4000     ASSIGN TAPE RECORD VARIABLES
+1        REMRK     EQU    4001
+1        SINC      EQU    4007
+1        SADR      EQU    4008
+1        STAG      EQU    4009
+1        SOPR      EQU    4010
+1        SPARE     EQU    4011
+1        SLOC      EQU    4012
+1        INSTR     EQU    4013
+1        ABLOC     EQU    4014
+1        NUMB      EQU    4015
+1        FLAG      EQU    4016
+1        ABSPR     EQU    4017
+1        NDEX2     EQU    4018
+1        NDEX1     EQU    4019
+1                  TAG  7
+1                  REM  
+1                  ORG    0900
+1        LOAD      CUB        &0001
+1              0010MTRW
+1                  CC         -0001
+1              0010MTS    0000
+1                  CC         -0001
+1              0020MTRW
+1                  CC         -0001
+1              0110CDRF XFMB1      LOAD REQUIRED FORMAT BANDS
+1              0020CDPF XFMB2
+1              0030CDWF XFMB3
+1              0230CDWF XFMB4
+1              0430CDWF XFMB5
+1              0630CDWF XFMB6
+1              0210CDRF XFMB7
+1              0210CDR    6000     READ AND PRINT
+1              3630CDW    6000        IDENTIFICATION CARD
+1                  CUB   START
+1        FMB1      RFB             9B & 7)P10Z) & 3)P5A) & P8ZA
+1                                         8)P5A) & P10Z & 15B
+1        FMB2      PFB             P9ZN & P7Z3N & 5)P6Z4N & 11N)
+1                                         P9ZN
+1        FMB3      WFB             3)P10Z) & P5AB & P6Z4N3B
+1                                         P6Z4N2B & NB4NB2NB4N3B
+1                                    P5A2B & PAB4AB & P5AB
+1                                         P8ZAB & 2)P5A)2B
+1                                         6)P5A) & 20B
+1        FMB4      WFB             P5AB & P6Z4N26B
+1                                         2)P10Z) & P5A2B
+1                                         PAB4AB & P5AB & P8ZAB
+1                                         2)P5A)2B & 6)P5A) & 20B
+1                                         P10Z
+1        FMB5      WFB             13B & 6)P5A) & 77B
+1        FMB6      WFB             11B15)P5A)  &   P4Z3A31B
+1                                         P5A & P6Z2A6B
+1                                         P4Z2NB2NB2N37B
+1        FMB7      RFB             B15)P5A)  &  P4Z3AB
+1                                         P4Z6N19B
+1        START     BT6    8000
+1                  BF6  XSYMBL     ZEROS TO SYMBL TABLE
+1                  CAD        -0001
+1                  AD    &A
+1                  CC         &0003
+1                  STC        -0004
+1                  CU         -0005
+1                  CAD   &B
+1                  SB    &C
+1             -    ST     5000
+1                  DB         -0001
+1                  BF5  XASIGN     NINES TO ASIGN TABLE
+1                  CAD        -0001
+1                  AD    &A
+1                  CCB   &D
+1                  STC        -0004
+1                  CU         -0005
+1        .A        NUM   0200000020
+1        .B        NUM   9999999999
+1        .C        NUM   0000000019
+1        .D        CAD  XALF1      SET ALPHA SWITCH TO ONE
+1                  ST   XALPHA
+1                  CAD  XEPS1      SET EPSILON SWITCH TO ONE
+1                  ST   XEPSLN
+1                  CAD  XETA1      SET ETA SWITCH TO ONE
+1                  ST   XETA
+1                  CAD   &P
+1                  CUB   &A
+1        .P        NUM   7070000000
+1        .A        SB    &T
+1             -    ST   5POINT&0010INITIALIZE POINT TABLE
+1                  SU    &S
+1                  DB         -0002
+1                  BF5  XPOINT&0010
+1                  SB    &U
+1        .A   -    ST   5POINT
+1                  SU    &S
+1                  DB    -A
+1                  BF5  XPOINT
+1              0010CDR    4000
+1                  CUB   TROPR
+1        .T        NUM   0000000019
+1        .S        NUM   0001000000
+1        .U        NUM   0000000009
+1        OPTBL     ALF   BF6
+1                  ALF                 1
+1                  ALF   END           2
+1                  ALF                 3
+1                  ALF   CAD           4
+1                  ALF   D7            5
+1                  ALF   5D            6
+1                  ALF   ST            7
+1                  ALF   JCB           8
+1                  ALF   BT6           9
+1                  ALF   ALF          10
+1                  ALF   PC           11
+1                  ALF   SUA          12
+1                  ALF   DB           13
+1                  ALF                14
+1                  ALF                15
+1                  ALF                16
+1                  ALF   BF7          17
+1                  ALF                18
+1                  ALF                19
+1                  ALF   CUB          20
+1                  ALF                21
+1                  ALF                22
+1                  ALF                23
+1                  ALF                24
+1                  ALF                25
+1                  ALF                26
+1                  ALF   MACRO        27
+1                  ALF                28
+1                  ALF   BT7          29
+1                  ALF   P            30
+1                  ALF                31
+1                  ALF   B            32
+1                  ALF   ALFS         33
+1                  ALF                34
+1                  ALF   FLX          35
+1                  ALF                36
+1                  ALF                37
+1                  ALF                38
+1                  ALF                39
+1                  ALF   MTS          40
+1                  ALF                41
+1                  ALF                42
+1                  ALF                43
+1                  ALF   NEW          44
+1                  ALF                45
+1                  ALF   DFR          46
+1                  ALF   PFB          47
+1                  ALF                48
+1                  ALF                49
+1                  ALF   ADSC         50
+1                  ALF                51
+1                  ALF   REM          52
+1                  ALF                53
+1                  ALF   STOP         54
+1                  ALF   FLXS         55
+1                  ALF   CSUA         56
+1                  ALF   DAD          57
+1                  ALF   EXC          58
+1                  ALF   6D           59
+1                  ALF   CDRI         60
+1                  ALF   SA           61
+1                  ALF   EQU          62
+1                  ALF   NUM          63
+1                  ALF   ORG          64
+1                  ALF   PTW          65
+1                  ALF   CC           66
+1                  ALF   AD           67
+1                  ALF   DIV          68
+1                  ALF   FDIV         69
+1                  ALF   M            70
+1                  ALF   PTWF         71
+1                  ALF                72
+1                  ALF   CCR          73
+1                  ALF                74
+1                  ALF                75
+1                  ALF   FW           76
+1                  ALF   CADA         77
+1                  ALF                78
+1                  ALF   IB           79
+1                  ALF                80
+1                  ALF                81
+1                  ALF                82
+1                  ALF                83
+1                  ALF                84
+1                  ALF   C            85
+1                  ALF                86
+1                  ALF   D4           87
+1                  ALF                88
+1                  ALF                89
+1                  ALF                90
+1                  ALF   BN           91
+1                  ALF   JC           92
+1                  ALF   JCR          93
+1                  ALF   DFS          94
+1                  ALF   NOR          95
+1                  ALF   S            96
+1                  ALF   SUSC         97
+1                  ALF   G            98
+1                  ALF   CDW          99
+1                  ALF   D6          100
+1                  ALF               101
+1                  ALF   RO          102
+1                  ALF   CDWF        103
+1                  ALF   CU          104
+1                  ALF               105
+1                  ALF               106
+1                  ALF   BB          107
+1                  ALF   MTW         108
+1                  ALF   CUR         109
+1                  ALF   MRO         110
+1                  ALF   J           111
+1                  ALF   7D          112
+1                  ALF               113
+1                  ALF   SU          114
+1                  ALF               115
+1                  ALF   MTRW        116
+1                  ALF   RC          117
+1                  ALF               118
+1                  ALF   TAG         119
+1                  ALF               120
+1                  ALF               121
+1                  ALF   CNZ         122
+1                  ALF               123
+1                  ALF               124
+1                  ALF   WFB         125
+1                  ALF               126
+1                  ALF   CCBR        127
+1                  ALF               128
+1                  ALF   EX          129
+1                  ALF   FR          130
+1                  ALF               131
+1                  ALF   REG         132
+1                  ALF               133
+1                  ALF               134
+1                  ALF   OSGD        135
+1                  ALF               136
+1                  ALF               137
+1                  ALF               138
+1                  ALF   D           139
+1                  ALF   FSU         140
+1                  ALF   STC         141
+1                  ALF   SL          142
+1                  ALF               143
+1                  ALF               144
+1                  ALF   PTR         145
+1                  ALF   CDP         146
+1                  ALF   AA          147
+1                  ALF   JNZ         148
+1                  ALF   CDPF        149
+1                  ALF               150
+1                  ALF   RFB         151
+1                  ALF   JCBR        152
+1                  ALF   4D          153
+1                  ALF               154
+1                  ALF               155
+1                  ALF   MR          156
+1                  ALF               157
+1                  ALF               158
+1                  ALF               159
+1                  ALF               160
+1                  ALF               161
+1                  ALF   FAD         162
+1                  ALF   DFW         163
+1                  ALF   CUBR        164
+1                  ALF   ADA         165
+1                  ALF   BF4         166
+1                  ALF               167
+1                  ALF               168
+1                  ALF   UA          169
+1                  ALF   SB          170
+1                  ALF   CR          171
+1                  ALF               172
+1                  ALF   SUBR        173
+1                  ALF   CDWI        174
+1                  ALF   BF5         175
+1                  ALF   CSU         176
+1                  ALF   BT4         177
+1                  ALF   BM          178
+1                  ALF   A           179
+1                  ALF   CDR         180
+1                  ALF   SR          181
+1                  ALF   CDRF        182
+1                  ALF   CCB         183
+1                  ALF   CIRA        184
+1                  ALF   JB          185
+1                  ALF               186
+1                  ALF   MOD         187
+1                  ALF               188
+1                  ALF   MTR         189
+1                  ALF               190
+1                  ALF   BNA         191
+1                  ALF   JBR         192
+1                  ALF   D5          193
+1                  ALF   BT5         194
+1                  ALF               195
+1                  ALF   JR          196
+1                  ALF               197
+1                  ALF   FM          198
+1                  ALF   BA          199
+1        EQTBL     NUM   3130260000
+1                  NUM                 1
+1                  NUM   0000080001    2
+1                  NUM                 3
+1                  NUM   2020640000    4
+1                  NUM   3130370000    5
+1                  NUM   3130250000    6
+1                  NUM   1030120000    7
+1                  NUM   4130380000    8
+1                  NUM   3130360000    9
+1                  NUM   0000040001   10
+1                  NUM   1030020000   11
+1                  NUM   1010770000   12
+1                  NUM   3030220000   13
+1                  NUM                14
+1                  NUM                15
+1                  NUM                16
+1                  NUM   3130270000   17
+1                  NUM                18
+1                  NUM                19
+1                  NUM   3130300000   20
+1                  NUM                21
+1                  NUM                22
+1                  NUM                23
+1                  NUM                24
+1                  NUM                25
+1                  NUM                26
+1                  NUM   0000090001   27
+1                  NUM                28
+1                  NUM   3130370000   29
+1                  NUM   1030120000   30
+1                  NUM                31
+1                  NUM   2020640000   32
+1                  NUM   0000150001   33
+1                  NUM                34
+1                  NUM   0000160001   35
+1                  NUM                36
+1                  NUM                37
+1                  NUM                38
+1                  NUM                39
+1                  NUM   3041420000   40
+1                  NUM                41
+1                  NUM                42
+1                  NUM                43
+1                  NUM   0000100001   44
+1                  NUM                45
+1                  NUM   2041400000   46
+1                  NUM   0000120001   47
+1                  NUM                48
+1                  NUM                49
+1                  NUM   1010160000   50
+1                  NUM                51
+1                  NUM   0000060001   52
+1                  NUM                53
+1                  NUM   3170080000   54
+1                  NUM   0000170001   55
+1                  NUM   2020670000   56
+1                  NUM   1010100000   57
+1                  NUM   3030710000   58
+1                  NUM   3130260000   59
+1                  NUM   3031450000   60
+1                  NUM   1010770000   61
+1                  NUM   0000000001   62
+1                  NUM   0000050001   63
+1                  NUM   0000010001   64
+1                  NUM   1030030000   65
+1                  NUM   4030280000   66
+1                  NUM   1010740000   67
+1                  NUM   1070610000   68
+1                  NUM   1010830000   69
+1                  NUM   1030600000   70
+1                  NUM   3030070000   71
+1                  NUM                72
+1                  NUM   4030290000   73
+1                  NUM                74
+1                  NUM                75
+1                  NUM   1030030000   76
+1                  NUM   2020660000   77
+1                  NUM                78
+1                  NUM   3030320000   79
+1                  NUM                80
+1                  NUM                81
+1                  NUM                82
+1                  NUM                83
+1                  NUM                84
+1                  NUM   1010010000   85
+1                  NUM                86
+1                  NUM   3130340000   87
+1                  NUM                88
+1                  NUM                89
+1                  NUM                90
+1                  NUM   2020650000   91
+1                  NUM   4030280000   92
+1                  NUM   4030290000   93
+1                  NUM   3041420000   94
+1                  NUM   1030150000   95
+1                  NUM   1010750000   96
+1                  NUM   1010170000   97
+1                  NUM   3040730000   98
+1                  NUM   2051540000   99
+1                  NUM   3130360000  100
+1                  NUM               101
+1                  NUM   1010230000  102
+1                  NUM   2051580000  103
+1                  NUM   3030200000  104
+1                  NUM               105
+1                  NUM               106
+1                  NUM   2020110000  107
+1                  NUM   2041500000  108
+1                  NUM   3030210000  109
+1                  NUM   1010700000  110
+1                  NUM   3030200000  111
+1                  NUM   3130270000  112
+1                  NUM               113
+1                  NUM   1010750000  114
+1                  NUM               115
+1                  NUM   3041520000  116
+1                  NUM   5060330000  117
+1                  NUM               118
+1                  NUM   0000030001  119
+1                  NUM               120
+1                  NUM               121
+1                  NUM   1030040000  122
+1                  NUM               123
+1                  NUM               124
+1                  NUM   0000130001  125
+1                  NUM               126
+1                  NUM   4130390000  127
+1                  NUM               128
+1                  NUM   1010630000  129
+1                  NUM   2050000000  130
+1                  NUM               131
+1                  NUM   0000020001  132
+1                  NUM               133
+1                  NUM               134
+1                  NUM   3040730000  135
+1                  NUM               136
+1                  NUM               137
+1                  NUM               138
+1                  NUM   1070610000  139
+1                  NUM   1010810000  140
+1                  NUM   1030020000  141
+1                  NUM   3030140000  142
+1                  NUM               143
+1                  NUM               144
+1                  NUM   2050000000  145
+1                  NUM   2051540000  146
+1                  NUM   1010760000  147
+1                  NUM   1030040000  148
+1                  NUM   2051580000  149
+1                  NUM               150
+1                  NUM   0000110001  151
+1                  NUM   4130390000  152
+1                  NUM   3130240000  153
+1                  NUM               154
+1                  NUM               155
+1                  NUM   1010700000  156
+1                  NUM               157
+1                  NUM               158
+1                  NUM               159
+1                  NUM               160
+1                  NUM               161
+1                  NUM   1010800000  162
+1                  NUM   2041500000  163
+1                  NUM   3130310000  164
+1                  NUM   1010760000  165
+1                  NUM   3130240000  166
+1                  NUM               167
+1                  NUM               168
+1                  NUM   1030060000  169
+1                  NUM   3030720000  170
+1                  NUM   5060330000  171
+1                  NUM               172
+1                  NUM   0000140001  173
+1                  NUM   3031550000  174
+1                  NUM   3130250000  175
+1                  NUM   2020650000  176
+1                  NUM   3130340000  177
+1                  NUM   2020660000  178
+1                  NUM   1010740000  179
+1                  NUM   2051440000  180
+1                  NUM   3030130000  181
+1                  NUM   2051480000  182
+1                  NUM   4130380000  183
+1                  NUM   1010010000  184
+1                  NUM   3130300000  185
+1                  NUM               186
+1                  NUM   0000070001  187
+1                  NUM               188
+1                  NUM   2041400000  189
+1                  NUM               190
+1                  NUM   2020670000  191
+1                  NUM   3130310000  192
+1                  NUM   3130350000  193
+1                  NUM   3130350000  194
+1                  NUM               195
+1                  NUM   3030210000  196
+1                  NUM               197
+1                  NUM   1010820000  198
+1                  NUM   2020110000  199
+1        TROPR     CAD   PAIR
+1                  STC   TEMP &0003
+1                  STC   PAIR
+1                  CAD   COUNT     INCREASE SERIAL NUMBER BY 1
+1                  AD    &A
+1                  ST    COUNT
+1                  STC   NUMB
+1                  CAD   SOPR
+1                  CR
+1                  NOR   ALPHA     IS OPR BLANK
+1                  STC   TEMP      NO
+1                  CAD   ALF1      SET ALPHA TO 1
+1                  STC  XALPHA
+1                  CUB   &B
+1        .A        NUM   0000000001
+1        ALPHA     STOP
+1        ALF1      CUB   &Y
+1        .B        ADSC
+1                  CNZ   &A        IS OPR NUMERICAL
+1                  CAD   TEMP
+1        .G        M     &B        NO
+1                  STC   TEMP &0001SCRAMBLE OPR FOR L
+1                  SL     0010
+1                  AD    TEMP &0001
+1                  CC         &0001
+1                  EX    &C
+1                  M     &D
+1                  CUB   &E
+1        .A        CUB   &N
+1        .D        NUM   0002000000
+1        .C        NUM   0000111000
+1        .B        NUM   5326581308
+1        .E        STC   TEMP &0001STORE L
+1                  SB    TEMP &0001
+1             -    CAD  XOPTBL
+1                  NOR   &A        OPR NOT IN TABLE
+1                  SU    TEMP
+1                  NOR   &B        FOUND
+1              8000CAD
+1                  AD    &C        INCREASE V BY 1
+1                  CC    &A        OPR NOT IN TABLE
+1                  STC        -0003
+1                  DB    -E   &0002DECREASE L BY 1
+1                  SB    &D
+1                  CU    -E   &0002
+1        .A        CAD   TEMP
+1                  CUB   &E
+1        .B        CUB   &O
+1        .D        NUM   0000000199
+1        .C        NUM   0010000000
+1        .E        SB   X
+1                  CUB   MACSR
+1                  CU    &A        FOUND IN CATALOGUE
+1                  CU         &0001OPR NOT IN CATALOGUE
+1                  BT4   BLOCK     RESTORE 4000 LOOP
+1                  CUR  XERROR     WRITE  INVALID OPR CODE
+1              0430CDW  XERR1
+1                  CAD   &C        USE 99
+1                  STC   INSTR
+1                  CUB   &S
+1        .A        BT4   BLOCK     RESTORE 4000 LOOP
+1                  CUB   TRMAC
+1        .C        NUM   0000990000
+1        .N        CAD   TEMP      OPR IS NUMERICAL
+1                  EX    &A
+1                  SU    &B
+1                  CNZ   &C
+1                  CAD   TEMP
+1                  SR     0007     CONVERT TO NUMERICAL FORMAT
+1                  CIRA   0009
+1                  SR     0001
+1                  STC
+1                  SL     0006
+1                  STC   INSTR     STORE OPR
+1                  CUB   &S
+1        .C        CUB   -G   -0001
+1        .B        NUM   8080000000
+1        .A        NUM   1010000000
+1        .Y        CUR  XERROR     WRITE OPR IS BLANK
+1              0430CDW  XERR2
+1                  CAD   &B        USE 90
+1                  STC   INSTR
+1                  CUB   &S
+1        .B        NUM   0000900000
+1        .O   -    CAD  XEQTBL     RETRIEVE EQUIVALENT
+1                  OSGD
+1                  CCB   TRMAC     TEMPORARY LIBRARY MACRO
+1                  ST    TEMP
+1                  SB    TEMP
+1                  EX    &B
+1                  ST    INSTR
+1             -    CU    &A
+1        .B        NUM   0000110000
+1        .A        CU    BETA -0001MACHINE INSTRUCTION
+1                  SR     0004     PSEUDO OPERATION
+1                  STC   TEMP
+1                  SB    TEMP
+1             -    CU   XSUDO
+1                  CAD   TEMP &0003
+1        BETA      CUB   TEST
+1        TEST      NOR   &B        WAS LAST OPERATION MACHINE
+1                  SR     0009       YES
+1                  ST    TEST      PREPARE TO ENTER PAIR TABLE
+1                  CAD   TEMP
+1                  SR     0009
+1                  ST
+1                  SB         -0001
+1             -    CAD   &B
+1                  SB    TEST
+1             -    CIRA   0000-0001TESTING FOR VALID PAIR
+1                  OSGD
+1                  CC    &B        IS PAIR VALID
+1                  CUR  XERROR     NO
+1             00430CDW  XERR3
+1        .B        CUB   &X        YES,PREPARE PAIR FOR NEXT
+1                  NUM   1110011000 CARD
+1                  NUM   0010111000
+1                  NUM   1110111000
+1                  NUM   1001001000
+1                  NUM   1110101000
+1        .X        CAD   TEMP      PUT OPERATION CODE CLASS
+1                  EX    &A          IN PAIR
+1                  STC   PAIR
+1                  CAD   TEMP
+1                  EX    &A   &0001
+1                  CNZ        &0002IS OPERATION CLASS O
+1                  CUB   &S          YES
+1                  CUB   &D          NO
+1        .A        NUM   0010000000
+1                  NUM   0101000000
+1        .D        EX    &A
+1                  CNZ        &0002
+1                  CU    &B        IS OPR CLASS D
+1                  CAD   SPARE     YES
+1                  EX    &C
+1                  CNZ   &B        IS UNIT DESIGNATION PRESENT
+1                  CUR  XERROR     NO
+1              0430CDW  XERR4      WRITE NO UNIT DESIGNATION
+1        .B        CAD   TEMP
+1                  EX    &D
+1                  CNZ        &0002
+1                  CUB   &S        IS OPR CLASS B
+1                  CUB   CNTRL     YES
+1        .D        NUM   0100000000
+1        .C        NUM   0000001100
+1        .A        NUM   0001000000
+1        .S        CAD   STAG
+1                  CNZ   &A        IS TAG BLANK
+1                  CAD   TAU       YES
+1                  CUB   &F   &0001
+1        .A        SU    &B
+1                  CNZ        &0002
+1                  CUB   CNTRL     IS TAG X
+1                  SU    &C        NO
+1                  OSGD
+1                  CC    &D        IS TAG SMALLER THAN FOUR
+1                  SU    &E        NO
+1                  OSGD
+1                  CCB   &F        IS TAG GREATER THAN 7
+1        .D        CUR  XERROR     YES
+1              0430CDW  XERR5      WRITE INVALID TAG
+1                  CUB   CNTRL
+1        .E        NUM   0000000004
+1        .C        NUM   0000000016
+1        .B        NUM   0000000067
+1        .F        CAD   STAG      STORE ABSOLUTE TAG
+1                  CR
+1                  SR     0001
+1                  STC
+1                  SL     0010
+1                  AD    STAG
+1                  STC   STAG
+1                  CUB   CNTRL
+1        TRMAC     STC   TEMP      STORE EQUIVALENT
+1                  CAD   &D        SET PROCESS CODE
+1                  STC   PRCOD
+1                  SB    MACNO
+1                  IB              INCREASE MACNO BY 1
+1                  BA
+1                  ST    MACNO
+1                  SU    &A
+1                  OSGD
+1                  CCB   &B        IS MACNO 150 OR LESS
+1                  CUR  XERROR     NO
+1              0430CDW  XERR6      WRITE MACRO-TABLE IS FULL
+1                  CUB   EXIT
+1        .D        NUM   0000000004
+1        .A        NUM   0000000150
+1        .B        CSUA  TEMP
+1             -    STC  XMCTBL-0001PUT MTS COMMAND IN MACRO-TABLE
+1                  CAD   &D
+1                  STC   INSTR     STORE CUB COMMAND
+1                  CAD   ALF2      SET ALPHA TO 2
+1                  STC  XALPHA
+1                  CUB   &E
+1        ALF2      CUB   &Z
+1        .D        CUB    0000
+1        .Z        CAD   &A        SET PROCESS CODE
+1                  STC   PRCOD
+1                  CAD   SEQ       SUPPRESS SEQUENCE ADVANCE
+1                  SU    &B
+1                  STC   SEQ
+1                  CAD   KAY       INCREASE K BY 1
+1                  AD    &B
+1                  STC   KAY
+1                  CUB   &C
+1        .E        CAD   &B        SET K TO 1
+1                  STC   KAY
+1                  CUB   &C
+1        .B        NUM   0000000001
+1        .A        NUM   0000000005
+1        .C        CAD   &A        PRODUCE 70XXXXKKKK
+1                  AD    MACNO
+1                  CIRA   0003
+1                  AD    KAY
+1                  SB   X
+1                  CUB   OPRND     STORE IN SYMBOL TABLE
+1                  STC   NDEX2     STORE INDEX 2
+1                  CAD   STAG
+1                  CNZ        &0002IS TAG BLANK
+1                  CUB   CNTRL     YES
+1                  CUB   -S   &0004NO
+1        .A        NUM   0000700000
+1        CNTRL     CAD   SEQ
+1                  SB   X
+1                  CUB   LOCTN     TREAT LOCATION
+1                  CAD   SADR
+1                  SB   X
+1                  CUB   OPRND     TREAT OPERAND
+1                  ST    NDEX1     STORE INDEX 1
+1                  OSGD            HAS ASSIGNMENT BEEN MADE
+1                  CC         &0008NO
+1                  CAD   SADR      YES
+1                  CNZ        &0002IS ADR BLANK
+1                  CU         &0005YES
+1                  CAD   STAG      NO- ADR IS ABSOLUTE
+1                  SL     0001         SET TAG TO ZERO
+1                  SR     0001
+1                  STC   STAG
+1                  CUB        &0001
+1                  CAD   SPARE     TRANSLATE SPARES
+1                  CNZ        &0002IS SPARE BLANK
+1                  CUB   WRITE     YES
+1                  SR     0008     NO
+1                  CNZ        &0002IS M BLANK
+1                  CUB   &L        YES
+1                  SR     0001     NO
+1                  SU    &B
+1                  CNZ        &0002IS M NUMERICAL
+1                  CUB   &C        YES
+1                  AD    &B        NO
+1                  SL     0001
+1                  SU    &D
+1                  CNZ   &E        IS M HYPHEN
+1                  CAD   &F        YES
+1                  CUB   &L
+1        .E        CUB   &G
+1        .F        NUM   0000010000
+1        .D        NUM   0000000020
+1        .B        NUM   0000000008
+1        .C        SL     0001
+1                  CR
+1                  SL     0004
+1        .L        STC   ABSPR
+1                  CAD   SPARE
+1                  SL     0002
+1                  CNZ        &0003ARE SPARES BLANK
+1        .Q        CAD   ABSPR     YES
+1                  CUB   &Q
+1                  ST    TEMP      NO
+1                  EX    &E
+1                  SU    &B
+1                  NOR   &C        ARE SPARES NUMERICAL
+1                  CUR  XERROR     NO
+1              0430CDW  XERR7      WRITE INVALID SPARES
+1                  CU    -Q
+1        .B        NUM   8080808000
+1        .E        NUM   1010101000
+1        .C        CAD   TEMP      CONVERT SPARES TO NUMERICAL
+1                  CUB        &0001  FORM
+1                  SB    &A
+1                  SR     0001
+1                  CIRA   0009
+1                  DB         -0002
+1                  STC
+1        .A        SL     0004
+1                  AD    ABSPR     AFFIX SIGN TO SPARES
+1        .Q        CIRA   0005
+1                  STC   ABSPR
+1        WRITE 0110MTW    8000     WRITE TAPE RECORD
+1                  CC         -0001
+1        EPSLN     STOP
+1        .T        CAD   SEQ       EPSILON IS ONE
+1                  SU    &C
+1                  CNZ        &0002IS SEQ 3999
+1                  CU   X&E        YES
+1                  AD    &D        NO- INCREASE SEQ BY ONE
+1                  STC   SEQ
+1                  CU    ETA
+1        .V        CAD   EPS1      EPSILON IS 3- SET TO ONE
+1                  STC  XEPSLN
+1        ETA       STOP
+1        .D        NUM   0000004000
+1        .C        NUM   0000003999
+1        EPS1      CUB   -T
+1        EPS3      CUB   -V
+1        .I    0010CDR    4000     READ THE NEXT CARD
+1                  CUB   TROPR     RETURN TO THE BEGINNING
+1        ETA1      CUB   -I
+1        .J        CAD   ETA3      SET ETA TO 3 TO FORCE DATAFILE
+1                  STC  XETA        INPUT OF INSTRUCTIONS
+1                  SB    MCTAL
+1                  BA              IF MACNO EQUALS MCTAL THEN
+1                  SU    MACNO      FIRST MOVEMENT IS COMPLETE
+1                  NOR   BUM
+1             -    CADA XMCTBL     RETRIEVE MTS COMMAND FROM
+1                  ST         &0001 MACRO TABLE AND PERFORM
+1                  STOP
+1                  CC         -0001
+1                  STC   TAPE
+1                  CUB   &B
+1        ETA3      CUB   &K
+1        BUM       CUB   OUT
+1        .B        IB              INCREMENT MCTAL
+1                  BA
+1                  STC   MCTAL     IF ENTRY IN MCTBL DOES NOT
+1             -    CAD  XMCTBL-0001 REPRESENT A SUBROUTINE
+1                  OSGD       -0001 OVERLOAD WITH SEQUENCE
+1                  CC    &K         COUNTER
+1                  CAD   SEQ
+1             -    STC  XMCTBL-0001
+1        .K    0100MTR    8000     OBTAIN NEXT INSTRUCTION FROM
+1                  CC         -0001DATA FILE
+1                  CAD   TAPE      RECORD LOCATION IN DATAFILE
+1                  AD    &A
+1                  STC   TAPE
+1                  CUB   TROPR
+1        .A        NUM   0000000001
+1        .E        CUR  XERROR
+1              0430CDW  XERR8      WRITE MEMORY OVERFLOW
+1                  CUB   EXIT
+1        .G        CUR  XERROR     WRITE INVALID SIGN
+1              0430CDW  XERR9
+1                  CUB   -L
+1        ETA2      CUB   -J
+1        LOCTN     STC   TEMP &0001STORE SEQ
+1                  BA              SET UP EXIT
+1                  AD    &C
+1                  ST   X&D
+1                  STC   &D
+1                  CAD   SLOC      TEST FOR BLANK SYMBOLIC
+1                  CNZ   &E          ADDRESS
+1        .F        CAD   TEMP &0001IT IS BLANK
+1                  STC   ABLOC     ASSIGN ABSOLUTE ADDRESS
+1        .D        STOP            EXIT
+1        .E        EX    &U        TEST FOR SPECIAL FIRST
+1                  SU    &A         CHARACTER
+1                  OSGD
+1                  CCB   &B
+1                  CAD   SLOC      STORE SLOC IN TEMP 2
+1                  ST    TEMP &0002
+1                  CUB   &D
+1        .A        NUM   4000000000
+1        .U        NUM   1100000000
+1        .C        CUB    0002
+1        .D   07000SU
+1        .D        OSGD  &H
+1                  CC   X&E
+1                  SR     0010
+1        .D        STC   TEMP &0003ZERO TO V. V IS IN TEMP 3
+1                  CAD   TEMP &0002SCRAMBLE TEMP 2 FOR INITIAL
+1                  M     &G          SEARCH POINT K
+1                  ST    TEMP &0004
+1                  SL     0010
+1                  AD    TEMP &0004
+1                  CC         &0001
+1                  EX    &H
+1                  SR     0003
+1                  ST
+1                  SB         -0001
+1                  CUB   &P
+1        .H        NUM  10000111000
+1        .G        NUM   5326581308
+1        .P   -    CAD  XSYMBL     SEARCH SYMBOL TABLE
+1                  CNZ   &Z
+1                  CAD   TEMP &0002  NOT THERE--
+1             -    STC  XSYMBL        PLACE SYMBOL IN TABLE
+1                  CAD   TEMP &0001   AND MAKE ASSIGNMENT
+1             -    STC  XASIGN
+1                  CUB   -F
+1        .Z        SU    TEMP &0002  CELL OCCUPIED, IT IS SLOC--
+1                  CNZ        &0002
+1                  CUB   &Y           YES
+1                  CAD   TEMP &0003   NO
+1                  AD    &Q           COUNT NUMBER OF ATTEMPTS
+1                  CCB   &X            TOO MANY--TABLE FULL
+1                  STC   TEMP &0003
+1                  DB    -P
+1                  SB    &R        MAKE ANOTHER ATTEMPT
+1                  CU    -P
+1        .Q        NUM   0010000000
+1        .R        NUM   0000000999
+1        .X        CUR  XERROR       W.E.M. SYMBOL TABLE PACKED
+1              0430CDW  XERR11
+1                  CUB   EXIT
+1        .Y   -    CAD  XASIGN       HAS A PREVIOUS ASSIGNMENT
+1                  AD    &Q          BEEN MADE--
+1                  CC    &X           YES
+1                  CUR  XERROR       W.E.M. DUPLICATE LOCATION
+1              0430CDW  XERR12
+1                  CUB   -F
+1        .X        CAD   TEMP &0001   NO
+1             -    STC  XASIGN       MAKE ASSIGNMENT
+1                  CUB   -F
+1        .Q        NUM   0000000001
+1        .B        AD    &R        IS FIRST CHARACTER .
+1                  CNZ  X&E
+1                  CAD   SLOC      YES
+1                  EX    &N        IS SECOND CHARACTER A-Z
+1                  SU    &M
+1                  OSGD
+1                  CC   X&E        NO
+1                  SU    &L
+1                  OSGD
+1                  CCB   &B
+1                  CU   X&E        NO
+1        .L        NUM   0029000000
+1        .M        NUM   0040000000
+1        .N        NUM   0011000000
+1        .R        NUM   3700000000
+1        .B        CAD   SLOC      TEST FOR LAST THREE CHARACTERS
+1                  EX    &Q         OF ADDRESS BEING ZERO
+1                  CNZ   &E
+1                  CAD   SLOC
+1                  EX    &R
+1                  SR     0006
+1                  ST
+1                  SB         -0001
+1             -    CAD  XPOINT-0041FIND SYMBOL IN POINT TABLE
+1                  ST    TEMP &0002PUT IN TEMPORARY  LOC
+1                  AD    &O        ADVANCE SYMBOL IN POINT TABLE
+1             -    STC  XPOINT-0041
+1                  CUB   -D
+1        .E        CUR  XERROR     W.E.M. INVALID LOCATION
+1              0430CDW  XERR10
+1                  CUB   -F
+1        .O        NUM   0000000001
+1        .R        NUM   0011000000
+1        .Q        NUM   0000111111
+1        OPRND     CNZ   &Z        TREAT OPERAND SYMBOL
+1                  CAD   SEQ
+1             -    CUB    0002      IF BLANK USE SEQUENCE COUNTER
+1        .Z        ST    TEMP &0002  AND EXIT IMMEDIATELY
+1                  BA     0003
+1                  STC   TEMP &0001STORE SYMBOL AND STORE EXIT
+1                  CAD   TEMP &0002
+1                  SR     0008
+1                  CNZ        &0002
+1                  CU    &N        TEST HIGH ORDER CHARACTER
+1                  SU    &F         OF SYMBOL
+1                  OSGD
+1                  CCB   &L
+1                  CUB   &M
+1        .N        STC   TEMP          ZERO TO TEMP
+1                  SB    -Z   &0001
+1                  CUB   &B
+1        .F        NUM   0000000040
+1        .B        SL     0001         TEST NEXT DIGIT FOR
+1                  CNZ        &0002ZERO OR EIGHT
+1                  CU    &K
+1                  SU    &G
+1                  CNZ   &E
+1        .K        CAD   TEMP
+1                  SL     0001         INSERT NEXT DIGIT IN TEMP
+1                  STC   TEMP
+1                  DB    -B
+1                  CAD   TEMP          ABSOLUTE ADDRESS IN TEMP
+1        .A        SB    TEMP &0001
+1             -    CUB    0002         EXIT
+1        .G        NUM   0000000008
+1        .E        CUR  XERROR         INVALID OPERAND
+1              0430CDW  XERR13
+1                  CAD  X&N            WRITE ERROR MESSAGE AND
+1                  CU   X-A             USE 9999 FOR ADDRESS
+1        .N        NUM   0000009999
+1        .L        CAD   TEMP &0002    TESTING
+1                  EX    &N             FOR
+1                  SU    &P              VALID
+1                  CNZ        &0002         OR - OR #
+1                  CUB   &W                SIGN
+1                  SU    &P
+1                  CNZ        &0002
+1                  CUB   &W
+1                  SU    &A
+1                  CNZ  X-E            IF INVALID WRITE ERROR
+1                  SB    &C                   MESSAGE
+1                  CAD   TEMP &0002
+1        .D        SR     0001         CONVERTING #XXXX TO
+1                  CIRA   0009              PROPER FORM
+1                  DB    -D
+1                  CUB   &F
+1        .C        NUM   0000000003
+1        .A        NUM   1300000000
+1        .P        NUM   1000000000
+1        .N        NUM   1100000000
+1        .F        CAD   MCTAL         MAKING SYMBOL 70MCTALXXXX
+1                  SL     0004
+1                  AD    &Y
+1                  STC   TEMP &0002
+1                  CUB   &M
+1        .Y        NUM   7000000000
+1        .W        CAD   TEMP &0002    TESTING
+1                  EX    &S             FOR
+1                  ST    &S              VALID
+1                  SU    &R               PROGRAM
+1                  OSGD  &V                POINT
+1                  CC   X-E
+1                  SU    &U
+1                  OSGD  &W
+1                  CC    &V
+1        .Z        CU   X-E
+1        .V        CAD   TEMP &0002
+1                  EX    &W
+1                  CNZ  X-E
+1                  CAD   &S            BEGINNING OF DETERMINATION
+1                  CUB   &A            OF PROGRAM POINT INDEX
+1        .W        NUM   0000111111
+1        .U        NUM   0029000000
+1        .R        NUM   0040000000
+1        .S        NUM   0011000000
+1        .A        SR     0006         OBTAINING POINT ENTRY
+1                  ST    -A             AND ALTERING ENTRY IF
+1                  SB    -A              NECESSARY PREPARATORY
+1             -    CAD  XPOINT-0041       TO SCRAMBLING
+1                  ST    TEMP &0003
+1                  CAD   TEMP &0002
+1                  SR     0008
+1                  SU    &D
+1                  CNZ   &E
+1                  CUB   &F
+1        .E        CAD   TEMP &0003
+1                  SU    &V
+1                  STC   TEMP &0003
+1                  CUB   &F
+1        .V        NUM   0000000001
+1        .D        NUM   0000000010
+1        .M        CAD   TEMP &0002    PREPARING ALPHABETIC
+1                  ST    TEMP &0003     OPERAND FOR SCRAMBLING
+1                  SU    &T
+1                  OSGD
+1                  CC    &F
+1                  CU   X-G   &0001
+1        .T        NUM   7900000000
+1        .F        CAD   TEMP &0003    SCRAMBLING
+1                  M     &G
+1                  STC   &G
+1                  SL     0010
+1                  AD    &G
+1                  CC    &F
+1        .F        EX    &J
+1                  SR     0003
+1                  ST    TEMP &0004
+1                  SB    TEMP &0004    SEARCH INDEX TO B REGIS.
+1                  CUB   &H
+1        .J        NUM   0000111000
+1        .G        NUM   5326581308
+1        .H   -    CAD  XSYMBL         THIS BLOCK IS DEVOTED TO
+1                  NOR   &N            SEARCHING SYMBL TABLE FOR
+1                  SU    TEMP &0003    OPERAND
+1                  CNZ   &A
+1        .P        BA     0999
+1                  ST    TEMP &0004
+1                  CSU   TEMP &0004
+1                  SB    TEMP &0001
+1             -    CUB    0002         EXIT FROM OPRND ROUTINE
+1        .A        CAD   &N
+1                  AD    &K
+1                  CCB   &X           HAS ENTIRE SYMBOL TABLE
+1                  ST    &N            BEEN SEARCHED- NO
+1                  DB    -H             LOOK AT NEXT LOCATION
+1                  SB    -P
+1                  CU    -H
+1        .N        CAD   TEMP &0003
+1             -    ST   XSYMBL
+1                  CU    -P
+1        .K        NUM   0010000000
+1        .X        CUR  XERROR         WRITING ERROR MESSAGE
+1              0430CDW  XERR11          IN CASE SYMBL TABLE
+1                  CUB   EXIT           IS PACKED
+1        SUDO      CUB   EQU       PSEUDO-OPERATION SWITCHING
+1                  CUB   ORG         TABLE
+1                  CUB   REG
+1                  CUB   TAG
+1                  CUB   ALF
+1                  CUB   NUM
+1                  CUB   REM
+1                  CUB   MOD
+1                  CUB   END
+1                  CUB   MACRO
+1                  CUB   NEW
+1                  CUB   RFMB
+1                  CUB   PFMB
+1                  CUB   WFMB
+1                  CUB   SUBR
+1                  CUB   ALFS
+1                  CUB   FLX
+1                  CUB   FLXS
+1        EQU       SB   X
+1                  CUB   SETUP     ASSIGN LOCATION SYMBOL AS
+1                  CUB   &E          INDICATED BY OPERAND
+1                  SB    &P
+1                  CUB   LOCTN
+1        .P           00X&A   -0002
+1        ORG       CAD   SEQ       RESET SEQ AS INDICATED BY
+1                  SB   X           OPERAND
+1                  CUB   LOCTN
+1                  SB   X
+1                  CUB   SETUP
+1                  CUB   &E
+1                  STC   SEQ
+1                  CUB   &A
+1        REG       CAD   SEQ       ADVANCE SEQ AS INDICATED BY
+1                  SB   X           OPERAND
+1                  CUB   LOCTN
+1                  SB   X
+1                  CUB   SETUP
+1                  CUB   &E
+1                  AD    SEQ
+1                  STC   SEQ
+1                  CUB   &A
+1        TAG       CAD   SEQ       SET BLANK TAG COLUMNS OF
+1                  SB   X           SUCCEEDING COMMANDS TO
+1                  CUB   LOCTN
+1                  CAD   STAG
+1                  CNZ        &0002
+1                  CUB   &E
+1                  SU    &Z
+1                  CNZ        &0003
+1                  STC   TAU
+1                  CUB   &A
+1                  SU    &Z   &0001
+1                  OSGD
+1                  CCB   &E
+1                  SU    &Z   &0002
+1                  OSGD
+1                  CC         &0002
+1                  CUB   &E
+1                  CAD   STAG
+1                  STC   TAU
+1                  CUB   &A
+1        .Z        NUM   0000000067
+1                  NUM   0000000016
+1                  NUM   0000000004
+1        ALF       CAD   &C          ALPHABETICAL CONSTANT
+1                  CU    &J            IN CARDATRON CODE
+1        FLX       CAD   &D          ALPHABETICAL CONSTANT
+1        .J        STC   TEMP          IN FLEXOWRITER CODE
+1                  CUB   &X   -0002
+1        .C        NUM   0000000002
+1        .D        NUM   0000000006
+1                  CAD   SADR
+1                  SR     0010
+1        .X        CAD   STAG        TREAT SIGN OF ALPHABETICAL
+1                  SB         &0006   OR NUMERICAL CONSTANT
+1                  CNZ        &0002
+1                  CUB   &Y
+1                  SU    &C
+1                  DB         -0003
+1                  CNZ        &0004
+1                  UA     0001
+1                  CIRA   0000
+1                  CUB   &Y
+1                  SU    &D
+1                  CNZ        &0001
+1                  OSGD
+1                  CCB   &E
+1                  CIRA   0009
+1                  CUB   &Y
+1        .C        NUM   0000000010
+1        .D        NUM   0000000060
+1        .Y        SL     0010
+1                  STC   INSTR
+1                  CAD   TEMP
+1                  STC   PRCOD
+1                  CAD   SEQ
+1                  SB         &0002
+1                  CUB   LOCTN
+1                     00XWRITE-0002
+1        NUM       CAD   SINC      USE OPERAND AS ELEVEN DIGIT
+1                  SB    &F          CONSTANT
+1        .Y        SR     0001       CONVERT INC
+1                  CIRA   0009
+1                  DB    -Y
+1                  CAD   SADR
+1                  SB    &F          CONVERT ADR
+1        .Y        SR     0001
+1                  CIRA   0009
+1                  DB    -Y
+1                  CAD   &F   &0001
+1                  STC   TEMP
+1                  CUB   -X          JOIN ALF FOR SIGN TEST
+1        .F        NUM   0000000004
+1                  NUM   0000000002
+1        REM       SR     0010     REMARKS CARD
+1                  STC   SOPR        BLANK OPERATION FIELD
+1                  CAD   SEQ
+1                  SB         &0002
+1                  CUB   LOCTN
+1                     00X&A   -0002
+1        MOD       CAD   SEQ       INCREASE SEQ IF NECESSARY
+1                  SB         &0006   UNTIL IS IS ZERO MOD 20
+1                  CUB   LOCTN
+1                  CAD   SEQ
+1                  SU    &X
+1                  SR     0001
+1                  CIRA   0008
+1                  UA   X     -0006
+1                  CIRA   0002
+1                  AD    &T
+1                  STC   SEQ
+1                  CUB   &A
+1        .X        NUM   0000000001
+1        .T        NUM   0000000010
+1        END       CAD  XETA2      SET  ETA  SWITCH TO SECOND
+1                  STC  XETA         POSITION TO FORCE SEARCH OF
+1                  CAD   SEQ         MACRO TABLE FOR NEW INPUT
+1                  SB         &0002
+1                  CUB   LOCTN
+1                     00X&A   -0002
+1        SUBR      CAD   SEQ       CALL OUT THE SUBROUTINE
+1                  SB   X           INDICATED BY THE OPERAND
+1                  CUB   LOCTN
+1                  CAD   SADR
+1                  CNZ   &B
+1                  CUB   &E
+1        .B        SB   X
+1                  CUB   MACSR       SEARCH CATALOG--
+1                  CU    &B           THERE
+1                  CUB   &N           NOT THERE
+1                  CUB   &N           FULL
+1        .B        BT4   BLOCK
+1                  STC   TEMP        STORE RESULTING MTS COMMAND
+1                  SB    MACNO       SEARCH MACRO TABLE FOR
+1                  DB    &C           PREVIOUS INCORPORATION
+1                  CUB   &B          NOT THERE
+1        .C   -    CADA XMCTBL
+1                  SU    TEMP
+1                  CNZ        &0002
+1                  CUB   &A          FOUND
+1                  DB    -C
+1                  CUB   &B          NOT THERE
+1        .B        SB    MACNO
+1                  BA
+1                  SU    &T
+1                  CNZ   &B
+1                  CUR  XERROR       MACRO TABLE FULL
+1              0430CDW  XERR6
+1                  CUB   EXIT
+1        .T        NUM   0000000150
+1        .B        CADA  TEMP        INSERT MTS COMMAND IN
+1             -    STC  XMCTBL        MACRO TABLE
+1                  IB                COUNT UP MACNO
+1                  BA
+1                  STC   MACNO
+1                  CUB   &A
+1        .N        BT4   BLOCK
+1                  CUR  XERROR       SUBROUTINE NOT FILED
+1              0430CDW  XERR14
+1                  CUB   &A
+1        .E        CUR  XERROR     ERROR MESSAGE FOR IMPROPER
+1              0430CDW  XERR15       PSEUDO-INSTRUCTIONS
+1                  CUB   &A
+1        .A        CAD   &Q        COMMON TO PSEUDO-OPERATIONS
+1                  STC   PRCOD       SET PROCESS CODE
+1                  CAD  XEPS3        SET EPSLN SWITCH TO 3 TO
+1                  STC  XEPSLN        PREVENT ADVANCE OF SEQ
+1                  CUB   WRITE
+1        .Q        NUM   0000000001
+1        RFMB      CAD   &X        READ FORMAT BAND
+1                  CU    &A
+1        PFMB      CAD   &Y        PUNCH FORMAT BAND
+1                  CU    &A
+1        WFMB      CAD   &Z        PRINT FORMAT BAND
+1                  CU    &A
+1        .X        NUM   0000000000
+1        .Y        NUM   0000000001
+1        .Z        NUM   0000000002
+1        .A        STC   NDEX1     SET TYPE INFO FOR GENERATOR
+1                  CAD   SEQ       PROCESS NAME OF FMB
+1                  SB   X
+1                  CUB   LOCTN
+1                  CAD   SEQ       ADVANCE SEQ BY 29
+1                  AD    &T
+1                  STC   SEQ
+1                  CAD   COUNT     INCREASE COUNT BY 29
+1                  AD    &T
+1                  STC   COUNT
+1                  CAD   ALF3      SET ALPHA SWITCH TO 3 TO
+1                  STC  XALPHA      TREAT SUCCEEDING BLANKS
+1                  CAD   &R         SET PRCOD FOR FIRST LINE
+1                  CUB   &B         OF FMB SPECIFICATIONS
+1        ALF3      CUB   &A
+1        .T        NUM   0000000029
+1        .R        NUM   0000000007
+1        .A        CAD   &Q        SET PRCOD FOR SUCCEEDING LINES
+1        .B        STC   PRCOD
+1                  CAD   COUNT     DECREASE COUNT BY ONE
+1                  SU    &T
+1                  STC   COUNT
+1                  CAD  XEPS3      SET EPSILON TO THREE
+1                  STC  XEPSLN
+1                  CUB   WRITE
+1        .T        NUM   0000000001
+1        .Q        NUM   0000000003
+1        ALFS      CAD   &B        MESSAGE IN CARDATRON CODE
+1                  CU         &0002
+1        FLXS      CAD   &D        MESSAGE IN FLEXOWRITER CODE
+1                  STC   TEMP &0010
+1                  CAD   COUNT
+1                  SU    &B   -0001
+1                  STC   COUNT
+1                  SB    &C
+1                  CUB   SETUP
+1                  NUM            1
+1        .B        NUM   0000000002
+1        .D        NUM   0000000006
+1        .C           00X     -0001
+1                  CU    &E
+1                  ST    TEMP &0005STORE NUMBER OF WORDS N
+1                  CNZ        &0002
+1                  CU    &E        TEST FOR N BETWEEN 1 AND 6
+1                  SU    &S
+1                  OSGD
+1                  CCB   &B
+1        .E        CUR  XERROR
+1              0430CDW  XERR15
+1                  CAD   &Q        USE N IS 1
+1                  STC   TEMP &0005
+1                  CUB   &B
+1        .Q        NUM   0000000001
+1        .S        NUM   0000000006
+1        .B        CAD   ETA4      SET ETA SWITCH TO RETURN TO
+1                  STC  XETA        THIS ROUTINE
+1                  CSU   TEMP &0005
+1                  AD    &F
+1                  STC   TEMP &0006SET I TO 7-N
+1                  BF4   BLOCK     SAVE ORIGINAL INPUT
+1                  CU    &B
+1        .F        NUM   0000000007
+1        ETA4      CUB   &A
+1        .A        SB    &Q
+1             -    STC    4000
+1                  DB         -0001
+1        .B        CAD   SEQ
+1                  SB   X
+1                  CUB   LOCTN      ASSIGN LOCATION
+1                  CAD   COUNT
+1                  AD    &B   &0001
+1                  ST    NUMB
+1                  STC   COUNT
+1                  SB    TEMP &0006
+1             -    CAD  XBLOCK      GET ITH WORD OF REMARKS
+1                  STC   INSTR
+1        .Q        IB     0020       COUNT I UP
+1                  BA
+1                  STC   TEMP &0006
+1                  CAD   TEMP &0010
+1                  STC   PRCOD      SET PROCESS CODE
+1                  CAD   TEMP &0005
+1                  SU    &Q         COUNT N DOWN
+1                  ST    TEMP &0005
+1                  CNZ   &B
+1                  CAD  XETA1       END OF OPERATION
+1                  STC  XETA         RESTORE ETA SWITCH
+1        .B        CUB   WRITE
+1        .Q        NUM   0000000001
+1        SETUP     BA              SUBROUTINE TO EVALUATE
+1                  STC   TEMP &0007   OPERAND
+1                  CAD   SADR
+1                  SB   X
+1                  CUB   OPRND
+1                  OSGD
+1                  CC    &B          INDEX OR ABSOLUTE
+1                  ST    TEMP &0001
+1                  CAD   SADR
+1                  CNZ        &0003
+1                  CAD   PI2
+1                  CU         &0002
+1                  CAD   PI1
+1                  STC   TEMP &0006
+1                  CUB   &N
+1        .B        STC
+1                  SB         -0001
+1                  CAD   PI2
+1                  STC   TEMP &0006
+1             -    CAD  XASIGN
+1                  ST    TEMP &0001
+1                  CUB        &0003
+1        PI1       CUB   &X
+1        PI2       CUB   &H
+1                  AD    &Q          TEST FOR PREVIOUS ASIGNMENT
+1                  CC    &Z
+1                  CUB   &N
+1        .Z        SB    TEMP &0007  ERROR EXIT
+1             -    CUB    0002
+1        .Q        NUM   0000000001
+1        .N        CAD   SINC       EVALUATE INCREMENT
+1                  CNZ        &0002
+1                  CUB   &N          TEST FOR BLANK
+1                  SB    &Q
+1        .F        SR     0001       CONVERT FOUR DIGITS TO
+1                  CIRA   0009        NUMERICAL FORM
+1                  DB    -F
+1                  EX    &R
+1                  CNZ        &0002
+1                  CU   X-Z
+1                  CIRA   0008
+1        .C        SL     0004       ATTACH SIGN TO NUMBER
+1                  STC
+1                  CSU        -0001
+1        .G        CUB   &N
+1        .Q        NUM   0000000003
+1        .R        NUM   0000000011
+1        .N        AD    TEMP &0001
+1                  ST    TEMP &0001  ADD INCREMENT
+1                  CU    TEMP &0006
+1        .H        CAD   &F
+1                  SU    TEMP &0001
+1                  OSGD
+1                  CCB   &Y
+1                  CUB        &0002
+1        .F        NUM   0000004000
+1                  CAD   STAG
+1                  CNZ   &B          OBTAIN TAG CHARACTER
+1                  CAD   TAU
+1        .B        ST    TEMP &0002  TEST TAG FOR VALIDITY
+1                  CNZ        &0002
+1                  CUB   &Y
+1                  SU    &B
+1                  CNZ        &0002
+1                  CUB   &Y
+1                  CAD   TEMP &0002
+1                  SU    &C
+1                  OSGD
+1                  CCB   -Z
+1                  SU    &D
+1                  OSGD
+1                  CCB   &Z
+1                  CUB   -Z          INVALID TAG CHARACTER
+1        .C        ALF       4
+1        .D        NUM   0000000004
+1        .B        ALF       X
+1        .Y        CAD   TEMP &0001  USE ABSOLUTE ADDRESS
+1                  CU    &X
+1        .Z        CAD   TEMP &0002  SET UP TAG CHARACTER
+1                  EX    &C
+1                  CR
+1                  SL     0003
+1                  STC   TEMP &0002
+1                  CAD   TEMP &0001
+1                  EX    &D          MODIFY ADDRESS
+1                  AD    TEMP &0002
+1        .X        SB    TEMP &0007
+1             -    CUB    0003       NORMAL EXIT
+1        .C        NUM   0000000001
+1        .D        NUM   0000000011
+1        NEW       CAD   &Z          INSERT A PERMANENT
+1                  CU         &0002
+1        MACRO     CAD   &Z   &0001  OR TEMPORARY MACRO
+1                  STC   TEMP        INSTRUCTION INTO THE LIBRARY
+1                  BF4   BLOCK
+1             08900MTS    0270
+1                  CC         -0001
+1             01000MTW    0000
+1                  CC         -0001
+1             01000MTR    0000
+1                  CC         -0001
+1                  BT4   BLOCK
+1                  CU    TEMP
+1        .Z        CUB   MUCK1
+1                  CUB   MUCK2
+1        MACSR     ST    TEMP        STORE OPR
+1                  BA
+1                  STC   TEMP &0001  STORE EXIT LOCATION
+1                  CAD   TEMP
+1                  M     &A          SCRAMBLE OPR FOR L
+1                  STC   TEMP &0002
+1                  SL     0010
+1                  AD    TEMP &0002
+1                  CC         &0001
+1                  EX    &B
+1                  M     &C
+1                  STC   TEMP &0002  STORE L
+1                  ST    TEMP &0011
+1                  SB    TEMP &0002
+1             -8900MTS  XCTLOG
+1                  CC         -0001
+1                  CUB   &M
+1        .C        NUM   0000500000
+1        .B        NUM   0000111000
+1        .A        NUM   5326581308
+1        .M        BF4   BLOCK       STORE 4000 LOOP
+1        .D        SB    &A          SET B TO 18
+1              0100MTR    8000       READ IN A BLOCK FROM CATALOG
+1                  CC         -0001
+1        .E   -    CAD    4000
+1                  CNZ        &0002  IS THIS POSITION VACANT
+1                  CUB   &B          YES
+1                  SU    TEMP        NO
+1                  CNZ        &0002  IS THE SYMBOL HERE
+1                  CUB   &C          YES
+1                  DB         &0002  NO
+1                  CU         &0002
+1                  DB    -E
+1                  CAD   TEMP &0002
+1                  SU    &F
+1                  CNZ        &0002  IS L 49
+1                  CUB   &G          YES
+1                  CUB   &H          NO
+1        .A        NUM   0000000018
+1        .F        NUM   0000000049
+1        .H        AD    &A          INCREASE L BY 1
+1                  STC   TEMP &0002
+1                  CU    &J
+1        .G    8900MTS  XCTLOG       GO TO FIRST OF CATALOG
+1                  CC         -0001
+1                  STC   TEMP &0002  SET L TO 0
+1        .J    5000CAD   TEMP &0011  INCREASE V BY 1
+1                  AD    &I
+1                  ST    TEMP &0011
+1                  SU    &A
+1                  CNZ        &0002
+1                  CUB   &K
+1                  CUB   -D
+1        .I        NUM   0000000001
+1        .A        NUM   0000000050
+1        .B        CAD  XETA
+1                  SU   XETA3
+1                  CNZ   &A          IS ETA SET TO ETA3
+1                  CAD   TAPE        YES
+1                  STC        &0001
+1                  STOP
+1                  CC         -0001
+1                  BA
+1        .L        SB    TEMP &0001
+1             -    CUB    0003       EXIT 2
+1        .A        BA                ETA IS NOT ETA3
+1                  SB    TEMP &0002
+1             -8900MTS  XCTLOG       REPOSITION TAPE
+1                  CC         -0001
+1                  CU    -L
+1        .C        CAD  XETA
+1                  SU   XETA3
+1                  CNZ   &A          IS ETA SET TO ETA3
+1                  CAD   TAPE        YES
+1                  STC        &0001
+1                  STOP              REPOSITION TAPE
+1                  CC         -0001
+1        .A   -    CAD    4001       OBTAIN EQUIVALENT
+1                  SB    TEMP &0001
+1             -    CUB    0002       EXIT 1
+1        .K        CAD  XETA
+1                  SU   XETA3
+1                  CNZ   &A          IS ETA SET TO ETA3
+1                  CAD   TAPE        YES
+1                  STC        &0001
+1                  STOP              REPOSITION TAPE
+1                  CC         -0001
+1        .A        SB    TEMP &0001
+1             -    CUB    0004       EXIT 3
+1                  TAG  X
+1        ERROR     CAD   &A           SET UP EXIT
+1                  SL     0004
+1                  STC   &B
+1                  CAD   FLAG
+1                  CNZ   &C
+1              4330CDW    4000     PRINT A LINE
+1        .C        SR     0010     SET FLAG
+1                  AD    &D
+1                  SL     0008
+1                  STC   FLAG
+1                  TAG  7
+1        .B        STOP
+1        .A        NUM   0000000020
+1        .D        ALF       X
+1        ERR1      ALFS   0006     INVALID OPERATION CODE
+1        ERR2      ALFS   0006     OPERATION FIELD IS BLANK
+1        ERR3      ALFS      6     INVALID OPERATION PAIR
+1        ERR4      ALFS   0006     NO UNIT DESIGNATION
+1        ERR5      ALFS   0006     INVALID TAG
+1        ERR6      ALFS   0006     MACRO TABLE IS FULL
+1        ERR7      ALFS   0006     INVALID SPARES
+1        ERR8      ALFS   0006     MEMORY OVERFLOW
+1        ERR9      ALFS   0006     INVALID SIGN
+1        ERR10     ALFS   0006     INVALID LOCATION
+1        ERR11     ALFS   0006     SYMBOL TABLE PACKED
+1        ERR12     ALFS   0006     DUPLICATE LOCATION
+1        ERR13     ALFS   0006     INVALID OPERAND
+1        ERR14     ALFS   0006     SUBROUTINE NOT FILED
+1        ERR15     ALFS   0006     IMPROPER PSEUDO-INSTRUCTION
+1        ERR16     ALFS   0006     MACRO CATALOG PACKED
+1        ERR17     ALFS   0006     DUPLICATE MACRO NAME
+1        ERR18     ALFS   0006     MACRO FILE PACKED
+1        ERR19     ALFS   0006     OPERATION TABLE PACKED
+1        ERR20     ALFS   0006     LENGTH INDICATION TOO LARGE
+1        ERR21     ALFS   0006     END PSEUDO-OPERATION MISSING
+1        OUT       BT6    8000     BLANK OUT CARD IMAGE
+1                  CAD   &A
+1                  STC   PRCOD     SET PROCESS CODE 8 FOR END
+1              0110MTW    8000       OF TAPE SENTINEL AND WRITE
+1                  CC         -0001
+1              0010MTRW   0000     REWIND DATA-READER
+1                  CC         -0001
+1              8900MTS    0290     SEARCH FOR SECOND MOVEMENT
+1                  CC         -0001
+1              0020MTS    0000
+1                  CC         -0001
+1             00010MTS    0000
+1                  CC         -0001
+1              0830CDWF   6000
+1             01830CDW    6000     EJECT PAGE ON PRINTER
+1              8400MTR    1200     READ IN SECOND MOVEMENT AND
+1                  CC         -0001 EXECUTE
+1             00001CUB    1200
+1        .A        NUM   0000000008
+1        EXIT 00010MTRW   0000     ERROR SITUATION WITHOUT
+1                  CC         -0001 SUITABLE FALL-BACK
+1              8900MTS    0000
+1                  CC         -0001     REWIND TAPES, LOAD AND
+1              1500MTR    3700          EXECUTE AL
+1                  CC         -0001
+1              0010CDR    6000
+1                  CU         -0001
+1                  ORG    2880
+1        LANE      NUM   0000000000THE LANE TABLE COMTAINS THE
+1                  NUM   9999999999 LIST OF AVAILABLE SPACE IN
+1                  NUM   9999999999 THE MACRO-INSTRUCTION LIBRARY
+1                  NUM   9999999999
+1                  NUM   9999999999
+1                  NUM   9999999999     FOR I FROM 0 TO 9
+1                  NUM   9999999999     WORD I GIVES THE FIRST
+1                  NUM   9999999999     OPEN BLOCK IN THE LANE
+1                  NUM   9999999999     GIVEN IN WORD I&10
+1                  NUM   9999999999
+1                  NUM   8000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000     THIS TABLE IS PERMANENTLY
+1                  NUM   0000000000     CHANGED BY THE PSEUDO-
+1                  NUM   0000000000     OPERATION  NEW  AND
+1                  NUM   0000000000     TEMPORARILY BY  MACRO
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  ORG    0000
+1        MUCK1     CAD   PHI1      SET PHI TO 1
+1                  CU    &E
+1        PHI1      CUB   &G
+1        MUCK2     CAD   PHI2      SET PHI TO 2
+1        .E        STC  XPHI
+1                  CAD   SADR      SEARCH CATALOG FOR MACRO
+1                  SB   X           INSTRUCTION NAME
+1                  CUB   MACSR
+1                  CU    &Y        IN CATALOG
+1                  CUB   &C        NOT IN CATALOG
+1                  BT4   BLOCK
+1                  CUR  XERROR     W.E.M. MACRO CATALOG PACKED
+1              0430CDW  XERR16
+1                  CUB   EXIT
+1        .Y        BT4   BLOCK
+1                  CUR  XERROR     W.E.M. DUPLICATE MACRO NAME
+1              0430CDW  XERR17
+1                  CUB   EXIT
+1        PHI2      CUB   &P
+1        .C        BT5   LANE
+1                  STC   TEMP      LOCATION OF VACANCY IN TEMP
+1                  SB    &J        SET J TO BE 9
+1                  CAD   &N        SET L TO BE 9S
+1                  STC   TEMP &0001L IS IN TEMP 1
+1        .Z        CAD   TEMP &0001COMPARE L AND LJ
+1             -    SU   5LANE
+1                  OSGD
+1                  CC    &Y
+1             -    CAD  5LANE      SET L TO BE LJ
+1                  STC   TEMP &0001
+1        .J        BA     0009     SET M TO BE J
+1                  STC   TEMP &0002M IS TEMP 2
+1        .Y        DB    -Z
+1                  CUB   &Z
+1        .N        NUM   9999999999
+1        .Z        SB    TEMP &0002
+1                  CAD  XBLOCK&0011CONVERT LAMBDA TO NUMERICAL
+1                  EX    &Z          FORM
+1                  SR     0003
+1                  CIRA   0009
+1                  SL     0001
+1                  ST    TEMP &0005PUT LAMBDA IN TEMP 5
+1                  AD    TEMP &0001
+1             -    STC  5LANE      UPDATE LANE TABLE
+1                  CAD   &Y
+1             -    SU   5LANE      TEST FOR SPACE IN MACRO FILE
+1                  OSGD
+1                  CC   X     &0004
+1                  CUB   &X
+1        .Y        NUM   0000001000
+1        .Z        NUM   0000010100
+1                  CUR  XERROR     W.E.M. MACRO FILE PACKED
+1              0430CDW  XERR18
+1                  CUB   EXIT
+1        .X        CAD   &Z        FORM MTS COMMAND TO RETRIEVE
+1             -    AD   5LANE &0010  MACRO INSTRUCTION
+1                  AD    TEMP &0001
+1                  ST    TEMP &0006
+1                  STC  X&F
+1        PHI       STOP            PHI SWITCH
+1        .Z        NUM   0000420000
+1        .G        SB    TEMP      PHI IS 2
+1                  CAD   TEMP &0006ENTER NAME AND MTS COMMAND IN
+1             -    ST     4001       MACRO CATALOG
+1                  CAD  XBLOCK&0008
+1             -    ST     4000
+1              0100MTW    8000
+1                  CC         -0001
+1              8900MTS    0219     PUT LANE TABLE IN DATA FILE
+1                  CC         -0001
+1                  BF5   LANE
+1              0100MTW  XLANE
+1                  CC         -0001
+1                  BT4   BLOCK
+1                  CUB   &F
+1        .P        BT4   BLOCK     PHI IS 1
+1                  ST    TEMP &0003SET V TO ZERO. V IN TEMP 3
+1                  CAD   SADR      SCRAMBLE FOR INITIAL SEARCH
+1                  M     &Z          POINT
+1                  ST    TEMP &0004
+1                  SL     0010
+1                  AD    TEMP &0004
+1                  CC    &P
+1        .P        EX    &Y
+1                  M     &X
+1                  ST
+1                  SB         -0001
+1                  CUB   &P
+1        .X        NUM   0002000000
+1        .Y        NUM   0000111000
+1        .Z        NUM   5326581308
+1        .P   -    CAD  XOPTBL     SEARCH OPERATION TABLE FOR
+1                  CNZ   &W          NAME OF MACRO INSTRUCTION
+1                  CUB   &E        NOT IN TABLE
+1        .W        SU    SADR      TEST FOR MACRO ALREADY IN
+1                  CNZ        &0004 TABLE
+1                  CUR  XERROR     W.E.M. DUPLICATE MACRO NAME
+1              0430CDW  XERR17
+1                  CUB   EXIT
+1                  DB         &0002
+1                  SB    &K        SET K TO 199
+1                  CAD   TEMP &0003INCREASE V
+1                  AD    &T
+1                  CC   X     &0005TEST FOR PACKED TABLE
+1                  ST    TEMP &0003NOT PACKED
+1                  CU    -P
+1        .T        NUM   0050000000
+1        .K        NUM   0000000199
+1                  CUR  XERROR     PACKED
+1              0430CDW  XERR19     W.E.MOPERATION TABLE PACKED
+1                  CUB   EXIT
+1        .E        CAD   SADR
+1             -    ST   XOPTBL     PUT IN TABLE
+1                  CSUA  &F
+1             -    ST   XEQTBL
+1                  BF5   LANE
+1        .F        STOP            EXECUTE MTS COMMAND
+1                  CC         -0001
+1                  SB    TEMP &0005SET K TO LAMBDA
+1                  DB         &0002
+1                  CU   X&F
+1                  BF4   BLOCK
+1                  CUB   &G
+1        .G    0010CDR    4000     READ CARD
+1              0100MTW    8000
+1                  CC         -0001
+1                  CAD   SOPR
+1                  SU    &L
+1                  DB    &Z
+1                  CNZ  X&F
+1                  CUB   &H
+1        .Z        CNZ   -G
+1                  CUR  XERROR     W.E.M. LENGTH INDICATION
+1              0430CDW  XERR20      TOO LARGE
+1                  CUB   &H
+1        .L        ALF   END
+1        .F        CUR  XERROR     W.E.M END PSEUDO-OPERATION
+1              0430CDW  XERR21           MISSING
+1                  CUB   EXIT
+1        .H   08900MTS    0270
+1                  CC         -0001
+1             01000MTR    0000
+1                  CC         -0001
+1                  BT4   BLOCK
+1                  CAD   &Q
+1                  STC   PRCOD
+1                  CAD  XEPS3
+1                  STC  XEPSLN
+1                  CUB   WRITE
+1        .Q        NUM   0000000001
+1                  END

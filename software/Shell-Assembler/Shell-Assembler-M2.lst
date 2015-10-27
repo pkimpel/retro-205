@@ -1,4 +1,21 @@
-      ####   LLLL  S CCCC II AAAA   LOC    S CNTL OPR   T OPERAND     REMARKS - SHELL ASM MOVEMENT 2
+
+
+
+
+CHECK SUM  7278780947
+LOAD
+________________________________________________________________________
+
+
+200      SHELL-ASSEMBLER-M2.SHELL                                          00 00 00
+
+      0311                          LAST     0120 MTW      8000
+             INVALID OPERATION PAIR
+      0376                          FEED          CAD     NU3           SET NU TO 3
+             INVALID OPERATION PAIR
+      0709                          .V            BA
+             INVALID OPERATION PAIR
+                                              0
       0001                                        TAG   7
       0002                                        ORG      1200
       0003                          MCTBL         EQU      1000
@@ -109,7 +126,7 @@
       0108   1268  0 1100 00 0000   .Z            NUM     1100000000
       0109   1269  0 1000 00 0000   .W            NUM     1000000000
       0110   1270  0 0000 01 0000   .X            NUM     0000010000
-      0111   1271  0 0000 02 6010   .R            STC     TEMP &0003  CLEAR A AND TEMP&0003             ?? OPCODE AND OPERANDS WERE BLANK ON LISTING.
+      0111   1271  0 0000 02 6010   .R            STC     TEMP &0003  CLEAR A AND TEMP&0003
       0112   1272  0 0000 72 7287                 SB      &Z
       0113   1273  0 0000 02 6010                 STC     TEMP &0003
       0114   1274  0 0000 14 0001                 SL       0001
@@ -169,7 +186,7 @@
       0168   1328  0 0000 00 0000                 NUM
       0169   1329  0 0000 00 0000                 NUM
       0170   1330  0 0000 00 0032                 NUM             32  .
-      0171   1331  0 0000 00 0033                 NUM             33  )     APOSTROPHE
+      0171   1331  0 0000 00 0033                 NUM             33  ¤     APOSTROPHE
       0172   1332  0 0000 00 0000                 NUM
       0173   1333  0 0000 00 0000                 NUM
       0174   1334  0 0000 00 0000                 NUM
@@ -179,7 +196,7 @@
       0178   1338  0 0000 00 0000                 NUM
       0179   1339  0 0000 00 0000                 NUM
       0180   1340  0 0000 00 0026                 NUM             26  $    SEMICOLON
-      0181   1341  0 0000 00 0007                 NUM              7  )    STOP
+      0181   1341  0 0000 00 0007                 NUM              7  ¤    STOP
       0182   1342  0 0000 00 0000                 NUM
       0183   1343  0 0000 00 0000                 NUM
       0184   1344  0 0000 00 0000                 NUM
@@ -189,7 +206,7 @@
       0188   1348  0 0000 00 0001                 NUM              1  /    BACK SPACE
       0189   1349  0 0000 00 0000                 NUM
       0190   1350  0 0000 00 0031                 NUM             31  ,
-      0191   1351  0 0000 00 0004                 NUM              4  )    TABULATE
+      0191   1351  0 0000 00 0004                 NUM              4  ¤    TABULATE
       0192   1352  0 0000 00 0000                 NUM
       0193   1353  0 0000 00 0000                 NUM
       0194   1354  0 0000 00 0000                 NUM
@@ -199,7 +216,7 @@
       0198   1358  0 0000 00 0000                 NUM
       0199   1359  0 0000 00 0000                 NUM
       0200   1360  0 0000 00 0005                 NUM              5  #    CARRIAGE RETURN
-      0201   1361  0 0000 00 0035                 NUM             35  )    COLOR SHIFT
+      0201   1361  0 0000 00 0035                 NUM             35  ¤    COLOR SHIFT
       0202   1362  0 0000 00 0000                 NUM
       0203   1363  0 0000 00 0000                 NUM
       0204   1364  0 0000 00 0000                 NUM
@@ -309,7 +326,7 @@
       0308   1468  0 0000 12 1417                 ST    X THETA
       0309   1469  0 0000 30 1215                 CUB     -G
       0310   1470  0 0000 66 4017   THET1         CADA    ABSPR
-      0311   1471  0 0120 50 8000   LAST     0120 MTW      8000
+X     0311   1471  0 0120 50 8000   LAST     0120 MTW      8000
       0312   1472  0 0000 28 7471                 CC           -0001
       0313   1473  0 0000 07 0500                 PTWF     0500       WRITE CHECK SUM
       0314   1474  0 0000 07 0500                 PTWF     0500
@@ -374,7 +391,7 @@
       0373   1533  0 0000 02 1417                 STC   X THETA
       0374   1534  0 0000 30 1425                 CUB     CRY
       0375   1535  0 0000 66 4017                 CADA    ABSPR
-      0376   1536  0 0000 64 7548   FEED          CAD     NU3           SET NU TO 3
+X     0376   1536  0 0000 64 7548   FEED          CAD     NU3           SET NU TO 3
       0377   1537  0 0000 02 1442                 STC   X NU
       0378   1538  0 0000 64 4015                 CAD     NUMB
       0379   1539  0 0000 02 5013                 STC     NMBR
@@ -388,7 +405,7 @@
       0387   1547  0 0000 30 2141   SIG1          CUB     OMEGA
       0388   1548  0 0000 30 1640   NU3           CUB     &Z
       0389   1549  3 3333 33 3330   .A            NUM   3 3333333330
-      0390   1550  0 0000 02 6014   .B            STC     TEMP &0007  ZERO TEMP&0007                    ?? MISSING SPACE IN OPERAND ON LISTING
+      0390   1550  0 0000 02 6014   .B            STC     TEMP &0007  ZERO TEMP&0007
       0391   1551  0 0000 02 6004                 STC     FDTLY
       0392   1552  0 0000 02 6005                 STC     SNTLY
       0393   1553  0 0000 02 6003                 STC     CLTLY
@@ -707,7 +724,7 @@
       0706   1866  0 0000 30 1869                 CUB     &V          YES
       0707   1867  0 0000 00 0001   .J            NUM     0000000001
       0708   1868  0 0000 64 0000   .X            CAD   X FBDS
-      0709   1869  0 0000 11 7869   .V            BA
+X     0709   1869  0 0000 11 7869   .V            BA
       0710   1870  0 0000 02 6004                 STC     FDTLY       PREPARE TO REPEAT AGAIN
       0711   1871  0 0000 64 5019                 CAD     ENDPT
       0712   1872  0 0000 12 5018                 ST      RTNPT
@@ -735,7 +752,7 @@
       0734   1894  0 0000 12 6019                 ST      TEMP &0012                          SWITCH
       0735   1895  0 0000 12 6017                 ST      TEMP &0010       ALL SWITCHES ABOVE ARE
       0736   1896  0 0000 30 1903                 CUB     SWITZ             SET TO ONE IF  LOCATIONS
-      0737                                                                   CONTAIN ZERO
+      0737                                                                      CONTAIN ZERO
       0738   1897  0 0010 21 2219   .K       0010 CUR   X GOOF             WEM WRONG NUMBER OF
       0739   1898  0 0000 30 1991                 CUB     OLE                  COLUMNS
       0740   1899  0 0000 21 2219   .T       0000 CUR   X GOOF             WEM FORMAT BAND TOO LONG
@@ -809,7 +826,7 @@
       0808   1967  0 0000 64 6013                 CAD     TEMP &0006
       0809   1968  0 0000 04 7070                 CNZ     &A
       0810   1969  0 0000 30 1894                 CUB     BUENO&0004
-      0811   1970  0 0000 72 6016   .A            SB      TEMP &0009                                    >> WAS LABEL ".1" ON LISTING
+      0811   1970  0 0000 72 6016   .A            SB      TEMP &0009
       0812   1971  0 0000 64 7077                 CAD     &W
       0813   1972  1 0000 12 0520          -      ST    X FBWS
       0814   1973  0 0000 64 7076                 CAD     &X
@@ -1219,3 +1236,5 @@
       1218   2373  0 0010 44 6000            0010 CDR      6000
       1219   2374  0 4849 47 4800   .M            FLX     HIGH
       1220                                        END
+                                              0
+                                              0
