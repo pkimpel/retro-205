@@ -1,11 +1,11 @@
 <package>
-<job id="SHELL-Xscript-Reformatter">
+<job id="Shell-Xscript-Reformatter">
 <reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
 <script language="VBScript">
 
 Option Explicit
 '-----------------------------------------------------------------------
-' retro-205 SHELL-Xscript-Reformatter.wsf
+' retro-205 Shell-Xscript-Reformatter.wsf
 ' Copyright (c) 2015, Paul Kimpel,
 ' Licensed under the MIT License, see
 '       http://www.opensource.org/licenses/mit-license.php
@@ -70,7 +70,7 @@ Sub ExtractCode(byVal xScriptName, byRef M)
   lineNr = 1
 
   text = fso.BuildPath(fso.GetParentFolderName(xScriptName), fso.GetBaseName(xScriptName)) & ".card"
-  Set cardFile = fso.OpenTextFile(text, ForWriting, True, False)
+  Set cardFile = fso.OpenTextFile(text, ForWriting, True, True)
   cardfile.WriteLine "2  " & UCase(xScriptName)  '-- output the header card
 
   Do While Not xFile.AtEndOfStream
@@ -80,7 +80,8 @@ Sub ExtractCode(byVal xScriptName, byRef M)
     '-- If the op code blank and object code is not present, generate a REM card
     '-- If the source text is blank and object code IS present, do not generate a card
     If Len(RTrim(Mid(line, 51, 5))) = 0 And Len(RTrim(Mid(line, 14, 20))) = 0 Then
-      cardFile.WriteLine "1" & Space(18) & "REM  " & RTrim(Mid(line, 57))
+      cardFile.WriteLine "1" & Space(18) & "REM  " & Mid(line, 57, 1) & _
+                               Mid(line, 59, 10) & RTrim(Mid(line, 71))
     ElseIf Len(RTrim(Mid(line, 37, 64))) > 0 Or Len(RTrim(Mid(line, 14, 20))) = 0 Then
       '-- Reformat and write the assembler card image
       card = "1" & Space(8) & Mid(line, 37, 5) & Mid(line, 44, 1) & Mid(line, 46, 4) & _

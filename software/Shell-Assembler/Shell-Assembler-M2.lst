@@ -1,14 +1,8 @@
-
-
-
-
 CHECK SUM  7278780947
 LOAD
 ________________________________________________________________________
 
-
 200      SHELL-ASSEMBLER-M2.SHELL                                          00 00 00
-
       0311                          LAST     0120 MTW      8000
              INVALID OPERATION PAIR
       0376                          FEED          CAD     NU3           SET NU TO 3
@@ -752,7 +746,7 @@ X     0709   1869  0 0000 11 7869   .V            BA
       0734   1894  0 0000 12 6019                 ST      TEMP &0012                          SWITCH
       0735   1895  0 0000 12 6017                 ST      TEMP &0010       ALL SWITCHES ABOVE ARE
       0736   1896  0 0000 30 1903                 CUB     SWITZ             SET TO ONE IF  LOCATIONS
-      0737                                                                      CONTAIN ZERO
+      0737                                                                   CONTAIN ZERO
       0738   1897  0 0010 21 2219   .K       0010 CUR   X GOOF             WEM WRONG NUMBER OF
       0739   1898  0 0000 30 1991                 CUB     OLE                  COLUMNS
       0740   1899  0 0000 21 2219   .T       0000 CUR   X GOOF             WEM FORMAT BAND TOO LONG
