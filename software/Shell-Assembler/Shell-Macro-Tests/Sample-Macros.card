@@ -1,0 +1,59 @@
+2        LAB  SPAR OPR  TADDR ±INC REMARKS
+1              0080NEW   SET
+1                  TAG  7
+1                  SB    +A
+1                  CAD  X#0003
+1             -    ST   X#0002
+1                  DB         -0001
+1                  CUB  X#0004
+1        .A           00X#0001-0001
+1                  END
+1              0170NEW   CFMU
+1                  TAG  X
+1        .A        CAD   #0001
+1                  FM    #0002
+1                  STC  7-A
+1                  CSU   #0001+0001
+1                  FM    #0002+0001
+1                  FAD  7-A
+1                  STC   #0003
+1                  CAD   #0001
+1                  FM    #0002+0001
+1                  STC  7-A
+1                  CAD   #0002
+1                  FM    #0001+0001
+1                  FAD  7-A
+1                  STC   #0003+0001
+1                  CUB   #0004
+1                  END
+1                  ORG    1000
+1                  SET    0006
+1                        X1
+1                        ZERO
+1                             +0001
+1                  CFMU  X1
+1                        X2
+1                        X3
+1                             +0001
+1                  SET    0006
+1                        Y1
+1                        ZERO
+1                             +0001
+1                  CFMU  Y1
+1                        Y2
+1                        Y3
+1                             +0001
+1        ZERO      NUM   0000000000
+1        X1        NUM
+1                  NUM
+1        X2        NUM
+1                  NUM
+1        X3        NUM
+1                  NUM
+1        Y1        NUM
+1                  NUM
+1        Y2        NUM
+1                  NUM
+1        Y3        NUM
+1                  NUM
+1                  END

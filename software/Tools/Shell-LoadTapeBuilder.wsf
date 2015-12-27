@@ -1,0 +1,224 @@
+<package>
+<job id="Shell-LoadTapeBuilder">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+<![CDATA[
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 Shell-LoadTapeBuilder.wsf
+' Copyright (c) 2015, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to extract object code from the Shell Assembler output tapes
+' created by assembling the transcripted source code. It reads the output
+' tape images for the first and second movements, and outputs a tape image 
+' containing the loadable object code for the assembler. Note that the 
+' assembler object code is placed on lane 1 of the tape starting at block 120.
+'
+' This script should be executed in the currentpath of the assembly output
+' tape image files. The resulting load tape image will be written to that 
+' path as well.
+'
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   None.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2015-11-23  P.Kimpel
+'   Original version, cloned from Shell-Xscript-Reformatter.wsf.
+'-----------------------------------------------------------------------
+
+Const blockSize = 20
+Const startBlock = 120
+Const tapeImageName = "Shell-Assembler-Roundtrip.tape"
+Const tapeLane = 1
+Const tapeM1 = "Shell-Assembler-M1-Output.tape"
+Const tapeM2 = "Shell-Assembler-M2-Output.tape"
+
+Dim blk
+Dim fso
+Dim tapeFile
+
+Dim M1(3999)
+Dim M2(3999)
+
+'---------------------------------------
+Function ConvertInteger(byVal text)
+  'Converts "text" to a 32-bit long integer. If "text" is not numeric,
+  'returns zero.
+  
+  If IsNumeric(text) Then
+    ConvertInteger = CLng(text)
+  Else
+    ConvertInteger = CLng(0)
+  End If
+End Function
+
+'---------------------------------------
+Function GetWord(byVal rec, byVal x, byRef newX)
+  'Returns the next field from a CSV string, starting at 1-relative column x.
+  Dim y
+  
+  If x > Len(rec) Then
+    GetWord = ""
+    newX = x
+  Else
+    y = InStr(x, rec, ",")
+    If y < 1 Then
+      GetWord = Mid(rec, x)
+      newX = Len(rec)+1
+    Else
+      GetWord = Mid(rec, x, y-x)
+      newX = y+1
+    End If
+  End If
+End Function
+
+'---------------------------------------
+Sub ExtractCode(byVal tapeName, byRef M)
+  'Extracts object code from an assembler output tape image file.
+  'The code is converted to double-precision floating-point words and
+  'stored at their respective zero-relative addresses in M. M is cleared
+  'to zeroes at the start.
+  Dim addr
+  Dim col
+  Dim rec
+  Dim recNr
+  Dim recType
+  Dim tapeFile
+  Dim text
+  Dim word
+  Dim x
+
+  For addr = UBound(M) To 0 Step -1
+    M(addr) = CDbl(0)
+  Next
+
+  Set tapeFile = fso.OpenTextfile(tapeName, ForReading, False, False)
+  recNr = 1
+
+  Do While Not tapeFile.AtEndOfStream
+    rec = tapeFile.ReadLine
+    recNr = recNr+1
+
+    recType = ConvertInteger(GetWord(rec, 1, x))
+    Select Case recType
+      Case 0, 2, 3, 4, 6, 7
+        For col = 1 to 12
+          text = GetWord(rec, x, x)
+        Next
+
+        text = GetWord(rec, x, x)
+        addr = ConvertInteger(GetWord(rec, x, x))
+        If IsNumeric(text) Then
+          word = CDbl(text)
+          If word < 0 Then
+            word = CDbl(10000000000) - word
+          End If
+          
+          M(addr) = word
+        End If
+
+      Case 8
+        Exit Do
+
+      Case Else
+        '-- nothing
+    End Select
+  Loop
+
+  tapeFile.Close
+  Set tapeFile = Nothing
+End Sub
+
+'---------------------------------------
+Sub DumpToTape(byVal tapeFile, byVal lane, byVal M, byVal startAddr, byVal blocks)
+  'Dump 20-word blocks to the tape file from memory M, starting at memory
+  'address startAddr for blocks tape blocks. If lane is odd, 20 words of zeroes
+  'are prefixed to the block data.
+  Dim addr
+  Dim ex
+  Dim prefix
+  Dim wx
+
+  addr = startAddr
+  prefix = String(20, ",")
+
+  Do While blocks > 0
+    ex = -1
+    For wx = 19 To 0 Step -1
+      If M(addr+wx) <> 0 Then
+        ex = wx
+        Exit For
+      End If
+    Next
+
+    If ex < 0 Then
+      tapeFile.WriteLine "0,"
+    Else
+      If lane Mod 2 <> 0 Then
+        tapeFile.Write prefix
+      End If
+
+      For wx = 0 To ex
+        tapeFile.Write FormatNumber(M(addr+wx), 0, False, False, False) & ","
+      Next
+
+      tapeFile.WriteLine
+    End If
+
+    addr = addr + 20
+    blocks = blocks - 1
+  Loop
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+
+'-- Main Line --
+If Not fso.FileExists(tapeM1) Then
+  MsgBox "First Movement output tape file does not exist: " & vbCrLf & tapeM1
+ElseIf Not fso.FileExists(tapeM2) Then
+  MsgBox "Second Movement output tape file does not exist: " & vbCrLf & tapeM2
+Else
+  ExtractCode tapeM1, M1
+  ExtractCode tapeM2, M2
+
+  Set tapeFile = fso.OpenTextFile(tapeImageName, ForWriting, True, False)
+
+  '-- Create zero-filled blocks up to the starting block on the tape
+  For blk = startBlock-1 To 0 Step -1
+    tapeFile.WriteLine "0,"
+  Next
+
+  '-- Write the code for the first movement to tape
+  DumpToTape tapeFile, tapeLane, M1, 900, 100
+
+  '-- Write 60 blocks of zeroes for the Macro Catalog and Storage Area
+  For blk = 1 to 60
+    tapeFile.WriteLine "0,"
+  Next
+
+  '-- Write the code for the first movement overlay to tape
+  DumpToTape tapeFile, tapeLane, M1, 0, 10
+
+  '-- Write the code for the second movement to tape
+  DumpToTape tapeFile, tapeLane, M2, 1200, 60
+
+  tapeFile.Close
+  Set tapeFile = Nothing
+  MsgBox "Shell Assembler round-tripped load tape created: " & vbCrLf & tapeImageName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+]]>
+</script>
+</job>
+</package>

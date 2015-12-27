@@ -1,0 +1,32 @@
+2        LAB  SPAR OPR  TADDR ±INC REMARKS
+1                  ORG    1000
+1                  SET    0006
+1                        X1
+1                        ZERO
+1                             +0001
+1                  CFMU  X1
+1                        X2
+1                        X3
+1                             +0001
+1                  SET    0006
+1                        Y1
+1                        ZERO
+1                             +0001
+1                  CFMU  Y1
+1                        Y2
+1                        Y3
+1                             +0001
+1        ZERO      NUM   0000000000
+1        X1        NUM
+1                  NUM
+1        X2        NUM
+1                  NUM
+1        X3        NUM
+1                  NUM
+1        Y1        NUM
+1                  NUM
+1        Y2        NUM
+1                  NUM
+1        Y3        NUM
+1                  NUM
+1                  END
