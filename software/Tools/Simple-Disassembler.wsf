@@ -2,6 +2,7 @@
 <job id="Simple-Disassembler">
 <reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
 <script language="VBScript">
+<![CDATA[
 
 Option Explicit
 '-----------------------------------------------------------------------
@@ -235,6 +236,7 @@ Set codeDict = Nothing
 
 WScript.Quit 0
 
+]]>
 </script>
 </job>
 </package>

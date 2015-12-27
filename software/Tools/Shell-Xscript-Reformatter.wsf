@@ -2,6 +2,7 @@
 <job id="Shell-Xscript-Reformatter">
 <reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
 <script language="VBScript">
+<![CDATA[
 
 Option Explicit
 '-----------------------------------------------------------------------
@@ -15,7 +16,9 @@ Option Explicit
 ' second movements, and outputs:
 '   1. An assembler card deck for the first movement's source.
 '   2. An assembler card deck for the second movement's source.
-'   3. A tape image containing the loadable object code for the assembler.
+'   3. A tape image containing the loadable object code for the assembler. 
+'      Note that the assembler object code is placed on lane 1 of the tape 
+'      starting at block 120.
 '
 ' This script should be executed in the currentpath of the transcription
 ' files. Output files will be written to that path as well.
@@ -211,6 +214,7 @@ Set fso = Nothing
 
 WScript.Quit 0
 
+]]>
 </script>
 </job>
 </package>

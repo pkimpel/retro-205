@@ -2,6 +2,7 @@
 <job id="EASY-LoadDeckBuilder">
 <reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
 <script language="VBScript">
+<![CDATA[
 
 Option Explicit
 '-----------------------------------------------------------------------
@@ -162,6 +163,7 @@ Set fso = Nothing
 
 WScript.Quit 0
 
+]]>
 </script>
 </job>
 </package>
