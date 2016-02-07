@@ -1,0 +1,201 @@
+<?XML version="1.0"?>
+<package>
+<job id="EASY-OutputDeckReformatter">
+<reference object="Scripting.FileSystemObject" /> 
+<script language="VBScript">
+<![CDATA[
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 EASY-OutputDeckReformatter.wsf
+' Copyright (c) 2016, Paul Kimpel, 
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to reformat the list/punch output of Donald Knuth's EASY 
+' assembler so that it matches the format of the listings he donated
+' to the Computer History Museum. The purpose of this reformatting is to
+' allow programmatic comparison between the transcriptions of those 
+' listings and the output of assembling those transcriptions with EASY, for
+' the purpose of proofing the transcriptions. Errors in the transcribed text
+' will often result in differences in values the assembled words generated
+' by EASY.
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of assembler output list/punch file (required).
+'   Name of resulting load-deck file (optional - by default will have 
+'       the name of the list/punch file with "-Fmt.easy" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2016-01-10  P.Kimpel
+'   Original version, cloned from EASY-LoadDeckBuilder.wsf.
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-Fmt.easy"
+
+'-- EASY source transcription column indexes (1-relative) --
+Const easyPPLoc = 5             '-- program-point location label
+Const easySymLoc = 7            '-- symbolic location label
+Const easyNumeric = 13          '-- sign position of literal numeric word 
+Const easyNumericAddr = 20      '-- address portion of literal numeric word 
+Const easySymOpcode = 25        '-- symbolic op code
+Const easySymAddr = 31          '-- symbolic operand address
+Const easyPPAddr = 37           '-- program-point operand address
+Const easyLoopTag = 40          '-- high-speed loop tag
+Const easyRemarks = 42          '-- remarks field
+Const easyAsmAddr = 62          '-- assembled address
+Const easyAsmWord = 67          '-- assembled word
+
+'-- List/punch record assembled word indexes (1-relative) --
+Const word1Index = 70
+Const word2Index = 59
+
+Dim args
+Dim asmFile
+Dim asmName
+Dim fmtFile
+Dim fmtName
+Dim fso
+
+'---------------------------------------
+Function BuildSourceText(byVal line)
+  'Creates the assembler source text (columns 1-58) from the assembler output
+  'card image, blanking any Cardatron format-select digits in columns 2-4 and
+  'performing the weird zero-suppression that takes place in the literal numeric
+  'word columns (13-23) and program-point operand field (37-38). Returns the
+  'assembler source text as the function result.
+  Dim c
+  Dim s
+  Dim suppressing
+  Dim text
+  Dim w
+  Dim x
+  
+  '-- Build the format-select digit, PP location and symbolic location
+  text = Left(line, 1) & "   " & Mid(line, easyPPLoc, easyNumeric-easyPPLoc)
+  
+  '-- Format the literal numeric word with its whacko zero suppression
+  s = Mid(line, easyNumeric, 11)
+  suppressing = True
+  w = ""
+  For x = 1 to 11
+    c = Mid(s, x, 1)
+    If c = " " Then
+      w = w & c
+    ElseIf c = "0" Then
+      If suppressing Or x < 8 Then
+        w = w & " "
+      Else
+        w = w & c
+      End If
+    Else
+      w = w & c
+      suppressing = False
+    End If
+  Next
+  
+  '-- Build the literal numeric word, symbolic op code, and symbolic address
+  text = text & w & Mid(line, easyNumeric+11, easyPPAddr-easyNumeric-11)
+  
+  '-- Format the program-point address
+  s = Mid(line, easyPPAddr, 2)
+  If s <> "  " Then
+    If Left(s, 1) = " " Then
+      s = "0" & Mid(s, 2)               '-- un-zero suppress the PP digit
+    End If
+  End If
+  
+  '-- Build the program-point address, HSL tag, and remarks
+  text = text & s & Mid(line, easyPPAddr+2, word2Index-easyPPAddr-2)
+  
+  BuildSourceText = text & Space(easyAsmAddr - 1 - Len(text))
+End Function
+
+'---------------------------------------
+Sub ReformatFile
+  'Creates the card-load file from the assembler output file.
+  Dim addr
+  Dim addrField
+  Dim card
+  Dim line
+  Dim word
+  
+  Do While Not asmFile.AtEndOfStream
+    line = asmFile.ReadLine
+    '-- Check if this is the start of the forward-reference fixup code
+    If Left(line, 1) = "7" Then
+      Exit Do
+    Else
+      '-- Process an instruction line
+      card = BuildSourceText(line)
+      If Len(line) >= 80 Then
+        word = Mid(line, word1Index, 11)
+        If Left(word, 1) >= "4" Then
+          '-- Control word that redirects the address of the next instruction word
+          addrField = Right(word, 4)
+          addr = CInt(addrField)
+          card = card & Space(15) & addrField
+        Else
+          '-- Output instruction word and determine address of next word
+          card = card & Right(CStr(10000+addr), 4) & " " & _
+              Mid(word, 1, 1) & " " & Mid(word, 2, 4) & " " & _
+              Mid(word, 6, 2) & " " & Mid(word, 8, 4)
+          word = Mid(line, word2Index, 11)
+          addrField = Right(word, 4)
+          addr = CInt(addrField)
+        End If
+        
+        fmtFile.WriteLine card
+      End If
+    End If
+  Loop
+      
+  '-- Just gobble the forward-reference fixup code at the end
+  Do While Not asmFile.AtEndOfStream
+    line = asmFile.ReadLine
+  Loop
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the assembler output file."
+  WScript.Quit 9
+Else  
+  asmName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    fmtName = Trim(args.Item(1))
+  Else
+    fmtName = fso.BuildPath(fso.GetParentFolderName(asmName), fso.GetBaseName(asmName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(asmName) Then
+  MsgBox "Assembler output file does not exist: " & vbCrLf & asmName
+Else
+  Set asmFile = fso.OpenTextFile(asmName, ForReading, False)
+  Set fmtFile = fso.CreateTextFile(fmtName, True)
+  
+  ReformatFile
+  
+  fmtFile.Close
+  Set fmtFile = Nothing
+  asmFile.Close
+  Set asmFile = Nothing
+  MsgBox "Program load file created: " & vbCrLf & fmtName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+]]>
+</script>
+</job>
+</package>

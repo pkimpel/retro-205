@@ -39,6 +39,15 @@ EASY-LoadDeckBuilder.wsf
     standard 205 load-deck format, which has up to six words per card
     image.
 
+EASY-OutputDeckReformatter.wsf
+    Reformats the list/punch output of Knuth's EASY assembler so that it
+    matches the format of the listings he donated to the Computer
+    History Museum, and which have been transcribed to text files on
+    this site (see files with a ".easy" extension). The purpose of
+    reformatting the list/punch output is to put it in a form that it
+    can be mechanically compared to the transcribed files for proofing
+    purposes.
+
 MEASY-ListingZeroSuppress.wsf
     Applies zero-suppression to fields in a MEASY output listing. Zero
     suppression ends in 1-relative columns 4, 9, 34, 42, 43, 66, 69.
@@ -53,7 +62,8 @@ Shell-LoadTapeBuilder.wsf
     then  outputs a tape image containing the loadable object code for
     the assembled assembler. The original use of this utility was to
     prepare output of the assembler assembling itself for a "round-trip"
-    test. Note that the assembler object code is placed on lane 1 of the tape starting at block 120.
+    test. Note that the assembler object code is placed on lane 1 of the
+    tape starting at block 120.
 
 Shell-Xscript-Reformatter.wsf
     Extracts source and object code from the Shell Assembler
@@ -62,7 +72,8 @@ Shell-Xscript-Reformatter.wsf
         1. An assembler card deck for the first movement's source.
         2. An assembler card deck for the second movement's source.
         3. A tape image containing the loadable object code for the
-        assembler. Note that the assembler object code is placed on lane 1 of the tape starting at block 120.
+        assembler. Note that the assembler object code is placed on lane
+        1 of the tape starting at block 120.
 
 Simple-Disassembler.wsf
     Reads a text file containing one 205 decimal word per line, format
@@ -74,5 +85,5 @@ Simple-Disassembler.wsf
 
 
 Paul Kimpel
-December 2015
+January 2016
 

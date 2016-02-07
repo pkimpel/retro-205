@@ -1,6 +1,7 @@
+<?XML version="1.0"?>
 <package>
 <job id="EASY-LoadDeckBuilder">
-<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<reference object="Scripting.FileSystemObject" /> 
 <script language="VBScript">
 <![CDATA[
 
@@ -17,7 +18,7 @@ Option Explicit
 ' Parameters:
 '   Name of assembler output list/punch file (required).
 '   Name of resulting load-deck file (optional - by default will have 
-'       name of list/punch file with "-Load.card" concatenated.
+'       the name of the list/punch file with "-Load.card" concatenated.
 '-----------------------------------------------------------------------
 ' Modification Log.
 ' 2015-02-19  P.Kimpel
@@ -71,6 +72,7 @@ Sub BuildLoadFile
   
   Do While Not asmFile.AtEndOfStream
     line = asmFile.ReadLine
+    '-- Check if this is the start of the forward-reference fixup code
     If Left(line, 1) = "7" Then
       Exit Do
     Else
@@ -151,7 +153,9 @@ If Not fso.FileExists(asmName) Then
 Else
   Set asmFile = fso.OpenTextFile(asmName, ForReading, False)
   Set loadFile = fso.CreateTextFile(loadName, True)
+  
   BuildLoadFile
+  
   loadFile.Close
   Set loadFile = Nothing
   asmFile.Close
