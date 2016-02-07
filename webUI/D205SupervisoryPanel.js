@@ -22,8 +22,6 @@ function D205SupervisoryPanel(p, systemShutdown) {
     this.p = p;                         // D205Processor object
     this.systemShutdown = systemShutdown; // system shut-down callback
     this.intervalToken = 0;             // setInterval() token
-    this.stats = {};                    // current statistics values used by updatePanel()
-    this.lastStats = {drumTime: 0};     // prior statisticss values used by updatePanel()
 
     this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
     this.boundPowerBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerBtn_Click);
@@ -181,106 +179,47 @@ D205SupervisoryPanel.prototype.displayCallbackState = function displayCallbackSt
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.updateControlReg = function updateControlReg() {
-    /* Builds a bit mask for the control toggles as if it were a uniform register
-    and then updates the display from that mask */
-    var p = this.p;                     // local copy of processor object
-
-    this.control.update(
-        ((((((((((((((((((((((((((((p.SPECIAL*2 +
-                p.togBTOAIN)*2 +
-                p.togADDER)*2 +
-                p.togDPCTR)*2 +
-                p.togDELTABDIV)*2 +
-                p.togCOMPL)*2 +
-                p.togADDAB)*2 +
-                p.togCLEAR)*2 +
-                p.togMULDIV)*2 +
-                p.togSIGN)*2 +
-                p.togCOUNT)*2 +
-                p.togDIVALARM)*2 +
-                p.togSTEP)*2 +
-                p.togSTART)*2 +
-                p.togTF)*2 +
-                p.togTC1)*2 +
-                p.togTC2)*2 +
-                p.togOK)*2 +
-                p.togPO1)*2 +
-                p.togPO2)*2 +
-                p.togDELAY)*2 +
-                p.togT0)*2 +
-                p.togBKPT)*2 +
-                p.togZCT)*2 +
-                p.togASYNC)*16 +
-                p.SHIFTCONTROL)*2 +
-                p.togMT3P)*2 +
-                p.togMT1BV4)*2 +
-                p.togMT1BV5)*32 +
-                p.SHIFT
-    );
-};
-
-/**************************************/
-D205SupervisoryPanel.prototype.timeToLevel = function timeToLevel(id, elapsed) {
-    /* Converts the timer value identified by "id" to a relative lamp intensity
-    level based on the "elapsed" time (in word-times) */
-    var lastTime = this.lastStats[id] || 0;
-    var thisTime = this.stats[id] || 0;
-
-    this.lastStats[id] = thisTime;
-    if (elapsed > 0) {
-        return (thisTime-lastTime)/elapsed;
-    } else {
-        return (thisTime > 0 ? 1 : 0);
-    }
-};
-
-/**************************************/
 D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     /* Updates the panel from the current Processor state */
-    var elapsed;
     var eLevel;
     var p = this.p;                     // local copy of Processor object
+    var tg = p.toggleGlow;
 
-    p.fetchStats(this.stats);
-    elapsed = this.stats.drumTime - this.lastStats.drumTime;
-    eLevel = (p.stopIdle ? 1-p.togTiming : this.timeToLevel("executeTime", elapsed));
+    eLevel = (p.stopIdle ? p.togTiming : tg.glowTiming);
 
-    this.regA.update(p.A);
-    this.regB.update(p.B);
-    this.regC.update(p.C);
-    this.regD.update(p.D);
-    this.regR.update(p.R);
-    this.updateControlReg();
+    this.regA.updateGlow(tg.glowA);
+    this.regB.updateGlow(tg.glowB);
+    this.regC.updateGlow(tg.glowC);
+    this.regD.updateGlow(tg.glowD);
+    this.regR.updateGlow(tg.glowR);
+    this.control.updateGlow(tg.glowCtl);
 
-    this.regAdder.update(p.ADDER);
-    this.regCarry.update(p.CT);
+    this.regAdder.updateGlow(tg.glowADDER);
+    this.regCarry.updateGlow(tg.glowCT);
 
-    this.cardatronTWA.set(p.togTWA);
-    this.cardatron3IO.set(p.tog3IO);
+    this.cardatronTWA.set(tg.glowTWA);
+    this.cardatron3IO.set(tg.glow3IO);
 
-    this.overflowLamp.set(p.poweredOn && this.timeToLevel("overflowTime", elapsed));
+    this.overflowLamp.set(p.poweredOn && tg.glowOverflow);
     this.sectorLamp.set(p.stopSector);
     this.fcLamp.set(p.stopForbidden);
     this.controlLamp.set(p.stopControl);
     this.idleLamp.set(p.poweredOn && p.stopIdle);
 
-    this.executeLamp.set(p.poweredOn && eLevel);
-    this.fetchLamp.set(p.poweredOn && (1-eLevel));
+    this.executeLamp.set(p.poweredOn && (1-eLevel));
+    this.fetchLamp.set(p.poweredOn && eLevel);
 
-    this.mainLamp.set(this.timeToLevel("memMAINTime", elapsed));
-    this.rwmLamp.set(this.timeToLevel("memRWMTime", elapsed));
-    this.rwlLamp.set(this.timeToLevel("memRWLTime", elapsed));
-    this.wdblLamp.set(this.timeToLevel("memWDBLTime", elapsed));
-    this.actLamp.set(this.timeToLevel("memACTIONTime", elapsed));
-    this.accessLamp.set(this.timeToLevel("memACCESSTime", elapsed));
-    this.lmLamp.set(this.timeToLevel("memLMTime", elapsed));
-    this.l4Lamp.set(this.timeToLevel("memL4Time", elapsed));
-    this.l5Lamp.set(this.timeToLevel("memL5Time", elapsed));
-    this.l6Lamp.set(this.timeToLevel("memL6Time", elapsed));
-    this.l7Lamp.set(this.timeToLevel("memL7Time", elapsed));
-
-    this.lastStats.drumTime = this.stats.drumTime;
+    this.mainLamp.set(tg.glowMAIN);
+    this.rwmLamp.set(tg.glowRWM);
+    this.rwlLamp.set(tg.glowRWL);
+    this.wdblLamp.set(tg.glowWDBL);
+    this.actLamp.set(tg.glowACTION);
+    this.accessLamp.set(tg.glowACCESS);
+    this.lmLamp.set(tg.glowLM);
+    this.l4Lamp.set(tg.glowL4);
+    this.l5Lamp.set(tg.glowL5);
+    this.l6Lamp.set(tg.glowL6);
+    this.l7Lamp.set(tg.glowL7);
 
     /********** DEBUG **********
     this.$$("ProcDelta").value = p.procSlackAvg.toFixed(2);
@@ -453,7 +392,6 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
                 break;
             } // switch bit
 
-            this.updateControlReg();
             break;
         } // switch reg
     }

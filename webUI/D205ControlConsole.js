@@ -22,8 +22,6 @@ function D205ControlConsole(p) {
     this.p = p;                         // D205Processor object
     this.fastUpdateMode = 0;            // slow vs. fast panel update mode
     this.intervalToken = 0;             // setCallback() token
-    this.stats = {};                    // current statistics values used by updatePanel()
-    this.lastStats = {drumTime: 0};     // prior statisticss values used by updatePanel()
 
     this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
@@ -129,75 +127,28 @@ D205ControlConsole.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205ControlConsole.prototype.setLampFromMask = function setLampFromMask(lamp, value) {
-    var bit = value % 2;
-
-    lamp.set(bit);
-    return (value-bit)/2;
-};
-
-/**************************************/
-D205ControlConsole.prototype.randomDisplay = function randomDisplay() {
-    var lampMask = Math.floor(Math.random()*1024);
-
-    this.regA.update(Math.random()*Math.random()*0x100000000000);
-    this.regB.update(Math.random()*0x10000);
-    this.regC.update(Math.random()*Math.random()*0x10000000000);
-    this.regD.update(Math.random()*Math.random()*0x100000000000);
-    this.regR.update(Math.random()*Math.random()*0x10000000000);
-
-    lampMask = this.setLampFromMask(this.idleLamp, lampMask);
-    lampMask = this.setLampFromMask(this.fcsaLamp, lampMask);
-    lampMask = this.setLampFromMask(this.controlLamp, lampMask);
-    lampMask = this.setLampFromMask(this.bkptLamp, lampMask);
-    lampMask = this.setLampFromMask(this.overflowLamp, lampMask);
-    lampMask = this.setLampFromMask(this.executeLamp, lampMask);
-    lampMask = this.setLampFromMask(this.fetchLamp, lampMask);
-    lampMask = this.setLampFromMask(this.notReadyLamp, lampMask);
-    lampMask = this.setLampFromMask(this.continuousLamp, lampMask);
-};
-
-/**************************************/
-D205ControlConsole.prototype.timeToLevel = function timeToLevel(id, elapsed) {
-    /* Converts the timer value identified by "id" to a relative lamp intensity
-    level based on the "elapsed" time (in word-times) */
-    var lastTime = this.lastStats[id] || 0;
-    var thisTime = this.stats[id] || 0;
-
-    this.lastStats[id] = thisTime;
-    if (elapsed > 0) {
-        return (thisTime-lastTime)/elapsed;
-    } else {
-        return (thisTime > 0 ? 1 : 0);
-    }
-};
-
-/**************************************/
 D205ControlConsole.prototype.updatePanel = function updatePanel() {
     /* Updates the panel from the current Processor state */
-    var elapsed;
     var eLevel;
     var p = this.p;                     // local copy of Processor object
     var startState = p.togSTART && !p.tog3IO;
+    var tg = p.toggleGlow;
 
-    p.fetchStats(this.stats);
-    elapsed = this.stats.drumTime - this.lastStats.drumTime;
-
-    this.regA.update(p.A);
-    this.regB.update(p.B);
-    this.regC.update(p.C);
-    this.regD.update(p.D);
-    this.regR.update(p.R);
+    this.regA.updateGlow(tg.glowA);
+    this.regB.updateGlow(tg.glowB);
+    this.regC.updateGlow(tg.glowC);
+    this.regD.updateGlow(tg.glowD);
+    this.regR.updateGlow(tg.glowR);
 
     this.idleLamp.set(p.poweredOn && p.stopIdle);
     this.fcsaLamp.set(p.stopForbidden || p.stopSector);
     this.controlLamp.set(p.stopControl);
     this.bkptLamp.set(p.stopBreakpoint);
-    this.overflowLamp.set(p.poweredOn && this.timeToLevel("overflowTime", elapsed));
+    this.overflowLamp.set(p.poweredOn && tg.glowOverflow);
 
-    eLevel = (p.stopIdle ? 1-p.togTiming : this.timeToLevel("executeTime", elapsed));
-    this.executeLamp.set(p.poweredOn && eLevel);
-    this.fetchLamp.set(p.poweredOn && (1-eLevel));
+    eLevel = (p.stopIdle ? p.togTiming : tg.glowTiming);
+    this.executeLamp.set(p.poweredOn && (1-eLevel));
+    this.fetchLamp.set(p.poweredOn && eLevel);
 
     this.notReadyLamp.set((p.sswLockNormal || p.sswStepContinuous) && p.poweredOn);
     this.continuousLamp.set((p.sswStepContinuous || p.cctContinuous) && p.poweredOn);
@@ -225,33 +176,6 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
         this.intervalToken = this.window.setInterval(this.boundUpdatePanel,
             (p.poweredOn ? D205ControlConsole.displayRefreshPeriod : D205ControlConsole.slowRefreshPeriod));
     }
-
-    this.lastStats.drumTime = this.stats.drumTime;
-};
-
-/**************************************/
-D205ControlConsole.prototype.stepBtn_Click = function stepBtn_Click(ev) {
-    if (this.intervalToken) {
-        this.window.clearInterval(this.intervalToken);
-        this.intervalToken = 0;
-    }
-    this.randomDisplay();
-};
-
-/**************************************/
-D205ControlConsole.prototype.stopBtn_Click = function stopBtn_Click(ev) {
-    if (this.intervalToken) {
-        this.window.clearInterval(this.intervalToken);
-        this.intervalToken = 0;
-    }
-};
-
-/**************************************/
-D205ControlConsole.prototype.contBtn_Click = function contBtn_Click(ev) {
-    if (!this.intervalToken) {
-        this.intervalToken = this.window.setInterval(D205Util.bindMethod(this, this.randomDisplay), D205ControlConsole.displayRefreshPeriod);
-    }
-    this.randomDisplay();
 };
 
 /**************************************/

@@ -120,6 +120,16 @@ DIV.neonLamp {
     border-radius:      50%;
     border:             2px solid #999;
     background-image:   radial-gradient(circle, #999, #333)}
+DIV.neonLit1 {
+    background-image:   radial-gradient(circle, #A85, #444)}
+DIV.neonLit2 {
+    background-image:   radial-gradient(circle, #B84, #555)}
+DIV.neonLit3 {
+    background-image:   radial-gradient(circle, #C83, #666)}
+DIV.neonLit4 {
+    background-image:   radial-gradient(circle, #D82, #777)}
+DIV.neonLit5 {
+    background-image:   radial-gradient(circle, #E91, #888)}
 DIV.neonLit {
     background-image:   radial-gradient(circle, #F93, #F93, #999)}
 

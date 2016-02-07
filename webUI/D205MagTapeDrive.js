@@ -259,11 +259,12 @@ D205MagTapeDrive.prototype.setAtEOT = function setAtEOT(atEOT) {
 /**************************************/
 D205MagTapeDrive.prototype.setTapeReady = function setTapeReady(makeReady) {
     /* Controls the ready-state of the tape drive */
-    var loaded = (this.tapeState != this.tapeUnloaded);
+    var enabled = (this.tapeState != this.tapeUnloaded) &&
+                  (this.tapeState != this.tapeRewinding);
 
-    this.ready = this.remote && makeReady && loaded;
+    this.ready = this.remote && makeReady && enabled;
     this.notReadyLamp.set(this.ready ? 0 : 1);
-    if (loaded && this.tapeState != this.tapeRewinding) {
+    if (enabled) {
         if (this.remote) {
             this.tapeState = this.tapeRemote;
         } else {
@@ -624,9 +625,9 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
     if (this.tapeState != this.tapeUnloaded &&
             this.tapeState != this.tapeRewinding && !this.atBOT) {
         this.busy = true;
+        this.tapeState = this.tapeRewinding;
         this.setTapeReady(false);
         this.setAtEOT(false);
-        this.tapeState = this.tapeRewinding;
         D205Util.removeClass(this.$$("MTBlockNrLight"), "annunciatorLit");
         D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
         this.timer = setCallback(this.mnemonic, this, 1000, rewindStart);

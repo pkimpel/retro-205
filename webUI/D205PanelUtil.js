@@ -45,26 +45,32 @@ NeonLamp.topCaptionClass = "neonLampTopCaption";
 NeonLamp.bottomCaptionClass = "neonLampBottomCaption";
 NeonLamp.lampClass = "neonLamp";
 NeonLamp.litClass = "neonLamp neonLit";
+NeonLamp.lampLevels = 6;
+NeonLamp.levelClass = [                 // css class names for the lamp levels
+            NeonLamp.lampClass,
+            NeonLamp.litClass + "1",
+            NeonLamp.litClass + "2",
+            NeonLamp.litClass + "3",
+            NeonLamp.litClass + "4",
+            NeonLamp.litClass + "5",
+            NeonLamp.litClass];
 
 /**************************************/
 NeonLamp.prototype.set = function set(state) {
-    /* Changes the visible state of the lamp according to the low-order
-    bit of "state" */
-    var newState = state & 1;
+    /* Changes the visible state of the lamp according to the value of "state", 0-1 */
+    var newState = Math.max(Math.min(Math.round(state*NeonLamp.lampLevels + 0.4999), NeonLamp.lampLevels), 0);
 
     if (this.state ^ newState) {         // the state has changed
         this.state = newState;
-        this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
+        this.element.className = NeonLamp.levelClass[newState];
     }
 };
 
 /**************************************/
 NeonLamp.prototype.flip = function flip() {
     /* Complements the visible state of the lamp */
-    var newState = this.state ^ 1;
 
-    this.state = newState;
-    this.element.className = (newState ? NeonLamp.litClass : NeonLamp.lampClass);
+    this.set(1.0 - this.state/NeonLamp.lampLevels);
 };
 
 /**************************************/
@@ -648,5 +654,15 @@ PanelRegister.prototype.update = function update(value) {
 
             bitBase += 30;
         } while (thisValue || lastValue);
+    }
+};
+
+/**************************************/
+PanelRegister.prototype.updateGlow = function updateGlow(glow) {
+    /* Update the register lamps from the bitwise intensity values in "glow" */
+    var bitNr;
+
+    for (bitNr=this.bits-1; bitNr>=0; --bitNr) {
+        this.lamps[bitNr].set(glow[bitNr]);
     }
 };

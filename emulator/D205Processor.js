@@ -96,6 +96,7 @@ function D205Processor(devices) {
 
     // Context-bound routines
     this.boundExecuteComplete = D205Processor.bindMethod(this, D205Processor.prototype.executeComplete);
+    this.boundUpdateLampGlow = D205Processor.bindMethod(this, D205Processor.prototype.updateLampGlow);
 
     this.boundConsoleOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputSignDigit);
     this.boundConsoleOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputNumberDigit);
@@ -123,6 +124,33 @@ function D205Processor(devices) {
     // External switches [used by EXC (71)]
     this.externalSwitch = [0, 0, 0, 0, 0, 0, 0, 0];
 
+    // Register average-intensity accumulators
+    this.glowTimer = null;
+    this.toggleGlow = {
+        glowA: new Float64Array(44),
+        glowB: new Float64Array(16),
+        glowC: new Float64Array(40),
+        glowD: new Float64Array(44),
+        glowR: new Float64Array(40),
+        glowCtl: new Float64Array(40),
+        glowADDER: new Float64Array(4),
+        glowCT: new Float64Array(5),
+        glowTiming: 0,
+        glowOverflow: 0,
+        glowTWA: 0,
+        glow3IO: 0,
+        glowMAIN: 0,
+        glowRWM: 0,
+        glowRWL: 0,
+        glowWDBL: 0,
+        glowACTION: 0,
+        glowACCESS: 0,
+        glowLM: 0,
+        glowL4: 0,
+        glowL5: 0,
+        glowL6: 0,
+        glowL7: 0};
+
     this.clear();                       // Create and initialize the processor state
 
     this.loadDefaultProgram();          // Preload a default program
@@ -131,7 +159,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.05a";
+D205Processor.version = "0.05b";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -139,6 +167,12 @@ D205Processor.wordTime = 60/3570/D205Processor.trackSize;
                                         // one word time, about 84 µs at 3570rpm (=> 142.8 KHz)
 D205Processor.wordsPerMilli = 0.001/D205Processor.wordTime;
                                         // word times per millisecond
+D205Processor.neonPersistence = 1000/60;// persistence of neon bulb glow [ms]
+D205Processor.maxGlowTime = D205Processor.neonPersistence*D205Processor.wordsPerMilli;
+                                        // panel bulb glow persistence [word-times]
+D205Processor.lampGlowInterval = 50;    // background lamp sampling interval (ms)
+D205Processor.adderGlowAlpha = 1/142/D205Processor.neonPersistence;
+                                        // adder and carry toggle glow decay factor, based on 142KHz clock
 
 D205Processor.pow2 = [ // powers of 2 from 0 to 52
                      0x1,              0x2,              0x4,              0x8,
@@ -220,23 +254,12 @@ D205Processor.prototype.clear = function clear() {
     this.memL6 = 0;                     // 6000 loop access
     this.memL7 = 0;                     // 7000 loop access
 
-    // Memory control timers
-    this.memMAINTime = 0;
-    this.memRWMTime = 0;
-    this.memRWLTime = 0;
-    this.memWDBLTime = 0;
-    this.memACTIONTime = 0;
-    this.memACCESSTime = 0;
-    this.memLMTime = 0;
-    this.memL4Time = 0;
-    this.memL5Time = 0;
-    this.memL6Time = 0;
-    this.memL7Time = 0;
-
     // Statistics timers
-    this.executeTime = 0;               // Total time togTiming==0
-    this.overflowTime = 0;              // Total time stopOverflow==1
-    this.setTimingToggle(0);            // set to Execute initially; initalize executeTime
+    this.lastGlowTime = 0;              // Last panel lamp intensity update time [word-times]
+    this.memoryStartTime = 0;           // Start of last memory access [word-times]
+
+    this.setTimingToggle(0);            // set to Execute initially
+    this.sampleLamps(1.0);              // initialize the lamp-glow averages
 
     // Kill any pending action that may be in process
     if (this.scheduler) {
@@ -360,55 +383,151 @@ D205Processor.binaryBCD = function binaryBCD(v) {
 /**************************************/
 D205Processor.prototype.setTimingToggle = function setTimingToggle(cycle) {
     /* Sets the timing toggle to the value of "cycle" and updates the timing
-    statistics */
-    var drumTime;
+    statistics: 0=Execute, !0=Fetch */
 
-    if (this.togTiming != cycle) {
-        drumTime = performance.now()*D205Processor.wordsPerMilli;
-        if (cycle) {
-            this.togTiming = 1;         // Set Fetch
-            this.executeTime += drumTime;
-        } else {
-            this.togTiming = 0;         // Set Execute
-            this.executeTime -= drumTime;
-        }
-    }
+    this.togTiming = (cycle ? 1 : 0);
 };
 
 /**************************************/
 D205Processor.prototype.setOverflow = function setOverflow(overflow) {
     /* Sets the overflow toggle to the value of "overflow" and updates the
     timing statistics */
-    var drumTime;
 
-    if (this.stopOverflow != overflow) {
-        drumTime = performance.now()*D205Processor.wordsPerMilli;
-        if (overflow) {
-            this.stopOverflow = 1;
-            this.overflowTime -= drumTime - 1;
-        } else {
-            this.stopOverflow = 0;
-            this.overflowTime += drumTime;
-        }
+    this.stopOverflow = (overflow ? 1 : 0);
+};
+
+/**************************************/
+D205Processor.prototype.feelTheGlow = function feelTheGlow(alpha, alpha1, glow, bits, r) {
+    /* Computes the running exponential average of lamp intensities for register
+    "r" in the low-order "bits" bits, using the "alpha" decay factor into the array
+    "glow". alpha1 must be 1.0 - alpha */
+    var b = 0;
+    var bit;
+
+    while (r) {
+        bit = r % 2;
+        r = (r-bit)/2;
+        glow[b] = glow[b]*alpha1 + bit*alpha;
+        ++b;
     }
+
+    while (b < bits) {
+        glow[b] *= alpha1;
+        ++b;
+    }
+};
+
+/**************************************/
+D205Processor.prototype.updateAdderGlow = function updateAdderGlow(adder, ct) {
+    /* Computes the exponential running average of adder and carry toggle bit
+    intensities. This is called for every digit passing through the adder, and
+    serves only to compute a range of bit-by-bit intensities (0,1) for display */
+    var alpha = D205Processor.adderGlowAlpha;
+    var alpha1 = 1.0 - alpha;
+    var b = 0;
+    var bit;
+    var glowA = this.toggleGlow.glowADDER;
+    var glowC = this.toggleGlow.glowCT;
+
+    while (b < 4) {
+        bit = adder % 2;
+        adder = (adder-bit)/2;
+        glowA[b] = glowA[b]*alpha1 + bit*alpha;
+        ++b;
+    }
+
+    b = 0;
+    while (b < 5) {
+        bit = ct % 2;
+        ct = (ct-bit)/2;
+        glowC[b] = glowC[b]*alpha1 + bit*alpha;
+        ++b;
+    }
+};
+
+/**************************************/
+D205Processor.prototype.sampleLamps = function sampleLamps(alpha) {
+    /* Updates the lamp intensity arrays for all registers. "alpha" must be in
+    the range (0.0-1.0) and indicates the relative significance for the current
+    register settings to the running exponential average algorithm */
+    var alpha1 = 1.0 - alpha;
+    var tg = this.toggleGlow;
+
+    tg.glowTiming =   tg.glowTiming*alpha1 +   this.togTiming*alpha;
+    tg.glowOverflow = tg.glowOverflow*alpha1 + this.stopOverflow*alpha;
+    tg.glowTWA =      tg.glowTWA*alpha1 +      this.togTWA*alpha;
+    tg.glow3IO =      tg.glow3IO*alpha1 +      this.tog3IO*alpha;
+
+    this.feelTheGlow(alpha, alpha1, tg.glowA, 44, this.A);
+    this.feelTheGlow(alpha, alpha1, tg.glowB, 16, this.B);
+    this.feelTheGlow(alpha, alpha1, tg.glowC, 40, this.C);
+    this.feelTheGlow(alpha, alpha1, tg.glowD, 44, this.D);
+    this.feelTheGlow(alpha, alpha1, tg.glowR, 40, this.R);
+
+    if (this.stopIdle) {
+        this.feelTheGlow(alpha, alpha1, tg.glowADDER, 4, this.ADDER);
+        this.feelTheGlow(alpha, alpha1, tg.glowCT, 5, this.CT);
+    } else {
+        this.updateAdderGlow(this.ADDER, this.CT);
+    }
+
+    this.feelTheGlow(alpha, alpha1, tg.glowCtl, 40, ((((((((((((((((((((((((((((
+                this.SPECIAL*2 +
+                this.togBTOAIN)*2 +
+                this.togADDER)*2 +
+                this.togDPCTR)*2 +
+                this.togDELTABDIV)*2 +
+                this.togCOMPL)*2 +
+                this.togADDAB)*2 +
+                this.togCLEAR)*2 +
+                this.togMULDIV)*2 +
+                this.togSIGN)*2 +
+                this.togCOUNT)*2 +
+                this.togDIVALARM)*2 +
+                this.togSTEP)*2 +
+                this.togSTART)*2 +
+                this.togTF)*2 +
+                this.togTC1)*2 +
+                this.togTC2)*2 +
+                this.togOK)*2 +
+                this.togPO1)*2 +
+                this.togPO2)*2 +
+                this.togDELAY)*2 +
+                this.togT0)*2 +
+                this.togBKPT)*2 +
+                this.togZCT)*2 +
+                this.togASYNC)*16 +
+                this.SHIFTCONTROL)*2 +
+                this.togMT3P)*2 +
+                this.togMT1BV4)*2 +
+                this.togMT1BV5)*32 +
+                this.SHIFT);
+};
+
+/**************************************/
+D205Processor.prototype.updateLampGlow = function updateLampGlow(drumTime) {
+    /* Computes an alpha factor based on the elapsed time since the last sampling,
+    then calls sampleLamps() to update the running averages. drumTime is the
+    current time in word-time units, 0.084ms. If drumTime==0, the current time
+    is used */
+    var clock = drumTime || performance.now()*D205Processor.wordsPerMilli;
+    var alpha = (clock - this.lastGlowTime)/D205Processor.maxGlowTime;
+
+    this.lastGlowTime = clock;
+    if (alpha > 1.0) {
+        alpha = 1.0;
+    }
+
+    this.sampleLamps(alpha);
 };
 
 /**************************************/
 D205Processor.prototype.startMemoryTiming = function startMemoryTiming(drumTime) {
     /* Starts the necessary timers for the memory toggles to aid in their
-    display on the panels */
+    display on the panels. Note that "drumTime" is in units of word-times */
 
-    if (this.memMAIN)   {this.memMAINTime -= drumTime}
-    if (this.memRWM)    {this.memRWMTime -= drumTime};
-    if (this.memRWL)    {this.memRWLTime -= drumTime};
-    if (this.memWDBL)   {this.memWDBLTime -= drumTime};
-    if (this.memACTION) {this.memACTIONTime -= drumTime};
-    if (this.memACCESS) {this.memACCESSTime -= drumTime};
-    if (this.memLM)     {this.memLMTime -= drumTime};
-    if (this.memL4)     {this.memL4Time -= drumTime};
-    if (this.memL5)     {this.memL5Time -= drumTime};
-    if (this.memL6)     {this.memL6Time -= drumTime};
-    if (this.memL7)     {this.memL7Time -= drumTime};
+    this.updateLampGlow(drumTime);
+    this.memoryStartTime = drumTime;
 };
 
 /**************************************/
@@ -416,101 +535,38 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
     /* Stops the active timers for the memory toggles to aid in their
     display on the panels and reset the corresponding toggle */
     var drumTime = performance.now()*D205Processor.wordsPerMilli;
+    var alpha = (drumTime - this.memoryStartTime)/D205Processor.maxGlowTime;
+    var alpha1 = 1.0 - alpha;
+    var tg = this.toggleGlow;
 
-    if (this.memMAIN)   {
-        this.memMAIN = 0;
-        this.memMAINTime += drumTime;
+    if (alpha > 1.0) {
+        alpha = 1.0;
+        alpha1 = 0;
     }
-    if (this.memRWM)    {
-        this.memRWM = 0;
-        this.memRWMTime += drumTime;
-    };
-    if (this.memRWL)    {
-        this.memRWL = 0;
-        this.memRWLTime += drumTime;
-    };
-    if (this.memWDBL)   {
-        this.memWDBL = 0;
-        this.memWDBLTime += drumTime;
-    };
-    if (this.memACTION) {
-        this.memACTION = 0;
-        this.memACTIONTime += drumTime;
-    };
-    if (this.memACCESS) {
-        this.memACCESS = 0;
-        this.memACCESSTime += drumTime;
-    };
-    if (this.memLM)     {
-        this.memLM = 0;
-        this.memLMTime += drumTime;
-    };
-    if (this.memL4)     {
-        this.memL4 = 0;
-        this.memL4Time += drumTime;
-    };
-    if (this.memL5)     {
-        this.memL5 = 0;
-        this.memL5Time += drumTime;
-    };
-    if (this.memL6)     {
-        this.memL6 = 0;
-        this.memL6Time += drumTime;
-    };
-    if (this.memL7)     {
-        this.memL7 = 0;
-        this.memL7Time += drumTime;
-    };
-};
 
-/**************************************/
-D205Processor.prototype.fetchStats = function fetchStats(stats) {
-    /* Sets the timing statistics into the object passed by the caller */
-    var drumTime = performance.now()*D205Processor.wordsPerMilli;
+    tg.glowMAIN =   tg.glowMAIN*alpha1 +   this.memMAIN*alpha;
+    tg.glowRWM =    tg.glowRWM*alpha1 +    this.memRWM*alpha;
+    tg.glowRWL =    tg.glowRWL*alpha1 +    this.memRWL*alpha;
+    tg.glowWDBL =   tg.glowWDBL*alpha1 +   this.memWDBL*alpha;
+    tg.glowACTION = tg.glowACTION*alpha1 + this.memACTION*alpha;
+    tg.glowACCESS = tg.glowACCESS*alpha1 + this.memACCESS*alpha;
+    tg.glowLM =     tg.glowLM*alpha1 +     this.memLM*alpha;
+    tg.glowL4 =     tg.glowL4*alpha1 +     this.memL4*alpha;
+    tg.glowL5 =     tg.glowL5*alpha1 +     this.memL5*alpha;
+    tg.glowL6 =     tg.glowL6*alpha1 +     this.memL6*alpha;
+    tg.glowL7 =     tg.glowL7*alpha1 +     this.memL7*alpha;
 
-    stats.drumTime = drumTime;
-
-    stats.procTime = this.procTime;
-    while (stats.procTime < 0) {stats.procTime += drumTime}
-
-    stats.executeTime = this.executeTime;
-    while (stats.executeTime < 0) {stats.executeTime += drumTime}
-
-    stats.overflowTime = this.overflowTime;
-    while (stats.overflowTime < 0) {stats.overflowTime += drumTime}
-
-    stats.memMAINTime = this.memMAINTime;
-    while (stats.memMAINTime < 0)   {stats.memMAINTime += drumTime}
-
-    stats.memRWMTime = this.memRWMTime;
-    while (stats.memRWMTime < 0)    {stats.memRWMTime += drumTime};
-
-    stats.memRWLTime = this.memRWLTime;
-    while (stats.memRWLTime < 0)    {stats.memRWLTime += drumTime};
-
-    stats.memWDBLTime = this.memWDBLTime;
-    while (stats.memWDBLTime < 0)   {stats.memWDBLTime += drumTime};
-
-    stats.memACTIONTime = this.memACTIONTime;
-    while (stats.memACTIONTime < 0) {stats.memACTIONTime += drumTime};
-
-    stats.memACCESSTime = this.memACCESSTime;
-    while (stats.memACCESSTime < 0) {stats.memACCESSTime += drumTime};
-
-    stats.memLMTime = this.memLMTime;
-    while (stats.memLMTime < 0)     {stats.memLMTime += drumTime};
-
-    stats.memL4Time = this.memL4Time;
-    while (stats.memL4Time < 0)     {stats.memL4Time += drumTime};
-
-    stats.memL5Time = this.memL5Time;
-    while (stats.memL5Time < 0)     {stats.memL5Time += drumTime};
-
-    stats.memL6Time = this.memL6Time;
-    while (stats.memL6Time < 0)     {stats.memL6Time += drumTime};
-
-    stats.memL7Time = this.memL7Time;
-    while (stats.memL7Time < 0)     {stats.memL7Time += drumTime};
+    this.memMAIN =
+            this.memRWM =
+            this.memRWL =
+            this.memWDBL =
+            this.memACTION =
+            this.memACCESS =
+            this.memLM =
+            this.memL4 =
+            this.memL5 =
+            this.memL6 =
+            this.memL7 = 0;
 };
 
 
@@ -681,6 +737,8 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
 
         // compute the carry toggle register (just for display)
         ct = (((ad & dd) | (ad & ct) | (dd & ct)) << 1) + carry;
+        this.updateAdderGlow(adder, ct);
+
         // rotate the adder into the sign digit
         am += adder*0x10000000000;
         // shift the addend right to the next digit
@@ -3146,6 +3204,8 @@ D205Processor.prototype.powerUp = function powerUp() {
         this.console = this.devices.ControlConsole;
         this.cardatron = this.devices.CardatronControl;
         this.magTape = this.devices.MagTapeControl;
+        this.lastGlowTime = performance.now()*D205Processor.wordsPerMilli;
+        this.glowTimer = setInterval(this.boundUpdateLampGlow, D205Processor.lampGlowInterval);
     }
 };
 
@@ -3156,12 +3216,14 @@ D205Processor.prototype.powerDown = function powerDown() {
     if (this.poweredOn) {
         this.stop();
         this.clear();
-        this.executeTime = 0;
-        this.fetchTime = 0;
         this.poweredOn = 0;
         this.cardatron = null;
         this.console = null;
         this.magTape = null;
+        if (this.glowTimer) {
+            clearInterval(this.glowTimer);
+            this.glowTimer = null;
+        }
     }
 };
 
