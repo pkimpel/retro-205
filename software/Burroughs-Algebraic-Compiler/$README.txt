@@ -99,6 +99,10 @@ Algol58_Tape_Loader_TomSawyer.pt
     A short paper-tape bootstrap program to load and execute the
     Burroughs Algebraic Compiler from Algol58_Tape_TomSawyer.tape.
 
+Algol58_Tape_Loader.card
+    A a card-based bootstrap program to load and execute the
+    Burroughs Algebraic Compiler from Algol58_Tape_TomSawyer.tape.
+
 B205AlgolPaperTape.pt
     Copy of Algol58_Tape_TomSawyer.tape modified by Tom Sawyer to load
     and execute the Burroughs Algebraic Compiler from paper tape.
@@ -171,4 +175,4 @@ Algol58Arithmetic2.pt
 
 
 Paul Kimpel
-October 2015
+January 2016
