@@ -109,7 +109,7 @@
 1        .Z        NUM   1100000000
 1        .W        NUM   1000000000
 1        .X        NUM   0000010000
-1        .R        STC   TEMP &0003CLEAR A AND TEMP&0003             ?? OPCODE AND OPERANDS WERE BLANK ON LISTING.
+1        .R        STC   TEMP &0003CLEAR A AND TEMP&0003                        ?? OPCODE AND OPERANDS WERE BLANK ON LISTING.
 1                  SB    &Z
 1                  STC   TEMP &0003
 1                  SL     0001
@@ -388,7 +388,7 @@
 1        SIG1      CUB   OMEGA
 1        NU3       CUB   &Z
 1        .A        NUM  33333333330
-1        .B        STC   TEMP &0007ZERO TEMP&0007                    ?? MISSING SPACE IN OPERAND ON LISTING
+1        .B        STC   TEMP &0007ZERO TEMP&0007                               ?? MISSING SPACE IN OPERAND ON LISTING
 1                  STC   FDTLY
 1                  STC   SNTLY
 1                  STC   CLTLY
@@ -809,7 +809,7 @@
 1                  CAD   TEMP &0006
 1                  CNZ   &A
 1                  CUB   BUENO&0004
-1        .A        SB    TEMP &0009                                  >> WAS LABEL ".1" ON LISTING
+1        .A        SB    TEMP &0009                                             >> WAS LABEL ".1" ON LISTING
 1                  CAD   &W
 1             -    ST   XFBWS
 1                  CAD   &X

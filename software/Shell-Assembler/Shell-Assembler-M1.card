@@ -65,11 +65,11 @@
 1                                       & 2¤P5A¤2B & 6¤P5A¤ & 20B
 1                                       & P10Z
 1        FMB5      WFB             13B & 6¤P5A¤ & 77B
-1        FMB6      WFB             P7Z3N 6B & 8¤P5A¤ 6B & PABAB3A    originally: 11B15¤P5A¤  &   P4Z3A31B
-1                                       & P5A & P6Z2A6B                                 P5A & P6Z2A6B
-1                                       & P4Z2NB2NB2N37B                                P4Z2NB2NB2N37B
-1        FMB7      RFB             P7Z3N & 10¤P5A¤ & P6Z2A           originally: B15¤P5A¤  &  P4Z3AB
-1                                        & P4Z6N19B                                   P4Z6N19B
+1        FMB6      WFB             P7Z3N 6B & 8¤P5A¤ 6B & PABAB3A               originally: 11B15¤P5A¤  &   P4Z3A31B
+1                                       & P5A & P6Z2A6B                                            P5A & P6Z2A6B
+1                                       & P4Z2NB2NB2N37B                                           P4Z2NB2NB2N37B
+1        FMB7      RFB             P7Z3N & 10¤P5A¤ & P6Z2A                      originally: B15¤P5A¤  &  P4Z3AB
+1                                        & P4Z6N19B                                              P4Z6N19B
 1        START     BT6    8000
 1                  BF6  XSYMBL     ZEROS TO SYMBL TABLE
 1                  CAD        -0001
