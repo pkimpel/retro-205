@@ -159,7 +159,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.05b";
+D205Processor.version = "0.05c";
 
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop
@@ -167,12 +167,12 @@ D205Processor.wordTime = 60/3570/D205Processor.trackSize;
                                         // one word time, about 84 µs at 3570rpm (=> 142.8 KHz)
 D205Processor.wordsPerMilli = 0.001/D205Processor.wordTime;
                                         // word times per millisecond
-D205Processor.neonPersistence = 1000/60;// persistence of neon bulb glow [ms]
+D205Processor.neonPersistence = 1000/30;// persistence of neon bulb glow [ms]
 D205Processor.maxGlowTime = D205Processor.neonPersistence*D205Processor.wordsPerMilli;
                                         // panel bulb glow persistence [word-times]
 D205Processor.lampGlowInterval = 50;    // background lamp sampling interval (ms)
-D205Processor.adderGlowAlpha = 1/142/D205Processor.neonPersistence;
-                                        // adder and carry toggle glow decay factor, based on 142KHz clock
+D205Processor.adderGlowAlpha = D205Processor.wordTime*1000/12/D205Processor.neonPersistence;
+                                        // adder and carry toggle glow decay factor, based on 1/12 word time
 
 D205Processor.pow2 = [ // powers of 2 from 0 to 52
                      0x1,              0x2,              0x4,              0x8,
@@ -464,12 +464,8 @@ D205Processor.prototype.sampleLamps = function sampleLamps(alpha) {
     this.feelTheGlow(alpha, alpha1, tg.glowD, 44, this.D);
     this.feelTheGlow(alpha, alpha1, tg.glowR, 40, this.R);
 
-    if (this.stopIdle) {
-        this.feelTheGlow(alpha, alpha1, tg.glowADDER, 4, this.ADDER);
-        this.feelTheGlow(alpha, alpha1, tg.glowCT, 5, this.CT);
-    } else {
-        this.updateAdderGlow(this.ADDER, this.CT);
-    }
+    this.feelTheGlow(alpha, alpha1, tg.glowADDER, 4, this.ADDER);
+    this.feelTheGlow(alpha, alpha1, tg.glowCT, 5, this.CT);
 
     this.feelTheGlow(alpha, alpha1, tg.glowCtl, 40, ((((((((((((((((((((((((((((
                 this.SPECIAL*2 +
@@ -514,11 +510,7 @@ D205Processor.prototype.updateLampGlow = function updateLampGlow(drumTime) {
     var alpha = (clock - this.lastGlowTime)/D205Processor.maxGlowTime;
 
     this.lastGlowTime = clock;
-    if (alpha > 1.0) {
-        alpha = 1.0;
-    }
-
-    this.sampleLamps(alpha);
+    this.sampleLamps(alpha > 1.0 ? 1.0 : alpha);
 };
 
 /**************************************/
@@ -536,10 +528,12 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
     display on the panels and reset the corresponding toggle */
     var drumTime = performance.now()*D205Processor.wordsPerMilli;
     var alpha = (drumTime - this.memoryStartTime)/D205Processor.maxGlowTime;
-    var alpha1 = 1.0 - alpha;
+    var alpha1;
     var tg = this.toggleGlow;
 
-    if (alpha > 1.0) {
+    if (alpha <= 1.0) {
+        alpha1 = 1.0 - alpha;
+    } else {
         alpha = 1.0;
         alpha1 = 0;
     }

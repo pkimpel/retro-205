@@ -29,6 +29,7 @@ window.addEventListener("load", function() {
             devices[e] = null;
         }
         document.getElementById("StartUpBtn").disabled = false;
+        document.getElementById("StartUpBtn").focus();
     }
 
     /**************************************/

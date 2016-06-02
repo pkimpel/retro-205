@@ -25,11 +25,6 @@ function D205ConsoleInput(mnemonic) {
 
     this.clear();
 
-    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
-    if (this.window) {
-        this.shutDown();                // destroy the previously-existing window
-        this.window = null;
-    }
     this.doc = null;
     this.tapeSupplyBar = null;
     this.tapeView = null;

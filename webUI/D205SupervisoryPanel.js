@@ -30,11 +30,6 @@ function D205SupervisoryPanel(p, systemShutdown) {
     this.boundStartBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.updatePanel);
 
-    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
-    if (this.window) {
-        this.shutDown();                // destroy the previously-existing window
-        this.window = null;
-    }
     this.doc = null;
     this.window = window.open("../webUI/D205SupervisoryPanel.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +

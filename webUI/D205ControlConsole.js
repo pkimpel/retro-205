@@ -21,7 +21,7 @@ function D205ControlConsole(p) {
 
     this.p = p;                         // D205Processor object
     this.fastUpdateMode = 0;            // slow vs. fast panel update mode
-    this.intervalToken = 0;             // setCallback() token
+    this.intervalToken = 0;             // setInterval() token
 
     this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
@@ -29,12 +29,6 @@ function D205ControlConsole(p) {
     this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);
 
     this.clear();
-
-    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
-    if (this.window) {
-        this.shutDown();                // destroy the previously-existing window
-        this.window = null;
-    }
 
     // Set up the Console I/O devices and redirect to them
     this.consoleOut = new D205ConsoleOutput("ConsoleOut", p);
@@ -424,6 +418,11 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
 
     // Start the panel update in slow mode
     this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205ControlConsole.slowRefreshPeriod);
+
+    // Kludge for Chrome window.outerWidth/Height timing bug
+    setCallback(null, this, 100, function chromeBug() {
+        this.window.move(0, screen.availHeight - this.window.outerHeight);
+    });
 };
 
 /**************************************/

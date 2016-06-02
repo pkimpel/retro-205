@@ -63,11 +63,6 @@ function D205MagTapeDrive(mnemonic, unitIndex) {
     this.reelBar = null;                // handle for tape-full meter
     this.reelIcon = null;               // handle for the reel spinner
 
-    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
-    if (this.window) {
-        this.shutDown();                // destroy any previously-existing window
-        this.window = null;
-    }
     this.doc = null;
     this.window = window.open("../webUI/D205MagTapeDrive.html", mnemonic,
             "location=no,scrollbars=no,resizable,width=480,height=184,left=280,top=" + y);
@@ -157,7 +152,6 @@ D205MagTapeDrive.prototype.spinReel = function spinReel(inches) {
     }
 
     this.reelAngle = (this.reelAngle + degrees)%360;
-    this.reelIcon.style["-webkit-transform"] = "rotate(" + this.reelAngle.toFixed(0) + "deg)";  // temp for Chrome
     this.reelIcon.style.transform = "rotate(" + this.reelAngle.toFixed(0) + "deg)";
 
     this.tapeInches += inches;
@@ -264,12 +258,15 @@ D205MagTapeDrive.prototype.setTapeReady = function setTapeReady(makeReady) {
 
     this.ready = this.remote && makeReady && enabled;
     this.notReadyLamp.set(this.ready ? 0 : 1);
+    if (!this.ready) {
+        this.designatedLamp.set(0);
+    }
+
     if (enabled) {
         if (this.remote) {
             this.tapeState = this.tapeRemote;
         } else {
             this.busy = false;          // forced reset
-            this.designatedLamp.set(0);
             this.tapeState = this.tapeLocal;
         }
     }

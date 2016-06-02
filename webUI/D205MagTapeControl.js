@@ -22,12 +22,6 @@ function D205MagTapeControl(p) {
 
     // Do not call this.clear() here -- call this.clearUnit() from onLoad instead
 
-    this.window = window.open("", this.mnemonic, "resizable,width=140,height=140");
-    if (this.window) {
-        this.shutDown();                // destroy the previously-existing window
-        this.window = null;
-    }
-
     this.doc = null;
     this.window = window.open("../webUI/D205MagTapeControl.html", this.mnemonic,
             "location=no,scrollbars=no,resizable,width=408,height=212,top=0,left=" + left);

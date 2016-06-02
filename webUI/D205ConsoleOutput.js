@@ -27,11 +27,6 @@ function D205ConsoleOutput(mnemonic) {
 
     this.clear();
 
-    // Close and destroy any previously-existing device windows
-    this.flexWin = window.open("", "Flexowriter", "resizable,width=140,height=140");
-    this.punchWin = window.open("", "PaperTapePunch", "resizable,width=140,height=140");
-    this.shutDown();
-
     // Create the Flexowriter window and onload event
     this.flexDoc = null;
     this.flexPaper = null;

@@ -55,11 +55,6 @@ function D205CardatronOutput(mnemonic, unitIndex, isPrinter) {
             new Uint8Array(this.bufferDrum, tks*5, tks)];       // format band 5
 
     // Device window
-    this.window = window.open("", mnemonic, "resizable,width=140,height=140");
-    if (this.window) {
-        this.shutDown();                // destroy the previously-existing window
-        this.window = null;
-    }
     this.doc = null;
     this.barGroup = null;               // current greenbar line group
     this.supplyDoc = null;              // the content document for the supply frame
