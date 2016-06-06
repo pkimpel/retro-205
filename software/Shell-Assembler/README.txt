@@ -76,6 +76,18 @@ Shell-Macro-Tests/Sample-Macros-2.card
 Shell-Macro-Tests/Sample-Macros-2.lst
     Assembly listing of Shell-Macro-Tests/Sample-Macros-2.card above showing the effect of macros called out from the Shell-Macro-Tests/Sample-Macros.tape assembler load tape.
 
+Shell-Macro-Tests/Sample-Macros-3.card
+    Similar to Sample-Macros.card, but using the MACRO pseudo-instruction instead of NEW and showing an example of a macro being invoked from within the body of another macro.
+
+Shell-Macro-Tests/Sample-Macros-3.lst
+    Assembly listing of Shell-Macro-Tests/Sample-Macros-3.card above.
+
+Shell-Macro-Tests/Sample-SUBR.card
+    Similar to Sample-Macros-2.card, but showing how the SUBR pseudo-instruction can be used to call out the body of a macro as a closed subroutine.
+
 
 Paul Kimpel
 December 2015
+
+2016-06-06  P.Kimpel
+    Add Sample-Macros-3 files.
