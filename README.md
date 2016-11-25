@@ -6,13 +6,15 @@ The initial product was the 30-201, on which Ernst Selmer and Harry Husky consul
 
 ElectroData was acquired by the Burroughs Corporation in 1956 and became the foundation of the Burroughs commercial computer business. The ElectroData Division of Burroughs went on to create a number of successful systems, including the B100/200/300 series, the B1700/1800/1900 series, the B2000/3000/4000/V Series, the B5000/5500, and finally the B6000/7000/A Series, which are still produced and sold today as Unisys ClearPath MCP systems.
 
-The main goal of this project is creation of a web browser-based emulator for the 205. A second goal is reconstruction of the Algol-58 compiler written for the 205 by Donald Knuth in 1960.
+The main goal of this project is creation of a web browser-based emulator for the 205.
+
+A second goal is reconstruction of the Algol-58 compiler written for the 205 by Donald Knuth in 1960.
 
 The contents of this project are licensed under the [MIT License](http://www.opensource.org/licenses/mit-license.php).
 
 | Related Sites | URL |
 | ------------- | ----- |
-| Emulator hosting site | http://www.phkimpel.us/ElectroData/205/webUI/D205.html |
+| Emulator hosting site | http://www.phkimpel.us/ElectroData/205/ |
 | Tom Sawyer's 205 blog | http://datatron.blogspot.com/ |
 | Tom Sawyer's 205 web site | http://tjsawyer.com/b205home.php |
 | Documents at bitsavers | http://bitsavers.org/pdf/burroughs/electrodata/205/ |

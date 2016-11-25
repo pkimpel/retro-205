@@ -421,7 +421,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
 
     // Kludge for Chrome window.outerWidth/Height timing bug
     setCallback(null, this, 100, function chromeBug() {
-        this.window.move(0, screen.availHeight - this.window.outerHeight);
+        this.window.moveTo(0, screen.availHeight - this.window.outerHeight);
     });
 };
 
