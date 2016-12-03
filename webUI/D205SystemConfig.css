@@ -1,0 +1,100 @@
+/***********************************************************************
+* retro-205/emulator D205SystemConfig.css
+************************************************************************
+* Copyright (c) 2016, Paul Kimpel.
+* Licensed under the MIT License, see
+*        http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* D205 emulator System Configuration web interface style sheet.
+************************************************************************
+* 2016-11-18  P.Kimpel
+*   Original version, from retro-B5500 webUI/B5500SystemConfig.css.
+***********************************************************************/
+
+#configBody {
+    height:             100%;
+    min-height:         100%;
+    overflow:           auto;
+    padding:            0}
+
+#configDiv {
+    position:           absolute;
+    top:                0;
+    bottom:             0;
+    left:               0;
+    right:              0;
+    margin:             4px}
+
+#PageHeading {
+    position:           relative;
+    height:             40px;
+    width:              100%}
+
+#SysConfigHeading {
+    position:           absolute;
+    top:                8px;
+    left:               8px;
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          18px}
+
+.heading {
+    margin-top:         1em;
+    margin-bottom:      0.25em;
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          18px}
+
+#D205Logo {
+    position:           absolute;
+    top:                8px;
+    right:              8px;
+    background-color:   #EEE;
+    color:              #333333;
+    font-size:          6pt;
+    padding-left:       4px;
+    padding-right:      4px}
+
+#RetroLogoImage {
+    vertical-align:     bottom;
+    margin:             4px}
+
+#ConsoleTable,
+#CardatronTable,
+#MagTapeOptionsTable,
+#MagTapeTable {
+    border-spacing:     0;
+    border-collapse:    collapse;
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          8pt}
+
+#ConsoleTable TH,
+#ConsoleTable TD,
+#CardatronTable TH,
+#CardatronTable TD,
+#MagTapeOptionsTable TH,
+#MagTapeOptionsTable TD,
+#MagTapeTable TH,
+#MagTapeTable TD {
+    padding-left:       4px;
+    padding-right:      4px;
+    width:              4em;
+    white-space:        nowrap}
+
+#MessageArea {
+    position:           absolute;
+    bottom:             8px;
+    left:               8px;
+    right:              90px;
+    width:              auto;
+    font-size:          8pt}
+
+#CancelBtn {
+    position:           absolute;
+    bottom:             8px;
+    right:              80px;
+    height:             20px}
+
+#SaveBtn {
+    position:           absolute;
+    bottom:             8px;
+    right:              8px;
+    height:             20px}

@@ -43,18 +43,19 @@
 "use strict";
 
 /**************************************/
-function D205MagTapeDrive(mnemonic, unitIndex) {
+function D205MagTapeDrive(mnemonic, unitIndex, config) {
     /* Constructor for the MagTapeDrive object */
     var y = ((mnemonic.charCodeAt(2) - "A".charCodeAt(0))*30);
 
+    this.config = config;               // System configuration object
     this.mnemonic = mnemonic;           // Unit mnemonic
     this.unitIndex = unitIndex;         // Internal unit number
-    this.unitDesignate = unitIndex;     // External unit number
+    this.unitDesignate = -1;            // External unit number
 
     this.timer = 0;                     // setCallback() token
 
     this.remote = false;                // Remote switch status
-    this.rewindReady = true;            // Rewind-Ready switch status
+    this.rewindReady = false;           // Rewind-Ready switch status
     this.notWrite = false;              // Not-Write switch status
 
     this.clear();
@@ -128,6 +129,19 @@ D205MagTapeDrive.prototype.clear = function clear() {
     this.tapeInches = 0;                // current distance up-tape [inches]
     this.tapeMaxInches = 0;             // maximum tape length [inches]
     this.tapeState = this.tapeUnloaded; // tape drive state
+};
+
+/**************************************/
+D205MagTapeDrive.prototype.setUnitDesignate = function setUnitDesignate(index) {
+    /* Sets this.unitDesignate from the UNIT DESIGNATE list selectedIndex value */
+
+    if (index >= 0) {
+        if (index < 9) {
+            this.unitDesignate = index+1;       // units 1-9
+        } else {
+            this.unitDesignate = 0;             // unit 10
+        }
+    }
 };
 
 /**************************************/
@@ -664,43 +678,49 @@ D205MagTapeDrive.prototype.RewindBtn_onclick = function RewindBtn_onclick(ev) {
 };
 
 /**************************************/
+D205MagTapeDrive.prototype.UnitDesignate_onchange = function UnitDesignate_onchange(ev) {
+    /* Handle the change event for the UNIT DESIGNATE select list */
+    var prefs = this.config.getNode("MagTape.units", this.unitIndex);
+    var sx = ev.target.selectedIndex;
+
+    this.setUnitDesignate(sx);
+    prefs.designate = sx;
+    this.config.putNode("MagTape.units", prefs, this.unitIndex);
+};
+
+/**************************************/
 D205MagTapeDrive.prototype.RemoteSwitch_onclick = function RemoteSwitch_onclick(ev) {
     /* Handle the click event for the REMOTE button */
+    var prefs = this.config.getNode("MagTape.units", this.unitIndex);
 
     this.remoteSwitch.flip();
     this.remote = (this.remoteSwitch.state != 0);
     this.setTapeReady(this.remote);
-};
-
-/**************************************/
-D205MagTapeDrive.prototype.UnitDesignate_onchange = function UnitDesignate_onchange(ev) {
-    /* Handle the change event for the UNIT DESIGNATE select list */
-    var sx = ev.target.selectedIndex;
-
-    if (sx >= 0) {
-        if (sx < 9) {
-            this.unitDesignate = sx+1;  // units 1-9
-        } else {
-            this.unitDesignate = 0;     // unit 10
-        }
-    }
+    prefs.remoteSwitch = this.remote;
+    this.config.putNode("MagTape.units", prefs, this.unitIndex);
 };
 
 /**************************************/
 D205MagTapeDrive.prototype.RewindReadySwitch_onclick = function RewindReadySwitch_onclick(ev) {
     /* Handle the click event for the LOCAL button */
+    var prefs = this.config.getNode("MagTape.units", this.unitIndex);
 
     this.rewindReadySwitch.flip();
     this.rewindReady = (this.rewindReadySwitch.state != 0);
+    prefs.rewindReadySwitch = this.rewindReady;
+    this.config.putNode("MagTape.units", prefs, this.unitIndex);
 };
 
 /**************************************/
 D205MagTapeDrive.prototype.NotWriteSwitch_onclick = function NotWriteSwitch_onclick(ev) {
     /* Handle the click event for the WRITE RING button */
+    var prefs = this.config.getNode("MagTape.units", this.unitIndex);
 
     this.notWriteSwitch.flip();
     this.notWrite = (this.notWriteSwitch.state != 0);
     this.notWriteLamp.set(this.notWrite ? 1 : 0);
+    prefs.notWriteSwitch = this.notWrite;
+    this.config.putNode("MagTape.units", prefs, this.unitIndex);
 };
 
 /**************************************/
@@ -717,6 +737,7 @@ D205MagTapeDrive.prototype.beforeUnload = function beforeUnload(ev) {
 D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
     /* Initializes the reader window and user interface */
     var body;
+    var prefs = this.config.getNode("MagTape.units", this.unitIndex);
 
     this.doc = this.window.document;
     this.doc.title = "retro-205 Tape Drive " + this.mnemonic;
@@ -724,8 +745,10 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
     body = this.$$("MTDiv");
     this.reelBar = this.$$("MTReelBar");
     this.reelIcon = this.$$("MTReel");
+
     this.unitDesignateList = this.$$("UnitDesignate");
-    this.unitDesignateList.selectedIndex = (this.unitIndex < 1 ? 9 : this.unitIndex)-1;
+    this.unitDesignateList.selectedIndex = prefs.designate;
+    this.setUnitDesignate(prefs.designate);
 
     this.designatedLamp = new ColoredLamp(body, null, null, "DesignatedLamp", "orangeLamp", "orangeLit");
     this.notReadyLamp = new ColoredLamp(body, null, null, "NotReadyLamp", "orangeLamp", "orangeLit");
@@ -733,15 +756,18 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
 
     this.remoteSwitch = new ToggleSwitch(body, null, null, "RemoteSwitch",
             D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
-    this.remoteSwitch.set(this.remote);
+    this.remote = prefs.remoteSwitch;
+    this.remoteSwitch.set(this.remote ? 1 : 0);
 
     this.rewindReadySwitch = new ToggleSwitch(body, null, null, "RewindReadySwitch",
             D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
-    this.rewindReadySwitch.set(this.rewindReady);
+    this.rewindReady = prefs.rewindReadySwitch;
+    this.rewindReadySwitch.set(this.rewindReady ? 1 : 0);
 
     this.notWriteSwitch = new ToggleSwitch(body, null, null, "NotWriteSwitch",
             D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
-    this.notWriteSwitch.set(this.notWrite);
+    this.notWrite = prefs.notWriteSwitch;
+    this.notWriteSwitch.set(this.notWrite ? 1 : 0);
 
 
     this.tapeState = this.tapeLocal;    // setTapeUnloaded() requires it to be in local

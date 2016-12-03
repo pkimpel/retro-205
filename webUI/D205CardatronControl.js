@@ -15,8 +15,11 @@
 /**************************************/
 function D205CardatronControl(p) {
     /* Constructor for the CardatronControl object */
-    var left = 600;
+    var left = 600;                     // left window margin
+    var u;                              // unit config object
+    var x;                              // unit index
 
+    this.config = p.config;             // System configuration object
     this.mnemonic = "CCU";
     this.p = p;                         // D205Processor object
     this.setupUnit = 1;                 // Unit number for INPUT SETUP button
@@ -29,25 +32,44 @@ function D205CardatronControl(p) {
     this.window.addEventListener("load",
         D205Util.bindMethod(this, D205CardatronControl.prototype.cardatronOnLoad));
 
-    // Set up the I/O devices
+    // Set up the I/O devices from the system configuration
     this.inputUnit = [
-            null,                                       // no input unit 0
-            new D205CardatronInput("CR1", 1),           // input unit 1
-            null,                                       // input unit 2
-            null,                                       // input unit 3
-            null,                                       // input unit 4
-            null,                                       // input unit 5
-            null,                                       // input unit 6
-            null];                                      // input unit 7
+            null,                       // no input unit 0
+            null,                       // input unit 1
+            null,                       // input unit 2
+            null,                       // input unit 3
+            null,                       // input unit 4
+            null,                       // input unit 5
+            null,                       // input unit 6
+            null];                      // input unit 7
     this.outputUnit = [
-            null,                                       // no output unit 0
-            new D205CardatronOutput("CP1", 1, false),   // output unit 1
-            new D205CardatronOutput("CP2", 2, false),   // output unit 2
-            new D205CardatronOutput("LP3", 3, true),    // output unit 3
-            null,                                       // output unit 4
-            null,                                       // output unit 5
-            null,                                       // output unit 6
-            null];                                      // output unit 7
+            null,                       // no output unit 0
+            null,                       // output unit 1
+            null,                       // output unit 2
+            null,                       // output unit 3
+            null,                       // output unit 4
+            null,                       // output unit 5
+            null,                       // output unit 6
+            null];                      // output unit 7
+
+    for (x=7; x>0; --x) {
+        u = this.config.getNode("Cardatron.units", x);
+        switch (u.type.substring(0, 2)) {
+        case "CR":
+            this.inputUnit[x] = new D205CardatronInput(u.type, x, this.config);
+            this.outputUnit[8-x] = null;
+            break;
+        case "CP":
+        case "LP":
+            this.inputUnit[x] = null;
+            this.outputUnit[8-x] = new D205CardatronOutput(u.type, x, this.config);
+            break;
+        default:
+            this.inputUnit[x] = null;
+            this.outputUnit[8-x] = null;
+            break;
+        } // switch u.type
+    } // for x
 }
 
 /**************************************/

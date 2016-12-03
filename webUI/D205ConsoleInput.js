@@ -16,22 +16,29 @@
 "use strict";
 
 /**************************************/
-function D205ConsoleInput(mnemonic) {
+function D205ConsoleInput(mnemonic, p) {
     /* Constructor for the ConsoleInput object */
 
-    this.mnemonic = mnemonic;           // Unit mnemonic
-    this.readerPeriod = D205ConsoleInput.opticalPeriod; // paper-tape reader speed [ms/char]
+    this.hasPaperTapeReader = p.config.getNode("ControlConsole.hasPaperTapeReader");
     this.inTimer = 0;                   // setCallback() token
+    this.mnemonic = mnemonic;           // Unit mnemonic
+    this.readerPeriod = D205ConsoleInput.opticalPeriod;
+                                        // paper-tape reader speed [ms/char]
 
     this.clear();
 
-    this.doc = null;
-    this.tapeSupplyBar = null;
-    this.tapeView = null;
-    this.window = window.open("../webUI/D205PaperTapeReader.html", mnemonic,
-            "location=no,scrollbars=no,resizable,width=370,height=100,left=300,top=430");
-    this.window.addEventListener("load",
-            D205Processor.bindMethod(this, D205ConsoleInput.prototype.readerOnload), false);
+    if (!this.hasPaperTapeReader) {
+        this.readTapeDigit = this.dummyReadTapeDigit;
+    } else {
+        this.readTapeDigit = this.actualReadTapeDigit;
+        this.doc = null;
+        this.tapeSupplyBar = null;
+        this.tapeView = null;
+        this.window = window.open("../webUI/D205PaperTapeReader.html", mnemonic,
+                "location=no,scrollbars=no,resizable,width=370,height=100,left=300,top=430");
+        this.window.addEventListener("load",
+                D205Processor.bindMethod(this, D205ConsoleInput.prototype.readerOnload), false);
+        }
 }
 
 /**************************************/
@@ -186,7 +193,20 @@ D205ConsoleInput.prototype.setReaderEmpty = function setReaderEmpty() {
 };
 
 /**************************************/
-D205ConsoleInput.prototype.readTapeDigit = function readTapeDigit(inputUnit, receiver) {
+D205ConsoleInput.prototype.readTapeDigit = null;
+    /* Will be set to actualReadTapeDigit or dummyReadTapeDigit by constructor */
+
+/**************************************/
+D205ConsoleInput.prototype.dummyReadTapeDigit = function dummyReadTapeDigit(inputUnit, receiver) {
+    /* Stub paper-tape reader routine used when the system configuration does not
+    include the paper-tape reader devices. It simply does nothing, which will cause
+    the Processor to hang on the missing device, waiting for a digit to be sent */
+
+    return;
+};
+
+/**************************************/
+D205ConsoleInput.prototype.actualReadTapeDigit = function actualReadTapeDigit(inputUnit, receiver) {
     /* Reads one digit image from the paper-tape buffer and passes it to the
     "receiver" function. If at end-of-line, passes a finish indication to the
     receiver. A finish pulse is indicated by a negative digit value; a digit
@@ -259,6 +279,10 @@ D205ConsoleInput.prototype.shutDown = function shutDown() {
     if (this.inTimer) {
         clearCallback(this.inTimer);
     }
-    this.window.removeEventListener("beforeunload", D205ConsoleInput.prototype.beforeUnload, false);
-    this.window.close();
+
+    if (this.window) {
+        this.window.removeEventListener("beforeunload", D205ConsoleInput.prototype.beforeUnload, false);
+        this.window.close();
+        this.window = null;
+    }
 };

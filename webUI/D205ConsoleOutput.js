@@ -14,37 +14,44 @@
 "use strict";
 
 /**************************************/
-function D205ConsoleOutput(mnemonic) {
+function D205ConsoleOutput(mnemonic, p) {
     /* Constructor for the Console Output object */
 
+    this.config = p.config;             // System configuration object
+    this.hasFlexowriter = p.config.getNode("ControlConsole.hasFlexowriter");
+    this.hasPaperTapePunch = p.config.getNode("ControlConsole.hasPaperTapePunch");
     this.maxScrollLines = 15000;        // Maximum amount of printer/punch scrollback
-    this.punchPeriod = 1000/60;         // Punch speed, ms/c (60 cps)
-
     this.mnemonic = mnemonic;           // Unit mnemonic
     this.outTimer = 0;                  // output setCallback() token
+    this.punchPeriod = 1000/60;         // Punch speed, ms/c (60 cps)
+
     this.boundButton_Click = D205Util.bindMethod(this, D205ConsoleOutput.prototype.button_Click);
     this.boundFlipSwitch = D205Util.bindMethod(this, D205ConsoleOutput.prototype.flipSwitch);
 
     this.clear();
 
     // Create the Flexowriter window and onload event
-    this.flexDoc = null;
-    this.flexPaper = null;
-    this.flexEOP = null;
-    this.flexCol = 0;
-    this.flexWin = window.open("../webUI/D205Flexowriter.html", "Flexowriter",
-            "location=no,scrollbars=no,resizable,width=668,height=370,left=0,top=0");
-    this.flexWin.addEventListener("load", D205Processor.bindMethod(this,
-            D205ConsoleOutput.prototype.flexOnload));
+    if (this.hasFlexowriter) {
+        this.flexDoc = null;
+        this.flexPaper = null;
+        this.flexEOP = null;
+        this.flexCol = 0;
+        this.flexWin = window.open("../webUI/D205Flexowriter.html", "Flexowriter",
+                "location=no,scrollbars=no,resizable,width=668,height=370,left=0,top=0");
+        this.flexWin.addEventListener("load", D205Processor.bindMethod(this,
+                D205ConsoleOutput.prototype.flexOnload));
+    }
 
     // Create the Paper Tape Punch window and onload event
-    this.punchDoc = null;
-    this.punchTape = null;
-    this.punchEOP = null;
-    this.punchWin = window.open("../webUI/D205PaperTapePunch.html", "PaperTapePunch",
-            "location=no,scrollbars=no,resizable,width=290,height=100,left=0,top=430");
-    this.punchWin.addEventListener("load", D205Processor.bindMethod(this,
-            D205ConsoleOutput.prototype.punchOnload));
+    if (this.hasPaperTapePunch) {
+        this.punchDoc = null;
+        this.punchTape = null;
+        this.punchEOP = null;
+        this.punchWin = window.open("../webUI/D205PaperTapePunch.html", "PaperTapePunch",
+                "location=no,scrollbars=no,resizable,width=290,height=100,left=0,top=430");
+        this.punchWin.addEventListener("load", D205Processor.bindMethod(this,
+                D205ConsoleOutput.prototype.punchOnload));
+    }
 }
 
 /**************************************/
@@ -86,38 +93,6 @@ D205ConsoleOutput.prototype.clear = function clear() {
     this.pendingOutputFcn = null;       // pending output function that was stopped
     this.pendingOutputUnit = 0;         // pending output unit designator
     this.pendingOutputDigit = 0;        // pending output digit
-};
-
-/**************************************/
-D205ConsoleOutput.prototype.loadPrefs = function loadPrefs() {
-    /* Loads, and if necessary initializes, the user's panel preferences */
-    var prefs = null;
-    var s = localStorage["retro-205-Flexowriter-Prefs"];
-
-    try {
-        if (s) {
-            prefs = JSON.parse(s);
-        }
-    } finally {
-        // nothing
-    }
-
-    return prefs || {
-        zeroSuppressSwitch: 0,
-        tabSpaceSwitch: 2,
-        groupingCountersSwitch: 0,
-        autoStopSwitch: 0,
-        powerSwitch: 1,
-        wordsKnob: 0,
-        linesKnob: 0,
-        groupsKnob: 0};
-};
-
-/**************************************/
-D205ConsoleOutput.prototype.storePrefs = function storePrefs(prefs) {
-    /* Stores the current panel preferences back to browser localStorage */
-
-    localStorage["retro-205-Flexowriter-Prefs"] = JSON.stringify(prefs);
 };
 
 /**************************************/
@@ -254,42 +229,40 @@ D205ConsoleOutput.prototype.button_Click = function button_Click(ev) {
 /**************************************/
 D205ConsoleOutput.prototype.flipSwitch = function flipSwitch(ev) {
     /* Handler for switch clicks */
-    var prefs = this.loadPrefs();
 
     switch (ev.target.id) {
     case "ZeroSuppressSwitch":
         this.zeroSuppressSwitch.flip();
-        prefs.zeroSuppressSwitch = this.zeroSuppressSwitch.state;
+        this.config.putNode("Flexowriter.zeroSuppressSwitch", this.zeroSuppressSwitch.state);
         break;
     case "TabSpaceSwitch":
         this.tabSpaceSwitch.flip();
-        prefs.tabSpaceSwitch = this.tabSpaceSwitch.state;
+        this.config.putNode("Flexowriter.tabSpaceSwitch", this.tabSpaceSwitch.state);
         break;
     case "GroupingCountersSwitch":
         this.groupingCountersSwitch.flip();
-        prefs.groupingCountersSwitch = this.groupingCountersSwitch.state;
+        this.config.putNode("Flexowriter.groupingCountersSwitch", this.groupingCountersSwitch.state);
         break;
     case "AutoStopSwitch":
         this.autoStopSwitch.flip();
-        prefs.autoStopSwitch = this.autoStopSwitch.state;
+        this.config.putNode("Flexowriter.autoStopSwitch", this.autoStopSwitch.state);
         break;
     case "PowerSwitch":
         this.powerSwitch.flip();
-        prefs.powerSwitch = 1;          // always force on
+        this.config.putNode("Flexowriter.powerSwitch", 1);      // always force on
         setCallback(null, this.powerSwitch, 250, this.powerSwitch.set, 1);
         break;
     case "WordsKnob":
-        prefs.wordsKnob = ev.target.selectedIndex;
+        this.config.putNode("Flexowriter.wordsKnob", ev.target.selectedIndex);
         break;
     case "LinesKnob":
-        prefs.linesKnob = ev.target.selectedIndex;
+        this.config.putNode("Flexowriter.linesKnob", ev.target.selectedIndex);
         break;
     case "GroupsKnob":
-        prefs.groupsKnob = ev.target.selectedIndex;
+        this.config.putNode("Flexowriter.groupsKnob", ev.target.selectedIndex);
         break;
     }
 
-    this.storePrefs(prefs);
     ev.preventDefault();
     return false;
 };
@@ -298,7 +271,7 @@ D205ConsoleOutput.prototype.flipSwitch = function flipSwitch(ev) {
 D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     /* Initializes the Flexowriter window and user interface */
     var body;
-    var prefs = this.loadPrefs();
+    var prefs = this.config.getNode("Flexowriter");
 
     this.flexDoc = this.flexWin.document;
     this.flexDoc.title = "retro-205 - Flexowriter";
@@ -351,9 +324,6 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     this.linesKnob.addEventListener("change", this.boundFlipSwitch);
     this.groupsKnob.addEventListener("change", this.boundFlipSwitch);
 
-    //this.flexWin.moveTo(screen.availWidth-this.flexWin.outerWidth,
-    //                   screen.availHeight-this.flexWin.outerHeight);
-    //this.flexWin.moveTo(0, 0);
     this.flexWin.focus();
 };
 
@@ -479,49 +449,55 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
     } else {
         switch (outputUnit) {
         case 1:                         // Flexowriter
-            switch (formatDigit) {
-            case 2:                     // suppress sign, print decimal point instead
-            case 3:                     // suppress sign, print space instead
-            case 4:                     // translate alphanumerically
-                this.alphaLock = 0;
-                this.formatDigit = formatDigit;
-                break;
-            case 5:                     // actuate carriage return
-                this.flexEmptyLine();
-                delay = 200;
-                break;
-            case 6:                     // actuate tab key
-                tabCol = Math.floor((this.flexCol + 8)/8)*8;
-                while (this.flexCol < tabCol) {
+            if (this.hasFlexowriter) {
+                switch (formatDigit) {
+                case 2:                     // suppress sign, print decimal point instead
+                case 3:                     // suppress sign, print space instead
+                case 4:                     // translate alphanumerically
+                    this.alphaLock = 0;
+                    this.formatDigit = formatDigit;
+                    break;
+                case 5:                     // actuate carriage return
+                    this.flexEmptyLine();
+                    delay = 200;
+                    break;
+                case 6:                     // actuate tab key
+                    tabCol = Math.floor((this.flexCol + 8)/8)*8;
+                    while (this.flexCol < tabCol) {
+                        this.flexChar(" ");
+                    }
+                    break;
+                case 7:                     // set stop printout flag
+                    this.stopPrintout = 1;
+                    break;
+                case 8:                     // actuate space bar
                     this.flexChar(" ");
-                }
-                break;
-            case 7:                     // set stop printout flag
-                this.stopPrintout = 1;
-                break;
-            case 8:                     // actuate space bar
-                this.flexChar(" ");
-                break;
-            } // switch formatDigit
+                    break;
+                } // switch formatDigit
+
+                setCallback(this.mnemonic, this, delay, signalOK);
+            }
             break;
 
         case 2:                         // Paper-tape punch
-            // Format digit is used only to feed blank tape -- it isn't output by this implementation
-            switch (formatDigit) {
-            case 1:
-                delay = this.punchPeriod*10;
-                for (tabCol=0; tabCol<10; ++tabCol) {
-                    this.punchChar(" ");
-                }
-                break;
-            default:
-                delay = this.punchPeriod;
-                break;
-            } // switch formatDigit
+            if (this.hasPaperTapePunch) {
+                // Format digit is used only to feed blank tape -- it isn't output by this implementation
+                switch (formatDigit) {
+                case 1:
+                    delay = this.punchPeriod*10;
+                    for (tabCol=0; tabCol<10; ++tabCol) {
+                        this.punchChar(" ");
+                    }
+                    break;
+                default:
+                    delay = this.punchPeriod;
+                    break;
+                } // switch formatDigit
+
+                setCallback(this.mnemonic, this, delay, signalOK);
+            }
             break;
         } // switch outputUnit
-
-        setCallback(this.mnemonic, this, delay, signalOK);
     }
 };
 
@@ -539,29 +515,34 @@ D205ConsoleOutput.prototype.writeSignDigit = function writeSignDigit(outputUnit,
     } else {
         switch (outputUnit) {
         case 1:                         // Flexowriter
-            this.zeroSuppress = this.zeroSuppressSwitch.state;
-            switch (this.formatDigit) {
-            case 2:                     // suppress sign, print decimal point instead
-                this.zeroSuppress = 0;
-                this.flexChar(".");
-                break;
-            case 3:                     // suppress sign, print space instead
-                this.flexChar(" ");
-                break;
-            case 4:                     // translate alphanumerically -- ignore the sign
-                break;
-            default:
-                this.flexChar((signDigit & 0x01) ? "-" : "+");
-                break;
-            } // switch formatDigit
+            if (this.hasFlexowriter) {
+                this.zeroSuppress = this.zeroSuppressSwitch.state;
+                switch (this.formatDigit) {
+                case 2:                     // suppress sign, print decimal point instead
+                    this.zeroSuppress = 0;
+                    this.flexChar(".");
+                    break;
+                case 3:                     // suppress sign, print space instead
+                    this.flexChar(" ");
+                    break;
+                case 4:                     // translate alphanumerically -- ignore the sign
+                    break;
+                default:
+                    this.flexChar((signDigit & 0x01) ? "-" : "+");
+                    break;
+                } // switch formatDigit
+
+                setCallback(this.mnemonic, this, delay, signalOK);
+            }
             break;
         case 2:                         // Paper-tape punch
-            delay = this.punchPeriod;
-            this.punchChar(signDigit.toString());
+            if (this.hasPaperTapePunch) {
+                delay = this.punchPeriod;
+                this.punchChar(signDigit.toString());
+                setCallback(this.mnemonic, this, delay, signalOK);
+            }
             break;
         } // switch outputUnit
-
-        setCallback(this.mnemonic, this, delay, signalOK);
     }
 };
 
@@ -573,32 +554,37 @@ D205ConsoleOutput.prototype.writeNumberDigit = function writeNumberDigit(outputU
 
     switch (outputUnit) {
     case 1:                             // Flexowriter
-        if (this.formatDigit == 4) {    // translate alphanumerically
-            if (this.alphaLock) {
-                this.alphaLock = 0;
-                charCode = this.alphaFirstDigit*10 + digit;
-                this.flexChar(D205ConsoleOutput.cardatronXlate[charCode]);
-                delay = 62;
+        if (this.hasFlexowriter) {
+            if (this.formatDigit == 4) {    // translate alphanumerically
+                if (this.alphaLock) {
+                    this.alphaLock = 0;
+                    charCode = this.alphaFirstDigit*10 + digit;
+                    this.flexChar(D205ConsoleOutput.cardatronXlate[charCode]);
+                    delay = 62;
+                } else {
+                    this.alphaLock = 1;
+                    this.alphaFirstDigit = digit;
+                    delay = 48;
+                }
+            } else if (digit == 0 && this.zeroSuppress) {
+                this.flexChar(" ");
             } else {
-                this.alphaLock = 1;
-                this.alphaFirstDigit = digit;
-                delay = 48;
+                this.zeroSuppress = 0;
+                this.flexChar(digit.toString());
             }
-        } else if (digit == 0 && this.zeroSuppress) {
-            this.flexChar(" ");
-        } else {
-            this.zeroSuppress = 0;
-            this.flexChar(digit.toString());
+
+            setCallback(this.mnemonic, this, delay, signalOK);
         }
         break;
 
     case 2:                             // Paper-tape punch
-        delay = this.punchPeriod;
-        this.punchChar(digit.toString());
+        if (this.hasPaperTapePunch) {
+            delay = this.punchPeriod;
+            this.punchChar(digit.toString());
+            setCallback(this.mnemonic, this, delay, signalOK);
+        }
         break;
     } // switch outputUnit
-
-    setCallback(this.mnemonic, this, delay, signalOK);
 };
 
 /**************************************/
@@ -610,58 +596,63 @@ D205ConsoleOutput.prototype.writeFinish = function writeFinish(outputUnit, contr
 
     switch (outputUnit) {
     case 1:                             // Flexowriter
-        this.formatDigit = this.alphaLock = 0;
-        if (controlDigit & 0x08) {
-            // suppress line/group counting
-        } else if (this.groupingCountersSwitch.state) {
-            // perform line/group counting -- note that .selectedIndex is zero-relative
-            this.resetLamp.set(0);
-            if (this.wordCounter < this.wordsKnob.selectedIndex) {
-                ++this.wordCounter;
-                switch (this.tabSpaceSwitch.state) {
-                case 1:                         // output a tab
-                    tabCol = Math.floor((this.flexCol + 8)/8)*8;
-                    while (this.flexCol < tabCol) {
+        if (this.hasFlexowriter) {
+            this.formatDigit = this.alphaLock = 0;
+            if (controlDigit & 0x08) {
+                // suppress line/group counting
+            } else if (this.groupingCountersSwitch.state) {
+                // perform line/group counting -- note that .selectedIndex is zero-relative
+                this.resetLamp.set(0);
+                if (this.wordCounter < this.wordsKnob.selectedIndex) {
+                    ++this.wordCounter;
+                    switch (this.tabSpaceSwitch.state) {
+                    case 1:                         // output a tab
+                        tabCol = Math.floor((this.flexCol + 8)/8)*8;
+                        while (this.flexCol < tabCol) {
+                            this.flexChar(" ");
+                        }
+                        break;
+                    case 2:                         // output a space
                         this.flexChar(" ");
-                    }
-                    break;
-                case 2:                         // output a space
-                    this.flexChar(" ");
-                    break;
-                } // switch this.tabSpaceSwitch.state
-            } else {
-                this.wordCounter = 0;
-                if (this.groupingCountersSwitch.state == 2) {
-                    this.flexEmptyLine();       // end of line: do new line
-                }
-                if (this.lineCounter < this.linesKnob.selectedIndex) {
-                    ++this.lineCounter;
+                        break;
+                    } // switch this.tabSpaceSwitch.state
                 } else {
-                    this.lineCounter = 0;
+                    this.wordCounter = 0;
                     if (this.groupingCountersSwitch.state == 2) {
-                        delay += 100;           // end of group: do another new line
-                        this.flexEmptyLine();
+                        this.flexEmptyLine();       // end of line: do new line
                     }
-                    if (this.groupCounter < this.groupsKnob.selectedIndex) {
-                        ++this.groupCounter;
+                    if (this.lineCounter < this.linesKnob.selectedIndex) {
+                        ++this.lineCounter;
                     } else {
-                        this.groupCounter = 0;  // end of page
-                        if (this.autoStopSwitch.state) {
-                            this.stopPrintout = 1;      // stop before next output
+                        this.lineCounter = 0;
+                        if (this.groupingCountersSwitch.state == 2) {
+                            delay += 100;           // end of group: do another new line
+                            this.flexEmptyLine();
+                        }
+                        if (this.groupCounter < this.groupsKnob.selectedIndex) {
+                            ++this.groupCounter;
+                        } else {
+                            this.groupCounter = 0;  // end of page
+                            if (this.autoStopSwitch.state) {
+                                this.stopPrintout = 1;      // stop before next output
+                            }
                         }
                     }
                 }
             }
+
+            setCallback(this.mnemonic, this, delay, signalOK);
         }
         break;
     case 2:                             // Paper-tape punch
-        delay = this.punchPeriod;
-        this.punchEmptyLine();
-        this.punchEOP.scrollIntoView();
+        if (this.hasPaperTapePunch) {
+            delay = this.punchPeriod;
+            this.punchEmptyLine();
+            this.punchEOP.scrollIntoView();
+            setCallback(this.mnemonic, this, delay, signalOK);
+        }
         break;
     } // switch outputUnit
-
-    setCallback(this.mnemonic, this, delay, signalOK);
 };
 
 /**************************************/

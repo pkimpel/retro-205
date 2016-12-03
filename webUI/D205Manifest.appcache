@@ -1,5 +1,5 @@
 CACHE MANIFEST
-# retro-205 emulator 0.05d, 2016-11-25 17:00
+# retro-205 emulator 0.06, 2016-12-03 10:30
 
 CACHE:
 ../emulator/D205Processor.js
@@ -15,6 +15,7 @@ D205CardatronInput.js
 D205CardatronOutput.css
 D205CardatronOutput.html
 D205CardatronOutput.js
+D205CardatronZeroSuppressPanel.html
 D205Common.css
 D205ConsoleInput.css
 D205ConsoleInput.js
@@ -40,6 +41,9 @@ D205SetCallback.js
 D205SupervisoryPanel.css
 D205SupervisoryPanel.html
 D205SupervisoryPanel.js
+D205SystemConfig.css
+D205SystemConfig.html
+D205SystemConfig.js
 D205Util.js
 resources/BRL61-burroughs-204.jpg
 resources/DejaVuSans-Bold-webfont.ttf

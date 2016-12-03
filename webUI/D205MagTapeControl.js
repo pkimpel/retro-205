@@ -15,8 +15,11 @@
 /**************************************/
 function D205MagTapeControl(p) {
     /* Constructor for the MagTapeControl object */
-    var left = 600;
+    var left = 600;                     // control window left position
+    var u;                              // unit configuration object
+    var x;                              // unit index
 
+    this.config = p.config;             // System configuration object
     this.mnemonic = "MCU";
     this.p = p;                         // D205Processor object
 
@@ -41,23 +44,38 @@ function D205MagTapeControl(p) {
     this.memoryTerminateCallback = null;// stashed memory-sending terminate call-back function
     this.suppressBMod = true;           // suppress B-modification of words on input
 
-    /* Set up the tape units. These can be any combination of Model 544 Tape
-    Storage Units and Model 5xx Datafiles. The indexes into this array are
-    physical unit numbers used internally -- unit designate is set on the tape
-    unit itself */
+    /* Set up the tape units from the system configuration. These can be any
+    combination of Model 544 Tape Storage Units (DataReaders) and Model 560
+    DataFiles. The indexes into this array are physical unit numbers used
+    internally -- unit designate is set on the tape unit itself */
 
     this.tapeUnit = [
-            null,                                       // 0=not used
-            new D205MagTapeDrive("MTA", 1),             // tape unit A
-            null,                                       // tape unit B
-            null,                                       // tape unit C
-            new D205MagTapeDrive("MTD", 4),             // tape unit D
-            new D205MagTapeDrive("MTE", 5),             // tape unit E
-            null,                                       // tape unit F
-            null,                                       // tape unit G
-            null,                                       // tape unit H
-            null,                                       // tape unit I
-            null];                                      // tape unit J
+            null,                       // 0=not used
+            null,                       // tape unit A
+            null,                       // tape unit B
+            null,                       // tape unit C
+            null,                       // tape unit D
+            null,                       // tape unit E
+            null,                       // tape unit F
+            null,                       // tape unit G
+            null,                       // tape unit H
+            null,                       // tape unit I
+            null];                      // tape unit J
+
+    for (x=1; x<this.tapeUnit.length; ++x) {
+        u = this.config.getNode("MagTape.units", x);
+        switch (u.type.substring(0, 2)) {
+        case "MT":
+            this.tapeUnit[x] = new D205MagTapeDrive(u.type, x, this.config);
+            break;
+        case "DF":
+            this.tapeUnit[x] = null;    // Not yet implemented
+            break;
+        default:
+            this.tapeUnit[x] = null;
+            break;
+        } // switch u.type
+    } // for x
 }
 
 /**************************************/
@@ -123,6 +141,7 @@ D205MagTapeControl.prototype.SuppressB_onClick = function SuppressB_onclick(mask
     this.suppressBSwitch.flip();
     this.suppressBMod = (this.suppressBSwitch.state == 0); // normal=on, suppress=off
     this.p.tswSuppressB = this.suppressBMod;
+    this.p.config.putNode("MagTape.suppressBSwitch", !this.suppressBMod);
 };
 
 /**************************************/
@@ -182,7 +201,7 @@ D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad() {
 
     this.suppressBSwitch = new ToggleSwitch(body, null, null, "SuppressBSwitch",
             D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
-    this.p.tswSuppressB = this.suppressBMod;    // set to Suppress by default
+    this.p.tswSuppressB = this.suppressBMod = !this.p.config.getNode("MagTape.suppressBSwitch");
     this.suppressBSwitch.set(this.suppressBMod ? 0 : 1);
 
 

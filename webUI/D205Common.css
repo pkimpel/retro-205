@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/emulator D205Common.css
 ************************************************************************
-* Copyright (c) 2014, and Paul Kimpel.
+* Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -80,19 +80,14 @@ PRE.paper {
     margin-bottom:      0;
     font-size:          8pt;
     line-height:        120%}
-PRE.topOfForm {
-    page-break-before:  always;
-    margin-top:         1px;
-    padding-top:        1px;
-    border-top:         1px dashed black}
 
 INPUT[type=text] {
     font-family:        DejaVuSansMonoBookWeb, monospace;
     font-size:          8pt}
 
 DIV.paper {
-    white-space:        pre;
     font-family:        DejaVuSansMonoBookWeb, monospace;
+    white-space:        pre;
     margin-top:         0;
     margin-bottom:      0;
     font-size:          8pt;
@@ -349,6 +344,14 @@ SPAN.panelRegSpan {
     padding-right:      2px;
     background-color:   #CDE}
 
+DIV.greenButton1 {
+    position:           absolute;
+    width:              14px;
+    height:             14px;
+    font-size:          4px;
+    background-image:   radial-gradient(circle, #090, #0F0);
+    border-radius:      50%;
+    border:             10px solid #CCC}
 DIV.redButton1 {
     position:           absolute;
     width:              14px;
@@ -395,6 +398,18 @@ CANVAS.blackControlKnob1 {
     width:              64px;
     height:             64px;
     font-size:          4px}
+
+BUTTON {
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          8pt;
+    font-weight:        normal;
+    line-height:        120%;
+    width:              60px;
+    height:             40px;
+    padding-left:       0;
+    padding-right:      0;
+    border:             1px solid #DDD;
+    border-radius:      4px}
 
 BUTTON.large {
     font-family:        DejaVuSansWeb, sans-serif;

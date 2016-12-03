@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/emulator D205ControlConsole.css
 ************************************************************************
-* Copyright (c) 2014, and Paul Kimpel.
+* Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -51,31 +51,31 @@
     font-size:          5pt;
     top:                75%;
     right:              10%}
-    
+
 #ARegPanel {
     left:               82px;
     top:                40px;
     width:              368px;
     height:             132px}
-    
+
 #BRegPanel {
     left:               466px;
     top:                184px;
     width:              144px;
     height:             132px}
-    
+
 #CRegPanel {
     left:               626px;
     top:                184px;
     width:              336px;
     height:             132px}
-    
+
 #DRegPanel {
     left:               82px;
     top:                184px;
     width:              368px;
     height:             132px}
-    
+
 #RRegPanel {
     left:               466px;
     top:                40px;
@@ -318,7 +318,7 @@
     bottom:             8px;
     right:              120px;
     width:              auto}
-    
+
 #KeyboardLamp {
     bottom:             8px;
     right:              32px;
@@ -327,7 +327,7 @@
 .annunciator {
     position:           absolute;
     color:              #F93;
-    font-weight:        bold;        
+    font-weight:        bold;
     padding-left:       4px;
     padding-right:      4px;
     padding-top:        4px;

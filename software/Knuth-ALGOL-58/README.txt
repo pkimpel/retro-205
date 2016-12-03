@@ -115,7 +115,14 @@ Appendix-C-Compile.lst
     source can be found in software/Burroughs-Algebraic-Compiler/
     Appendix-C-Example.card.
 
+Knuth-Test-Program/
+    Card decks and listing for a program to test the Algol-58 compiler.
+    A copy of the original listing was kindly provided to the project
+    by Professor Knuth. See the README.txt file in this folder for
+    details.
+
 
 Paul Kimpel
-October 2015
+December 2016
+
 

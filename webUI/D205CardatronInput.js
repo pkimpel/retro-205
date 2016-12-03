@@ -16,7 +16,7 @@
 "use strict";
 
 /**************************************/
-function D205CardatronInput(mnemonic, unitIndex) {
+function D205CardatronInput(mnemonic, unitIndex, config) {
     /* Constructor for the Cardatron Input object */
     var h = 160;                        // window height
     var left = 0;                       // (temporary window x-offset)
@@ -24,6 +24,7 @@ function D205CardatronInput(mnemonic, unitIndex) {
     var w = 560;                        // window width
     var x;
 
+    this.config = config;               // System configuration object
     this.mnemonic = mnemonic;           // Unit mnemonic
     this.unitIndex = unitIndex;         // Input unit number
 
@@ -57,7 +58,9 @@ function D205CardatronInput(mnemonic, unitIndex) {
     this.hopperBar = null;
     this.outHopperFrame = null;
     this.outHopper = null;
+    this.formatCol = 0;                 // current format-determination column
     this.formatColumnList = null;
+    this.formatSelect = 0;              // current format selection
     this.formatSelectList = null;
     this.window = window.open("../webUI/D205CardatronInput.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
@@ -139,6 +142,22 @@ D205CardatronInput.prototype.clear = function clear() {
 /**************************************/
 D205CardatronInput.prototype.$$ = function $$(e) {
     return this.doc.getElementById(e);
+};
+
+/**************************************/
+D205CardatronInput.prototype.setFormatColumn = function setFormatColumn(index) {
+    /* Determines the zero-relative format-selection column from the selectedIndex
+    of the FormatColumn select list and sets this.formatCol */
+
+    if (index < 0) {
+        this.formatCol = 0;         // treat unselected as column 1
+    } else if (index == 0) {
+        this.formatCol = 79;        // column 80
+    } else if (index < 80) {
+        this.formatCol = index-1;   // columns 1-79
+    } else {
+        this.formatCol = 0;         // treat everything else as col 1
+    }
 };
 
 /**************************************/
@@ -312,6 +331,27 @@ D205CardatronInput.prototype.fileSelector_onChange = function fileSelector_onCha
 };
 
 /**************************************/
+D205CardatronInput.prototype.format_onChange = function format_onChange(ev) {
+    /* Event handler for changes to the FormatColumn and FormatSelect lists */
+    var prefs = this.config.getNode("Cardatron.units", this.unitIndex);
+    var x;
+
+    switch (ev.target.id) {
+    case "FormatColumn":
+        x = this.formatColumnList.selectedIndex;
+        this.setFormatColumn(x);
+        prefs.formatCol = x;
+        this.config.putNode("Cardatron.units", prefs, this.unitIndex);
+        break;
+    case "FormatSelect":
+        x = this.formatColumnList.selectedIndex;
+        prefs.formatSelect = this.formatSelect = x;
+        this.config.putNode("Cardatron.units", prefs, this.unitIndex);
+        break;
+    }
+};
+
+/**************************************/
 D205CardatronInput.prototype.readCardImage = function readCardImage() {
     /* Reads one card image from the buffer; pads or trims the image as necessary
     to 80 characters. Detects empty buffer (hopper) and sets the reader not ready
@@ -366,27 +406,15 @@ D205CardatronInput.prototype.determineFormatBand = function determineFormatBand(
     Returns the format band number or zero if No Format Alarm is set */
     var c;                              // selected column character code
     var format;                         // selected format band
-    var x;                              // character/column index
 
     // Check for format override on the reader panel
-    format = this.formatSelectList.selectedIndex;
+    format = this.formatSelect;
     if (format > 6) {
         format = 0;
         this.setNoFormatAlarm(true);
     } else if (format <= 0) {
         // No format override, so determine format from a card column
-        x = this.formatColumnList.selectedIndex;
-        if (x < 0) {
-            x = 0;                      // treat unselected as column 1
-        } else if (x == 0) {
-            x = card.length-1;          // column 80
-        } else if (x < card.length) {
-            --x;                        // columns 1-79
-        } else {
-            x = 0;                      // treat everything else as col 1
-        }
-
-        c = card.charAt(x);
+        c = card.charAt(this.formatCol);
         switch (c) {
         case "1":
         case "2":
@@ -528,6 +556,7 @@ D205CardatronInput.prototype.readerOnLoad = function readerOnLoad() {
     /* Initializes the reader window and user interface */
     var body;
     var de;
+    var prefs = this.config.getNode("Cardatron.units", this.unitIndex);
 
     this.doc = this.window.document;
     de = this.doc.documentElement;
@@ -537,8 +566,12 @@ D205CardatronInput.prototype.readerOnLoad = function readerOnLoad() {
     this.hopperBar = this.$$("CIHopperBar");
     this.outHopperFrame = this.$$("CIOutHopperFrame");
     this.outHopper = this.outHopperFrame.contentDocument.getElementById("Paper");
+
     this.formatColumnList = this.$$("FormatColumn");
+    this.formatColumnList.selectedIndex = prefs.formatCol;
+    this.setFormatColumn(prefs.formatCol);
     this.formatSelectList = this.$$("FormatSelect");
+    this.formatSelectList.selectedIndex = this.formatSelect = prefs.formatSelect;
 
     this.noFormatLamp = new ColoredLamp(body, null, null, "NoFormatLamp", "redLamp", "redLit");
     this.noFormatLamp.setCaption("NO FORMAT", true);
@@ -564,6 +597,10 @@ D205CardatronInput.prototype.readerOnLoad = function readerOnLoad() {
             D205CardatronInput.prototype.beforeUnload);
     this.$$("CIFileSelector").addEventListener("change",
             D205Util.bindMethod(this, D205CardatronInput.prototype.fileSelector_onChange));
+    this.$$("FormatColumn").addEventListener("change",
+            D205Util.bindMethod(this, D205CardatronInput.prototype.format_onChange));
+    this.$$("FormatSelect").addEventListener("change",
+            D205Util.bindMethod(this, D205CardatronInput.prototype.format_onChange));
     this.$$("CIStartBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronInput.prototype.CIStartBtn_onClick));
     this.$$("CIStopBtn").addEventListener("click",
@@ -817,8 +854,6 @@ D205CardatronInput.prototype.clearUnit = function clearUnit() {
     this.setFormatLockout(false);
     this.startMachineLamp.set(0);
     this.setFormatSelectLamps(7);
-    this.formatSelectList.selectedIndex = 0;
-    this.formatColumnList.selectedIndex = 1;
 
     // If there is a pending read, confirm that this.pendingParams[1] is a
     // function and call it with the end-of-data signal. We assume it's the

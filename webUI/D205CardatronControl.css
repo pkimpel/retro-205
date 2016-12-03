@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/emulator D205CardatronControl.css
 ************************************************************************
-* Copyright (c) 2015, and Paul Kimpel.
+* Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -44,7 +44,7 @@
 #OutputUnitLamp {
     top:                8px;
     left:               8px}
-    
+
 #UnitDesignate4Lamp {
     top:                8px;
     left:               40px}

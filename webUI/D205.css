@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/emulator D205.css
 ************************************************************************
-* Copyright (c) 2015, and Paul Kimpel.
+* Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -11,7 +11,7 @@
 *   Original version, extracted from D205.html.
 ***********************************************************************/
 
-BODY {    
+BODY {
     font-family:        DejaVuSansWeb, sans-serif;
     font-size:          10pt;
     background-color:   white;
@@ -19,7 +19,7 @@ BODY {
     height:             100%;
     margin:             4px;
     padding:            4px}
-    
+
 H1 {
     margin-top:         1em;
     margin-bottom:      0.5em;
@@ -48,7 +48,8 @@ H1 {
 #D205Image {
     box-shadow:         12px 12px 12px gray;
     height:             80%}
-#StartUpBtn {
+#StartUpBtn,
+#ConfigureBtn {
     margin-top:         2em;
     background-color:   #246;
     color:              white;
@@ -60,7 +61,8 @@ H1 {
     padding:            0.5em;
     border-radius:      16px;
     border:             2px solid #999}
-#StartUpBtn[disabled] {
+#StartUpBtn[disabled],
+#ConfigureBtn[disabled] {
     background-color:   #468;
     color:              #999;
     border-color:       #666}

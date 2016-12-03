@@ -19,9 +19,10 @@ function D205ControlConsole(p) {
     var w = 1064;
     var mnemonic = "ControlConsole";
 
-    this.p = p;                         // D205Processor object
+    this.config = p.config;             // System Configuration object
     this.fastUpdateMode = 0;            // slow vs. fast panel update mode
     this.intervalToken = 0;             // setInterval() token
+    this.p = p;                         // D205Processor object
 
     this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
@@ -62,40 +63,10 @@ D205ControlConsole.prototype.clear = function clear() {
 };
 
 /**************************************/
-D205ControlConsole.prototype.loadPrefs = function loadPrefs() {
-    /* Loads, and if necessary initializes, the user's panel preferences */
-    var prefs = null;
-    var s = localStorage["retro-205-ControlConsole-Prefs"];
-
-    try {
-        if (s) {
-            prefs = JSON.parse(s);
-        }
-    } finally {
-        // nothing
-    }
-
-    return prefs || {
-        poSuppressSwitch: 0,
-        skipSwitch: 0,
-        audibleAlarmSwitch: 0,
-        outputKnob: 2,
-        breakpointKnob: 0,
-        inputKnob: 1};
-};
-
-/**************************************/
-D205ControlConsole.prototype.storePrefs = function storePrefs(prefs) {
-    /* Stores the current panel preferences back to browser localStorage */
-
-    localStorage["retro-205-ControlConsole-Prefs"] = JSON.stringify(prefs);
-};
-
-/**************************************/
 D205ControlConsole.prototype.mapOutputKnobPosition = function mapOutputKnobPosition(pos) {
     /* Maps the new outputKnob position value to the old ones used by the rest of
     the system. These changed with the implementation of auto-reversing knob clicks
-    in 1.05 */
+    in release 0.05 */
 
     switch (pos) {
     case 0:
@@ -215,46 +186,44 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
 /**************************************/
 D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
     /* Handler for switch & knob clicks */
-    var prefs = this.loadPrefs();
 
     switch (ev.target.id) {
     case "AudibleAlarmSwitch":
         this.audibleAlarmSwitch.flip();
-        prefs.audibleAlarmSwitch = this.p.sswAudibleAlarm =
-            this.audibleAlarmSwitch.state;
+        this.config.putNode("ControlConsole.audibleAlarmSwitch",
+                this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state);
         break;
     case "SkipSwitch":
         this.skipSwitch.flip();
-        prefs.skipSwitch = this.p.cswSkip =
-            this.skipSwitch.state;
+        this.config.putNode("ControlConsole.skipSwitch",
+                this.p.cswSkip = this.skipSwitch.state);
         break;
     case "POSuppressSwitch":
         this.poSuppressSwitch.flip();
-        prefs.poSuppressSwitch = this.p.cswPOSuppress =
-            this.poSuppressSwitch.state;
+        this.config.putNode("ControlConsole.poSuppressSwitch",
+                this.p.cswPOSuppress = this.poSuppressSwitch.state);
         break;
     case "OutputKnob":
         // Output knob: 0=Tape, 1=Off, 2=Page
         this.outputKnob.step();
-        prefs.outputKnob = this.outputKnob.position;
+        this.config.putNode("ControlConsole.outputKnob", this.outputKnob.position);
         this.p.cswOutput = this.mapOutputKnobPosition(this.outputKnob.position);
         break;
     case "InputKnob":
         // Input knob: 0=Mechanical reader, 1=Optical reader, 2=Keyboard
         this.inputKnob.step();
-        prefs.inputKnob = this.p.cswInput =
-            this.inputKnob.position;
+        this.config.putNode("ControlConsole.inputKnob",
+                this.p.cswInput = this.inputKnob.position);
         this.lastStartState = -1;       // force updatePanel to reevaluate the annunciators
         break;
     case "BreakpointKnob":
         // Breakpoint knob: 0=Off, 1, 2, 4
         this.breakpointKnob.step();
-        prefs.breakpointKnob = this.p.cswBreakpoint =
-            this.breakpointKnob.position;
+        this.config.putNode("ControlConsole.breakpointKnob",
+                this.p.cswBreakpoint = this.breakpointKnob.position);
         break;
     }
 
-    this.storePrefs(prefs);
     this.updatePanel();
     ev.preventDefault();
     return false;
@@ -315,7 +284,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     var body;
     var box;
     var e;
-    var prefs = this.loadPrefs();
+    var prefs = this.config.getNode("ControlConsole");
     var x;
 
     this.doc = this.window.document;

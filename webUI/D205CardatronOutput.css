@@ -2,7 +2,7 @@
 * retro-205/emulator D205CardatronOutput.css
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
-* Licensed under the MIT License, 
+* Licensed under the MIT License,
 *       see http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
 * Datatron 205 emulator Cardatron Output Unit web interface style sheet.
@@ -52,33 +52,41 @@
     top:                44px;
     left:               288px;
     width:              32px}
-       
+
+#COSetZSBtn {
+    top:                8px;
+    left:               336px}
+#COSetZSBtnCaption {
+    top:                44px;
+    left:               336px;
+    width:              32px}
+
 #StartMachineLamp {
     top:                4px;
-    left:               336px}
+    left:               384px}
 #FormatSelect4Lamp {
     top:                4px;
-    left:               368px}
+    left:               416px}
 #FormatSelect2Lamp {
     top:                4px;
-    left:               400px}
+    left:               448px}
 #FormatSelect1Lamp {
     top:                4px;
-    left:               432px}
- 
+    left:               480px}
+
 #COOptionsDiv {
     position:           absolute;
     top:                4px;
     right:              8px;
     width:              auto}
-    
+
 #COGreenbarSpan {
     display:            none}
 
 #COSupplyMeter {
     position:           absolute;
     top:                32px;
-    left:               336px;
+    left:               384px;
     right:              0;
     width:              calc(100% - 346px);
     height:             18px;
@@ -102,3 +110,41 @@
     width:              calc(100% - 18px);
     height:             calc(100% - 66px);
     border:             1px solid black}
+
+/* Zero-Suppress Panel */
+
+#COZSGroup {
+    position:           absolute;
+    top:                8px;
+    left:               8px;
+    right:              8px}
+
+#COZSColumnList {
+    border:             1px solid white;
+    color:              black;
+    width:              100%}
+
+#COZSNotes {
+    position:           absolute;
+    top:                40px;
+    width:              300px;
+    left:               0}
+
+#COZSButtonGroup {
+    position:           absolute;
+    top:                40px;
+    right:              0}
+
+#COZSCancelBtn {
+    background-image:   none;
+    background-color:   #900;
+    height:             20px;
+    bottom:             0;
+    right:              64px}
+
+#COZSOKBtn {
+    background-image:   none;
+    background-color:   #060;
+    height:             20px;
+    bottom:             0;
+    right:              0}

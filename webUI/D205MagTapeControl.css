@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/emulator D205MagTapeControl.css
 ************************************************************************
-* Copyright (c) 2015, and Paul Kimpel.
+* Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -47,13 +47,13 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     top:                0;
     width:              48px;
     height:             132px}
-    
+
 #TRegPanel {
     left:               128px;
     top:                8px;
     width:              144px;
     height:             132px}
-    
+
 #MiscRegPanel {
     left:               280px;
     top:                8px;

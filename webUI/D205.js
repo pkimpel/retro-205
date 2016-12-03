@@ -13,6 +13,7 @@
 "use strict";
 
 window.addEventListener("load", function() {
+    var config = new D205SystemConfig();// system configuration object
     var devices = {};                   // hash of I/O devices for the Processor
     var p;                              // the Processor object
     var statusMsgTimer = 0;             // status message timer control cookie
@@ -23,13 +24,16 @@ window.addEventListener("load", function() {
         var e;
 
         p.powerDown();
-        p = null;
         for (e in devices) {
             devices[e].shutDown();
             devices[e] = null;
         }
+
+        p = null;
         document.getElementById("StartUpBtn").disabled = false;
         document.getElementById("StartUpBtn").focus();
+        document.getElementById("ConfigureBtn").disabled = false;
+        config.flush();
     }
 
     /**************************************/
@@ -37,12 +41,21 @@ window.addEventListener("load", function() {
         /* Establishes the system components */
 
         ev.target.disabled = true;
-        p = new D205Processor(devices);
+        document.getElementById("ConfigureBtn").disabled = true;
+
+        p = new D205Processor(config, devices);
         devices.ControlConsole = new D205ControlConsole(p);
         devices.CardatronControl = new D205CardatronControl(p);
         devices.MagTapeControl = new D205MagTapeControl(p);
         // Supervisory panel must be instantiated last
         devices.SupervisoryPanel = new D205SupervisoryPanel(p, systemShutDown);
+    }
+
+    /**************************************/
+    function configureSystem(ev) {
+        /* Opens the system configuration UI */
+
+        config.openConfigUI();
     }
 
     /**************************************/
@@ -104,6 +117,8 @@ window.addEventListener("load", function() {
         document.getElementById("StartUpBtn").disabled = false;
         document.getElementById("StartUpBtn").addEventListener("click", systemStartup);
         document.getElementById("StartUpBtn").focus();
+        document.getElementById("ConfigureBtn").disabled = false;
+        document.getElementById("ConfigureBtn").addEventListener("click", configureSystem);
 
         window.applicationCache.addEventListener("checking", function(ev) {
             document.getElementById("StatusMsg").textContent = "Checking for emulator update...";

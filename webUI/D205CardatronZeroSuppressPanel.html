@@ -2,46 +2,47 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Datatron 205 Emulator Magnetic Tape Loader</title>
+<title>Datatron 205 Emulator Cardatron Zero-Suppress Panel</title>
 <!--
 /***********************************************************************
-* retro-205/emulator D205MagTapeLoadPanel.html
+* retro-205/emulator D205CardatronZeroSuppressPanel.html
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* ElectroData/Burroughs Datatron 205 Magnetic Tape Drive Loader page.
+* ElectroData/Burroughs Datatron 205 Cardatron Zero-Suppress Panel page.
 *
-* Implements a dialog to load blank tapes or tape-image files for the
-* magnetic tape drive device.
+* Implements a dialog to specify a list of zero-suppress starting columns
+* for Cardatron output devices.
 *
 ************************************************************************
-* 2015-06-23  P.Kimpel
-*   Original version, from B5500MagTapeLoadPanel.html.
+* 2016-11-27  P.Kimpel
+*   Original version, from D205MagTapeLoadPanel.html.
 ***********************************************************************/
 -->
 <meta name="Author" content="Paul Kimpel">
 <meta http-equiv="Content-Script-Type" content="text/javascript">
 <meta http-equiv="Content-Style-Type" content="text/css">
 <link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
-<link id=tapeLoadStyleSheet rel=stylesheet type="text/css" href="D205MagTapeDrive.css">
+<link id=tapeLoadStyleSheet rel=stylesheet type="text/css" href="D205CardatronOutput.css">
 </head>
 
 <body class=deviceBody>
 
-<div id=MTLoadFileGroup>
-    <input id=MTLoadFileSelector type=file size=60>
+<div id=COZSGroup>
+    Begin zero-suppression in these columns:<br>
+    <input id=COZSColumnList type=text size=60>
 
-    <div id=MTLoadNotes>
-        To load a blank tape, simply click <b>OK</b>; otherwise
-        select a tape-image file before clicking <b>OK</b>.
+    <div id=COZSNotes>
+        Enter a comma-delimited list of 1-relative column numbers in ascending
+        order; click <b>OK</b> to save and apply to the device.
     </div>
 
-    <div id=MTLoadButtonGroup>
-        <button id=MTLoadCancelBtn class="large redButton">Cancel</button>
+    <div id=COZSButtonGroup>
+        <button id=COZSCancelBtn class="large redButton">Cancel</button>
         &nbsp;
-        <button id=MTLoadOKBtn class="large greenButton">OK</button>
+        <button id=COZSOKBtn class="large greenButton">OK</button>
     </div>
 </div>
 

@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/emulator D205upervisoryPanel.css
 ************************************************************************
-* Copyright (c) 2014, and Paul Kimpel.
+* Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -17,71 +17,71 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 #ElectroDataLogo {
     display:            block;
     width:              1180px}
-    
+
 #PanelSurface {
     height:             500px;
     width:              1180px}
-    
+
 #ControlDiv {
     left:               832px;
     top:                12px;
     width:              336px;
     height:             132px}
-    
+
 #AdderDiv {
     left:               438px;
     top:                156px;
     width:              336px;
     height:             132px}
-    
+
 #ARegPanel {
     left:               12px;
     top:                12px;
     width:              368px;
     height:             132px}
-    
+
 #BRegPanel {
     left:               0;
     top:                0;
     width:              144px;
     height:             132px}
-    
+
 #CRegPanel {
     left:               832px;
     top:                156px;
     width:              336px;
     height:             132px}
-    
+
 #DRegPanel {
     left:               12px;
     top:                156px;
     width:              368px;
     height:             132px}
-    
+
 #RRegPanel {
     left:               438px;
     top:                12px;
     width:              336px;
     height:             132px}
-    
+
 #CardatronPanel {
     left:               160px;
     top:                0;
     width:              32px;
     height:             132px}
-    
+
 #CarryPanel {
     left:               224px;
     top:                0;
     width:              80px;
     height:             132px}
-    
+
 #AdderPanel {
     left:               288px;
     top:                0;
     width:              60px;
     height:             132px}
-    
+
 #ClearARegBtn {
     left:               400px;
     top:                26px}
@@ -136,7 +136,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               36px;
     top:                300px;
     width:              282px}
-    
+
 #CounterCaption {
     left:               16px;
     top:                308px;
@@ -169,7 +169,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               24px;
     top:                456px;
     width:              24px}
-    
+
 #PulseSourceSwitch {
     position:           absolute;
     left:               88px;
@@ -187,7 +187,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               88px;
     top:                360px;
     width:              24px}
-    
+
 #WordContSwitch {
     position:           absolute;
     left:               168px;
@@ -201,7 +201,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               150px;
     top:                360px;
     width:              60px}
-    
+
 #LFAdjKnob {
     position:           absolute;
     left:               246px;
@@ -228,7 +228,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               246px;
     top:                360px;
     width:              40px}
-    
+
 #SinglePulseBtn {
     left:               306px;
     top:                330px}
@@ -236,7 +236,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               292px;
     top:                360px;
     width:              60px}
-    
+
 #SingleWordBtn {
     left:               253px;
     top:                378px}
@@ -247,7 +247,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               253px;
     top:                408px;
     width:              78px}
-    
+
 #ZeroBtn {
     left:               88px;
     top:                426px}
@@ -277,7 +277,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 #Freq140Caption {
     left:               220px;
     top:                414px}
-    
+
 #ExtOscSocket {
     position:           absolute;
     left:               253px;
@@ -292,7 +292,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               245px;
     top:                456px;
     width:              40px}
-    
+
 #TestClearBtn {
     left:               306px;
     top:                426px}
@@ -300,8 +300,8 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               306px;
     top:                456px;
     width:              24px}
-    
-    
+
+
 #PowerOnBtn {
     left:               380px;
     top:                330px}
@@ -319,7 +319,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               380px;
     top:                456px;
     width:              24px}
-    
+
 
 #ComputerStopCaption {
     left:               478px;
@@ -450,7 +450,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 #FetchBtn {
     left:               880px;
     top:                416px}
-    
+
 #OperationCaption {
     left:               950px;
     top:                300px;
@@ -469,7 +469,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               932px;
     top:                408px;
     width:              60px}
-    
+
 #StartBtn {
     left:               1014px;
     top:                378px}
@@ -482,7 +482,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               1068px;
     top:                300px;
     width:              84px}
-    
+
 #MAINLamp {
     left:               1068px;
     top:                322px}
@@ -511,7 +511,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               1068px;
     top:                456px;
     width:              24px}
-    
+
 #ACTLamp {
     left:               1100px;
     top:                322px}
@@ -533,7 +533,7 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
     left:               1100px;
     top:                420px;
     width:              24px}
-    
+
 #L7Lamp {
     left:               1132px;
     top:                322px}

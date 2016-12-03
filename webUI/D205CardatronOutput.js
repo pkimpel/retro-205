@@ -16,25 +16,27 @@
 "use strict";
 
 /**************************************/
-function D205CardatronOutput(mnemonic, unitIndex, isPrinter) {
+function D205CardatronOutput(mnemonic, unitIndex, config) {
     /* Constructor for the Cardatron Output object */
     var h = screen.availHeight*0.25;    // window height
-    var left = 0;                       // (temporary window x-offset)
     var tks = D205CardatronOutput.trackSize;
-    var w = (isPrinter ? 840 : 560);    // window width
+    var w;                              // window width
     var x;
 
+    this.config = config;
+    this.isPrinter = (mnemonic.indexOf("LP") == 0);
+                                        // Whether printer (true) or punch (false)
+    this.lineWidth = (this.isPrinter ? 120 : 80);
+    this.linesPerMinute = (this.isPrinter ? 150 : 100);
+                                        // IBM 407=150 LPM, IBM 523=100 CPM
     this.mnemonic = mnemonic;           // Unit mnemonic
     this.unitIndex = unitIndex;         // Output unit number
-    this.isPrinter = isPrinter;         // Whether printer (true) or punch (false)
-    this.lineWidth = (isPrinter ? 120 : 80);
-    this.linesPerMinute = (isPrinter ? 150 : 100); // IBM 407=150 LPM, IBM 523=100 CPM
 
     this.timer = 0;                     // setCallback() token
-    this.useAlgolGlyphs = false;        // format for special Algol chars
-    this.useGreenbar = isPrinter;       // format "greenbar" shading on the paper (printer only)
-    this.isGreenbarCapable = isPrinter; // whether to use greenbar <pre> groups
+    this.useAlgolGlyphs = false;        // output using special Algol chars
+    this.useGreenbar = false;           // format "greenbar" shading on the paper (printer only)
     this.lpi = 6;                       // lines/inch (actually, lines per greenbar group, should be even)
+
     this.boundOutputFormatWord = D205Util.bindMethod(this, D205CardatronOutput.prototype.outputFormatWord);
     this.boundOutputWord = D205Util.bindMethod(this, D205CardatronOutput.prototype.outputWord);
 
@@ -54,6 +56,10 @@ function D205CardatronOutput(mnemonic, unitIndex, isPrinter) {
             new Uint8Array(this.bufferDrum, tks*4, tks),        // format band 4
             new Uint8Array(this.bufferDrum, tks*5, tks)];       // format band 5
 
+    // Zero-Suppress controls
+    this.zsWindow = null;               // handle for the tape loader window
+    this.zsCol = [];                    // list of 1-relative zero-suppress column numbers
+
     // Device window
     this.doc = null;
     this.barGroup = null;               // current greenbar line group
@@ -61,10 +67,11 @@ function D205CardatronOutput(mnemonic, unitIndex, isPrinter) {
     this.supply = null;                 // the "paper" or "cards" we print/punch on
     this.endOfSupply = null;            // dummy element used to control scrolling
     this.supplyMeter = null;            // <meter> element showing amount of paper/card supply remaining
+    w = (this.isPrinter ? 780 : 608);
     this.window = window.open("../webUI/D205CardatronOutput.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
-            ",left=" + (screen.availWidth - (7-unitIndex)*24) +
-            ",top=" + (screen.availHeight - h - (7-unitIndex)*24));
+            ",left=" + (screen.availWidth - w) +
+            ",top=" + (screen.availHeight - h - (unitIndex-1)*24));
     this.window.addEventListener("load",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.deviceOnLoad), false);
 }
@@ -115,6 +122,28 @@ D205CardatronOutput.prototype.zoneXlate = [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],         // there are no zone=7 digits
         [4, 0, 0, 0, 0, 0, 0, 0, 0, 0],         // zone digit 8
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];        // there are no zone=9 digits
+
+// Truthset for leading-zero suppression in output lines. A 1 indicates the
+// character is to be replaced by a space; a zero indicates a non-suppressable
+// code and the end of leading-zero suppression.
+D205CardatronOutput.prototype.zeroSuppressSet = [
+      //0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 00-0F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 10-1F
+        1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0,         // 20-2F
+        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 30-3F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 40-4F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 50-5F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 60-6F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 70-7F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 80-8F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // 90-9F
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // A0-AF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // B0-BF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // C0-CF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // D0-DF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,         // E0-EF
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];        // F0-FF
 
 
 /**************************************/
@@ -200,7 +229,7 @@ D205CardatronOutput.prototype.runoutSupply = function runoutSupply(ev) {
     while (this.supply.firstChild) {
         this.supply.removeChild(this.supply.firstChild);
     }
-    if (!this.isGreenbarCapable) {
+    if (!this.isPrinter) {
         this.barGroup = this.doc.createElement("pre");
         this.barGroup.className = "paper";
         this.supply.appendChild(this.barGroup);
@@ -243,22 +272,24 @@ D205CardatronOutput.prototype.appendLine = function appendLine(text) {
     greenbar group, this.barGroup. This handles top-of-form and greenbar
     highlighting */
     var feed = "\n";
+    var skip = "";
 
-    if (this.isGreenbarCapable) {
+    if (this.isPrinter) {
         if (this.groupLinesLeft <= 0) {
             // Start the green half of a greenbar group
-            this.barGroup = this.doc.createElement("pre");
+            this.barGroup = this.doc.createElement("div");
             this.supply.appendChild(this.barGroup);
             this.groupLinesLeft = this.lpi;
             if (!this.atTopOfForm) {
                 this.barGroup.className = "paper greenBar";
             } else {
+                skip = "\f";               // prepend a form-feed to the line
                 this.atTopOfForm = false;
                 this.barGroup.className = "paper greenBar topOfForm";
             }
         } else if (this.groupLinesLeft*2 == this.lpi) {
             // Start the white half of a greenbar group
-            this.barGroup = this.doc.createElement("pre");
+            this.barGroup = this.doc.createElement("div");
             this.supply.appendChild(this.barGroup);
             this.barGroup.className = "paper whiteBar";
         } else if (this.groupLinesLeft == 1) {
@@ -268,7 +299,7 @@ D205CardatronOutput.prototype.appendLine = function appendLine(text) {
         }
     }
 
-    this.barGroup.appendChild(this.doc.createTextNode(text + feed));
+    this.barGroup.appendChild(this.doc.createTextNode(skip + text + feed));
     --this.groupLinesLeft;
 };
 
@@ -319,7 +350,9 @@ D205CardatronOutput.prototype.finishWrite = function finishWrite() {
 /**************************************/
 D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
     /* Initiate formatting of the output line/card from the buffer drum and
-    writing it to the output device */
+    writing it to the output device. If zero-suppression has been configured,
+    step through the list of zero-suppression starting columns and replace any
+    suppressable leading characters in each field */
     var band = this.formatBand[this.selectedFormat];
     var fmax = band.length;             // max info/format band index
     var info = this.info;               // local reference to info band
@@ -328,6 +361,9 @@ D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
     var lx = this.lineBuffer.length;    // line image character index: start at end
     var nu = true;                      // numeric toggle: start as numeric
     var x = 0;                          // info/format band digit index
+    var z;                              // zero-suppress list index
+    var zLen = this.zsCol.length;       // length of zsCol[]
+    var zNext;                          // 0-relative column index of next zero-suppress field
 
     if (this.ready) {
         this.startMachineLamp.set(1);
@@ -361,6 +397,29 @@ D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
                 break;
             } // switch band[x]
         } // for x
+
+        // Apply zero suppression, if configured
+        if (zLen) {
+            z = 0;
+            zNext = lx + this.zsCol[0] - 1;             // compute first 0-relative starting index
+            do {
+                x = zNext;                              // set the buffer starting index
+                ++z;
+                if (z < zLen) {
+                    zNext = lx + this.zsCol[z] - 1;     // set the next starting index
+                } else {
+                    zNext = this.lineBuffer.length;     // set to end of buffer
+                }
+
+                for (; x<zNext; ++x) {
+                    if (this.zeroSuppressSet[this.lineBuffer[x]]) {
+                        this.lineBuffer[x] = 0x20;      // convert to a leading space
+                    } else {
+                        break;                          // end zero suppression for this field
+                    }
+                }
+            } while (z < zLen);
+        }
 
         // Convert to ASCII line image and determine carriage control
         line = String.fromCharCode.apply(null, this.lineBuffer.subarray(lx, this.lineWidth+lx));
@@ -438,7 +497,7 @@ D205CardatronOutput.prototype.setGreenbar = function setGreenbar(useGreen) {
             // Next, search through the rules for the one that controls greenbar shading.
             for (x=rules.length-1; x>=0; --x) {
                 rule = rules[x];
-                if (rule.selectorText.toLowerCase() == "pre.greenbar") {
+                if (rule.selectorText.toLowerCase() == "div.greenbar") {
                     // Found it: now flip the background color.
                     rule.style.backgroundColor = (useGreen ? this.theColorGreen : "white");
                 }
@@ -508,15 +567,125 @@ D205CardatronOutput.prototype.COEndOfSupplyBtn_onClick = function COEndOfSupplyB
 /**************************************/
 D205CardatronOutput.prototype.COAlgolGlyphsCheck_onClick = function COAlgolGlyphsCheck_onClick(ev) {
     /* Handle the click event for the Algol Glyphs checkbox */
+    var prefs = this.config.getNode("Cardatron.units", this.unitIndex);
 
     this.setAlgolGlyphs(ev.target.checked);
+    prefs.algolGlyphs = this.useAlgolGlyphs;
+    this.config.putNode("Cardatron.units", prefs, this.unitIndex);
 };
 
 /**************************************/
 D205CardatronOutput.prototype.COGreenbarCheck_onClick = function COGreenbarCheck_onClick(ev) {
     /* Handle the click event for the Greenbar checkbox */
+    var prefs = this.config.getNode("Cardatron.units", this.unitIndex);
 
     this.setGreenbar(ev.target.checked);
+    prefs.greenBar = this.useGreenbar;
+    this.config.putNode("Cardatron.units", prefs, this.unitIndex);
+};
+
+/**************************************/
+D205CardatronOutput.prototype.parseZeroSuppressList = function parseZeroSuppressList(text, alertWin) {
+    /* Parses a comma-delimited list of zero-suppression starting columns. If the list is
+    parsed successfully, returns an array of integers; otherwise returns null. An alert
+    is displayed on the window for the first parsing or out-of-sequence error */
+    var col;
+    var cols;
+    var copacetic = true;
+    var lastCol = 0;
+    var raw;
+    var x;
+    var zsCol = [];
+
+    if (text.search(/\S/) >= 0) {
+        cols = text.split(",");
+        for (x=0; x<cols.length; ++x) {
+            raw = cols[x].trim();
+            if (raw.length > 0) {       // ignore empty fields
+                col = parseInt(raw, 10);
+                if (isNaN(col)) {
+                    copacetic = false;
+                    alertWin.alert("Item #" + (x+1) + " (\"" + cols[x] + "\") is not numeric");
+                    break; // out of for loop
+                } else if (col <= lastCol) {
+                    copacetic = false;
+                    alertWin.alert("Item #" + (x+1) + " (\"" + col + "\") is out of sequence");
+                    break; // out of for loop
+                } else {
+                    lastCol = col;
+                    zsCol.push(col);
+                }
+            }
+        } // for x
+    }
+
+    return (copacetic ? zsCol : null);
+};
+
+/**************************************/
+D205CardatronOutput.prototype.COSetZSBtn_onClick = function COSetZSBtn_onClick(ev) {
+    /* Displays the Zero Suppress Panel window to capture a list of column numbers */
+    var $$$ = null;                     // getElementById shortcut for loader window
+    var doc = null;                     // loader window.document
+    var tron = this;                    // this D205CardatronOutput device instance
+    var win = this.window.open("D205CardatronZeroSuppressPanel.html", this.mnemonic + "ZS",
+            "location=no,scrollbars=no,resizable,width=508,height=120,left=" +
+            (this.window.screenX+16) +",top=" + (this.window.screenY+16));
+
+    function zsOK(ev) {
+        /* Handler for the OK button. Parses the list of column numbers; if successful,
+        sets tron.zsCol to the resulting array, stores the list in the system
+        configuration object, and closes the window */
+        var prefs;
+        var text = $$$("COZSColumnList").value;
+        var zsCol;
+
+        zsCol = tron.parseZeroSuppressList(text, win);
+        if (zsCol !== null) {
+            tron.zsCol = zsCol;
+            D205Util.removeClass(tron.$$("COSetZSBtn"), (zsCol.length > 0 ? "blackButton1" : "greenButton1"));
+            D205Util.addClass(tron.$$("COSetZSBtn"), (zsCol.length > 0 ? "greenButton1" : "blackButton1"));
+
+            // Store the new list in the system configuration object
+            text = zsCol.join(",");
+            prefs = tron.config.getNode("Cardatron.units", tron.unitIndex);
+            prefs.zeroSuppressCols = text;
+            tron.config.putNode("Cardatron.units", prefs, tron.unitIndex);
+            win.close();
+        }
+    }
+
+    function zsOnload (ev) {
+        /* Driver for the tape loader window */
+        var de;
+
+        doc = win.document;
+        doc.title = "retro-205 " + tron.mnemonic + " Zero-Suppress Panel";
+        de = doc.documentElement;
+        $$$ = function $$$(id) {
+            return doc.getElementById(id);
+        };
+
+        $$$("COZSColumnList").value = tron.zsCol.join(",");
+        $$$("COZSOKBtn").addEventListener("click", zsOK, false);
+        $$$("COZSCancelBtn").addEventListener("click", function zsCancelBtn(ev) {
+            win.close();
+        }, false);
+
+        win.resizeBy(de.scrollWidth - win.innerWidth,
+                     de.scrollHeight - win.innerHeight);
+        $$$("COZSColumnList").focus();
+    }
+
+    // Outer block of loadTape
+    if (this.zsWindow && !this.zsWindow.closed) {
+        this.zsWindow.close();
+    }
+    this.zsWindow = win;
+    win.addEventListener("load", zsOnload, false);
+    win.addEventListener("unload", function zsUnload(ev) {
+        this.zsWindow = null;
+    }, false);
 };
 
 /**************************************/
@@ -535,6 +704,8 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
     var body;
     var de;
     var newChild;
+    var prefs = this.config.getNode("Cardatron.units", this.unitIndex);
+    var zsCol;
 
     this.doc = this.window.document;
     de = this.doc.documentElement;
@@ -551,7 +722,7 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
     newChild.id = this.supply.id;
     this.supply.parentNode.replaceChild(newChild, this.supply);
     this.supply = newChild;
-    if (!this.isGreenbarCapable) {
+    if (!this.isPrinter) {
         this.barGroup = this.doc.createElement("pre");
         this.barGroup.className = "paper";
         this.supply.appendChild(this.barGroup);
@@ -567,8 +738,17 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
     this.formatSelect4Lamp = new NeonLamp(body, null, null, "FormatSelect4Lamp");
     this.formatSelect4Lamp.setCaption("FS4", true);
 
-    this.setAlgolGlyphs(this.useAlgolGlyphs);
-    this.setGreenbar(this.useGreenbar);
+    this.setAlgolGlyphs(prefs.algolGlyphs);
+    this.setGreenbar(prefs.greenBar);
+    zsCol = this.parseZeroSuppressList(prefs.zeroSuppressCols || "", this.window);
+    if (zsCol !== null) {
+        this.zsCol = zsCol;
+        if (zsCol.length > 0) {
+            D205Util.removeClass(this.$$("COSetZSBtn"), (zsCol.length > 0 ? "blackButton1" : "greenButton1"));
+            D205Util.addClass(this.$$("COSetZSBtn"), (zsCol.length > 0 ? "greenButton1" : "blackButton1"));
+        }
+    }
+
     this.supplyMeter.max = this.maxSupplyLines;
     this.supplyMeter.low = this.maxSupplyLines*0.1;
     this.supplyMeter.value = this.supplyLeft = this.maxSupplyLines;
@@ -588,12 +768,15 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
             D205Util.bindMethod(this, D205CardatronOutput.prototype.CORunoutSupplyBtn_onClick), false);
     this.$$("COAlgolGlyphsCheck").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COAlgolGlyphsCheck_onClick), false);
+    this.$$("COSetZSBtn").addEventListener("click",
+            D205Util.bindMethod(this, D205CardatronOutput.prototype.COSetZSBtn_onClick), false);
     this.$$("ClearBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.ClearBtn_onClick));
 
     if (!this.isPrinter) {
         this.$$("COEndOfSupplyBtn").innerHTML = "OUT OF<br>CARDS";
         this.$$("CORunoutSupplyBtn").innerHTML = "RUNOUT<br>CARDS";
+        this.$$("COGreenbarSpan").style.display = "none";
         this.$$("COGreenbarCheck").disabled = true;
     } else {
         this.$$("COEndOfSupplyBtn").innerHTML = "OUT OF<br>PAPER";
@@ -602,9 +785,6 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
         this.$$("COGreenbarCheck").addEventListener("click",
                 D205Util.bindMethod(this, D205CardatronOutput.prototype.COGreenbarCheck_onClick), false);
     }
-
-    this.window.resizeBy(de.scrollWidth - this.window.innerWidth + 4, // kludge for right-padding/margin
-                         de.scrollHeight - this.window.innerHeight);
 };
 
 /**************************************/
@@ -846,4 +1026,7 @@ D205CardatronOutput.prototype.shutDown = function shutDown() {
     }
     this.window.removeEventListener("beforeunload", D205CardatronOutput.prototype.beforeUnload);
     this.window.close();
+    if (this.zsWindow && !this.zsWindow.closed) {
+        this.zsWindow.close();
+    }
 };

@@ -19,9 +19,10 @@ function D205SupervisoryPanel(p, systemShutdown) {
     var w = 1180;
     var mnemonic = "SupervisoryPanel";
 
+    this.config = p.config;             // System Configuration object
+    this.intervalToken = 0;             // setInterval() token
     this.p = p;                         // D205Processor object
     this.systemShutdown = systemShutdown; // system shut-down callback
-    this.intervalToken = 0;             // setInterval() token
 
     this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
     this.boundPowerBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerBtn_Click);
@@ -46,36 +47,6 @@ D205SupervisoryPanel.onSwitchClass = "./resources/ToggleUp.png";
 /**************************************/
 D205SupervisoryPanel.prototype.$$ = function $$(e) {
     return this.doc.getElementById(e);
-};
-
-/**************************************/
-D205SupervisoryPanel.prototype.loadPrefs = function loadPrefs() {
-    /* Loads, and if necessary initializes, the user's panel preferences */
-    var prefs = null;
-    var s = localStorage["retro-205-SupervisoryPanel-Prefs"];
-
-    try {
-        if (s) {
-            prefs = JSON.parse(s);
-        }
-    } finally {
-        // nothing
-    }
-
-    return prefs || {
-        pulseSourceSwitch: 0,
-        wordContSwitch: 0,
-        frequencyKnob: 0,
-        audibleAlarmSwitch: 0,
-        lockNormalSwitch: 0,
-        stepContinuousSwitch: 0};
-};
-
-/**************************************/
-D205SupervisoryPanel.prototype.storePrefs = function storePrefs(prefs) {
-    /* Stores the current panel preferences back to browser localStorage */
-
-    localStorage["retro-205-SupervisoryPanel-Prefs"] = JSON.stringify(prefs);
 };
 
 /**************************************/
@@ -475,41 +446,39 @@ D205SupervisoryPanel.prototype.startBtn_Click = function startBtn_Click(ev) {
 /**************************************/
 D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
     /* Handler for switch & knob clicks */
-    var prefs = this.loadPrefs();
 
     switch (ev.target.id) {
     case "AudibleAlarmSwitch":
         this.audibleAlarmSwitch.flip();
-        prefs.audibleAlarmSwitch = this.p.sswAudibleAlarm =
-            this.audibleAlarmSwitch.state;
+        this.config.putNode("SupervisoryPanel.audibleAlarmSwitch",
+                this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state);
         break;
     case "LockNormalSwitch":
         this.lockNormalSwitch.flip();
-        prefs.lockNormalSwitch = this.p.sswLockNormal =
-            this.lockNormalSwitch.state;
+        this.config.putNode("SupervisoryPanel.lockNormalSwitch",
+                this.p.sswLockNormal = this.lockNormalSwitch.state);
         break;
     case "StepContinuousSwitch":
         this.stepContinuousSwitch.flip();
-        prefs.stepContinuousSwitch = this.p.sswStepContinuous =
-            this.stepContinuousSwitch.state;
+        this.config.putNode("SupervisoryPanel.stepContinuousSwitch",
+                this.p.sswStepContinuous = this.stepContinuousSwitch.state);
         break;
     case "PulseSourceSwitch":           // non-functional, just turn it back off
         this.pulseSourceSwitch.flip();
-        prefs.pulseSourceSwitch = 0;
+        this.config.putNode("SupervisoryPanel.pulseSourceSwitch", 0);
         setCallback(null, this.pulseSourceSwitch, 250, this.pulseSourceSwitch.set, 0);
         break;
     case "WordContSwitch":              // non-functional, just turn it back off
         this.wordContSwitch.flip();
-        prefs.wordContSwitch = 0;
+        this.config.putNode("SupervisoryPanel.wordContSwitch", 0);
         setCallback(null, this.wordContSwitch, 250, this.wordContSwitch.set, 0);
         break;
     case "FrequencyKnob":               // non-function knob -- just step it
         this.frequencyKnob.step();
-        prefs.frequencyKnob = this.frequencyKnob.position;
+        this.config.putNode("SupervisoryPanel.frequencyKnob", this.frequencyKnob.position);
         break;
     }
 
-    this.storePrefs(prefs);
     this.updatePanel();
     ev.preventDefault();
     return false;
@@ -525,7 +494,7 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     var cx;
     var cy;
     var e;
-    var prefs = this.loadPrefs();
+    var prefs = this.config.getNode("SupervisoryPanel");
     var x;
 
     this.doc = this.window.document;

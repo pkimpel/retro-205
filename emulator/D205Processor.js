@@ -58,11 +58,12 @@
 "use strict";
 
 /**************************************/
-function D205Processor(devices) {
+function D205Processor(config, devices) {
     /* Constructor for the 205 Processor module object */
 
     // Emulator control
     this.cardatron = null;              // Reference to Cardatron Control Unit
+    this.config = config;               // Reference to SystemConfig object
     this.console = null;                // Reference to Control Console for I/O
     this.devices = devices;             // Hash of I/O device objects
     this.ioCallback = null;             // Current I/O interface callback function
@@ -159,7 +160,7 @@ function D205Processor(devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.05d";
+D205Processor.version = "0.06";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -515,7 +516,7 @@ D205Processor.prototype.sampleLamps = function sampleLamps(alpha, memAlpha) {
         tg.glowL6 =     tg.glowL6*alpha1;
         tg.glowL7 =     tg.glowL7*alpha1;
 
-        if (isNaN(tg.glowMain)) {debugger}
+        if (isNaN(tg.glowMAIN)) {debugger}
     }
 };
 
@@ -563,7 +564,7 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
     tg.glowL6 =     tg.glowL6*alpha1 +     this.memL6*alpha;
     tg.glowL7 =     tg.glowL7*alpha1 +     this.memL7*alpha;
 
-    if (isNaN(tg.glowMain)) {debugger}
+    if (isNaN(tg.glowMAIN)) {debugger}
 
     this.memoryStopTime = drumTime;
     this.memoryStartTime =
