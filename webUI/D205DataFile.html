@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Datatron 205 Emulator DataFile</title>
+<!--
+/***********************************************************************
+* retro-205/emulator D205DataFile.html
+************************************************************************
+* Copyright (c) 2016, Paul Kimpel.
+* Licensed under the MIT License, see
+*       http://www.opensource.org/licenses/mit-license.php
+************************************************************************
+* ElectroData/Burroughs Datatron 205 DataFile device page.
+*
+* Implements the Datatron 205 Model 560 DataFile unit peripheral.
+*
+************************************************************************
+* 2016-12-11  P.Kimpel
+*   Original version, from D205MagTapeDrive.html.
+***********************************************************************/
+-->
+<meta name="Author" content="Paul Kimpel">
+<meta http-equiv="Content-Script-Type" content="text/javascript">
+<meta http-equiv="Content-Style-Type" content="text/css">
+<link id=defaultStyleSheet rel=stylesheet type="text/css" href="D205Common.css">
+<link id=tapeDriveStyleSheet rel=stylesheet type="text/css" href="D205DataFile.css">
+</head>
+
+<body id=magTapeBody class=deviceBody>
+
+<div id=MTDiv>
+
+    <div id=RewindBtn class=redButton1>&nbsp;</div>
+    <div id=RewindBtnCaption class=caption>REWIND</div>
+
+    <div id=RewindStopBtn class=blackButton1>&nbsp;</div>
+    <div id=RewindStopBtnCaption class=caption>STOP<br>REWIND</div>
+
+    <div id=DesignatedLampCaption class=caption>DESIGNATED</div>
+
+    <select id=UnitDesignate>
+        <option value=1>1
+        <option value=2>2
+        <option value=3>3
+        <option value=4>4
+        <option value=5>5
+        <option value=6>6
+        <option value=7>7
+        <option value=8>8
+        <option value=9>9
+        <option value=0>10
+    </select>
+    <div id=UnitDesignateCaption class=caption>DESIGNATE</div>
+
+    <div id=RemoteCaption class=caption>REMOTE</div>
+    <div id=LocalCaption class=caption>LOCAL</div>
+
+    <div id=NotReadyLampCaption class=caption>NOT READY</div>
+
+    <div id=NotWriteLampCaption class=caption>NOT WRITE</div>
+
+    <div id=NotWriteCaption class=caption>NOT WRITE</div>
+    <div id=WriteCaption class=caption>WRITE</div>
+
+    <img id=MTReel src="./resources/MagTapeReel.jpg">
+
+    <span id=MTRewindingLight   class=annunciator>REWINDING</span>
+    <span id=MTLaneNrLight      class=annunciator>LANE
+        <span id=MTLaneNrText>00</span>
+    </span>
+    <span id=MTBlockNrLight     class=annunciator>BLOCK
+        <span id=MTBlockNrText>0000</span>
+    </span>
+
+    <div id=MTBinDiv>
+        <img id=MTTapeHead src="./resources/DataFileTapeHead.png">
+        <hr id=MTTapeHeadRod>
+    </div>
+</div>
+
+</body>
+</html>

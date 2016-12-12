@@ -78,7 +78,7 @@ D205MagTapeDrive.prototype.tapeRewinding = 2;
 D205MagTapeDrive.prototype.tapeRemote = 3;
 
 D205MagTapeDrive.prototype.density = 100;
-                                        // 800 bits/inch
+                                        // 100 bits/inch
 D205MagTapeDrive.prototype.tapeSpeed = 0.060;
                                         // tape motion speed [inches/ms]
 D205MagTapeDrive.prototype.blockWords = 20;
@@ -244,7 +244,6 @@ D205MagTapeDrive.prototype.setAtBOT = function setAtBOT(atBOT) {
             D205Util.addClass(this.$$("MTAtBOTLight"), "annunciatorLit");
             this.reelBar.value = this.tapeMaxInches;
             this.reelIcon.style.transform = "none";
-            this.reelIcon.style["-webkit-transform"] = "none";          // temp for Chrome
         }
     }
 };
