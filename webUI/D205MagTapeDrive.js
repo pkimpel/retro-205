@@ -148,7 +148,7 @@ D205MagTapeDrive.prototype.setUnitDesignate = function setUnitDesignate(index) {
 D205MagTapeDrive.prototype.showBlockNr = function showBlockNr() {
     /* Formats and displays the current tape block number on the panel */
 
-    this.$$("MTBlockNrText").textContent = (this.blockNr+10000).toString().substring(1);
+    this.$$("MTBlockNrText").textContent = (this.blockNr+10000).toFixed(0).substring(1);
 };
 
 /**************************************/
@@ -177,9 +177,9 @@ D205MagTapeDrive.prototype.spinReel = function spinReel(inches) {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, callBack) {
+D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, successor) {
     /* Delays the I/O during tape motion, during which it animates the reel image
-    icon. At the completion of the "delay" time in milliseconds, "callBack" is
+    icon. At the completion of the "delay" time in milliseconds, "successor" is
     called with no parameters. */
     var delayLeft = delay;              // milliseconds left to delay
     var direction = (inches < 0 ? -1 : 1);
@@ -191,7 +191,7 @@ D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, callBack)
         if (inchesLeft != 0) {
             this.spinReel(inchesLeft);
         }
-        callBack.call(this);
+        successor.call(this);
     }
 
     function spinDelay() {
@@ -799,6 +799,7 @@ D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock) {
     var wx = this.blockNr*this.blockWords;
 
     if (this.blockNr >= this.imgMaxBlocks) {
+        this.blockNr = this.imgMaxBlocks;
         this.setTapeReady(false);
         this.setAtEOT(true);
         this.designatedLamp.set(0);
@@ -808,8 +809,8 @@ D205MagTapeDrive.prototype.readBlock = function readBlock(receiveBlock) {
         if (this.atBOT) {
             this.setAtBOT(false);
         }
+        ++this.blockNr;
         this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function readBlockComplete() {
-            ++this.blockNr;
             this.showBlockNr();
             receiveBlock(this.image[this.laneNr].subarray(wx, wx+this.blockWords), false);
         });
@@ -847,14 +848,15 @@ D205MagTapeDrive.prototype.readInitiate = function readInitiate(receiveBlock) {
 
 /**************************************/
 D205MagTapeDrive.prototype.writeBlock = function writeBlock(block, sendBlock, lastBlock) {
-    /* Writes the next block from the tape. If at EOT, makes the drive not ready
-    and terminates the write. Calls the receiveBlock callback function to pass the
-    block to the processor */
+    /* Writes the next block to the tape. If at EOT, makes the drive not ready
+    and terminates the write. Calls the sendBlock callback function to request the
+    next block from the processor */
     var lane = this.image[this.laneNr];
     var wx = this.blockNr*this.blockWords;
     var x;
 
     if (this.blockNr >= this.imgMaxBlocks) {
+        this.blockNr = this.imgMaxBlocks;
         this.setTapeReady(false);
         this.setAtEOT(true);
         this.designatedLamp.set(0);
@@ -877,8 +879,8 @@ D205MagTapeDrive.prototype.writeBlock = function writeBlock(block, sendBlock, la
         }
 
         // Tape motion occurs regardless of the NOT WRITE switch
+        ++this.blockNr;
         this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function writeBlockComplete() {
-            ++this.blockNr;
             this.showBlockNr();
             sendBlock(false);
             if (lastBlock) {
@@ -899,9 +901,8 @@ D205MagTapeDrive.prototype.writeInitiate = function writeInitiate(sendBlock, las
 
 /**************************************/
 D205MagTapeDrive.prototype.writeReadyTest = function writeReadyTest() {
-    /* Initiates a read operation on the unit. If the drive is busy or not ready,
-    returns true. Otherwise, delays for the start-up time of the driver and calls
-    readBlock() to read the next block and send it to the Processor */
+    /* Returns true if the drive is busy or not ready; otherwise returns false,
+    sets the drive to busy, and turns on the DESIGNATED lamp */
     var result = false;
 
     if (this.busy) {
@@ -935,7 +936,8 @@ D205MagTapeDrive.prototype.search = function search(laneNr, targetBlock, complet
         this.designatedLamp.set(0);
         if (this.blockNr == 0) {
             this.setAtBOT(true);
-        } else if (this.blockNr > this.imgMaxBlocks) {
+        } else if (this.blockNr >= this.imgMaxBlocks) {
+            this.blockNr = this.imgMaxBlocks;
             this.setTapeReady(false);
             this.setAtEOT(true);
         }
@@ -973,7 +975,8 @@ D205MagTapeDrive.prototype.search = function search(laneNr, targetBlock, complet
 
         if (testDisabled()) {
             finishSearch.call(this);
-        } else if (this.blockNr > this.imgMaxBlocks) {
+        } else if (this.blockNr >= this.imgMaxBlocks) {
+            this.blockNr = this.imgMaxBlocks;
             finishSearch.call(this);
         } else if (this.blockNr <= targetBlock) {
             this.moveTape(this.blockLength, delay, searchForward);

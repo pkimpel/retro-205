@@ -48,13 +48,23 @@ function D205DataFile(mnemonic, unitIndex, config) {
     this.remote = false;                // Remote switch status
     this.notWrite = false;              // Not-Write switch status
 
-    this.clear();
-
+    this.db = null;                     // the IndexedDB data base
     this.reelIcon = null;               // handle for the reel spinner
+    this.blockNrText = null;            // block number annunciator
+    this.laneNrText = null;             // lane number text annunciator
+    this.tapeHead = null;               // the tape head icon
+    this.tapeHeadRod = null;            // the tape head rod icon
 
+    this.blockBuf = new Float64Array(this.blockWords);
+                                        // IDB buffer for tape blocks
     this.binBlockNr = [                 // current block number for each bin tape
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    this.binNotWrite = [                // write lockout flag for each bin tape
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+
+    this.clear();
 
     this.doc = null;
     this.window = window.open("../webUI/D205DataFile.html", mnemonic,
@@ -68,12 +78,15 @@ D205DataFile.prototype.tapeLocal = 1;
 D205DataFile.prototype.tapeRewinding = 2;
 D205DataFile.prototype.tapeRemote = 3;
 
-D205DataFile.prototype.density = 100;
-                                        // 100 bits/inch
+D205DataFile.prototype.storageName = "D205DataFileDB";
+                                        // IndexedDB data base name
+D205DataFile.prototype.storageVersion = 1;
+                                        // IndexedDB data base current version
+
+D205DataFile.prototype.density = 100;   // 100 bits/inch
 D205DataFile.prototype.tapeSpeed = 0.060;
                                         // tape motion speed [inches/ms]
-D205DataFile.prototype.blockWords = 20;
-                                        // words per block
+D205DataFile.prototype.blockWords = 20; // words per block
 D205DataFile.prototype.maxTapeBlocks = 1000;
                                         // max tape length on reel [blocks]
 D205DataFile.prototype.maxLanes = 100;  // maximum number of lanes
@@ -82,8 +95,7 @@ D205DataFile.prototype.gapLength = 0.38;
 D205DataFile.prototype.blockLength = D205DataFile.prototype.blockWords*12/D205DataFile.prototype.density +
                                                  D205DataFile.prototype.gapLength;
                                         // total block length [inches]
-D205DataFile.prototype.startupTime = 6;
-                                        // tape start time [ms]
+D205DataFile.prototype.startupTime = 6; // tape start time [ms]
 D205DataFile.prototype.searchTurnaroundTime = 21;
                                         // tape turnaround time after a successful search [ms]
 D205DataFile.prototype.rewindSpeed = 0.6; // D205DataFile.prototype.tapeSpeed;
@@ -127,16 +139,10 @@ D205DataFile.prototype.clear = function clear() {
     this.ready = false;                 // ready status
     this.busy = false;                  // busy status
 
-    this.image = null;                  // tape drive "reel of tape"
-    this.imgMaxBlocks = 0;              // tape image max length [blocks]
-    this.imgTopBlockNr = 0;             // highest-written block number within image data
-    this.imgWritten = false;            // tape image has been modified (implies writable)
-
+    this.binNr = 0;                     // currently selected tape bin number (lane/2)
     this.blockNr = 0;                   // next block number to be read on written
     this.laneNr = 0;                    // currently selected lane number
     this.reelAngle = 0;                 // current rotation angle of reel image [degrees]
-    this.tapeInches = 0;                // current distance up-tape [inches]
-    this.tapeMaxInches = 0;             // maximum tape length [inches]
     this.tapeState = this.tapeLocal;    // tape drive state
 };
 
@@ -157,14 +163,14 @@ D205DataFile.prototype.setUnitDesignate = function setUnitDesignate(index) {
 D205DataFile.prototype.showBlockNr = function showBlockNr() {
     /* Formats and displays the current tape block number on the panel */
 
-    this.$$("MTBlockNrText").textContent = (this.blockNr+10000).toString().substring(1);
+    this.blockNrText.textContent = (this.blockNr+10000).toFixed(0).substring(1);
 };
 
 /**************************************/
 D205DataFile.prototype.showLaneNr = function showLaneNr() {
     /* Formats and displays the current tape lane number on the panel */
 
-    this.$$("MTLaneNrText").textContent = (this.laneNr+100).toString().substring(1);
+    this.laneNrText.textContent = (this.laneNr+100).toFixed(0).substring(1);
 };
 
 /**************************************/
@@ -172,7 +178,7 @@ D205DataFile.prototype.setHeadPosition = function setHeadPosition(binNr) {
     /* Positions the tape head at the indicated bin number */
     var offset = this.binWidth*binNr + this.headOffsetBias;
 
-    this.$$("MTTapeHead").style.left = offset.toFixed(0) + "px";
+    this.tapeHead.style.left = offset.toFixed(0) + "px";
 };
 
 /**************************************/
@@ -180,7 +186,6 @@ D205DataFile.prototype.spinReel = function spinReel(inches) {
     /* Rotates the reel image icon an appropriate amount based on the "inches"
     of tape to be moved. The rotation is limited to this.maxSpinAngle degrees
     in either direction so that movement remains apparent to the viewer */
-    var binNr = Math.floor(this.laneNr/2);
     var degrees = inches/this.reelCircumference*360;
     var percentage = Math.min(Math.max(this.blockNr/this.maxTapeBlocks*100, 0), 100);
 
@@ -192,9 +197,7 @@ D205DataFile.prototype.spinReel = function spinReel(inches) {
 
     this.reelAngle = (this.reelAngle + degrees)%360;
     this.reelIcon.style.transform = "rotate(" + this.reelAngle.toFixed(0) + "deg)";
-
-    this.tapeInches += inches;
-    this.$$("BinMeter" + binNr).style.height = percentage.toFixed(1) + "%";
+    this.$$("BinMeter" + this.binNr).style.height = percentage.toFixed(1) + "%";
 };
 
 /**************************************/
@@ -283,6 +286,7 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
     function selectLaneFinish() {
         this.timer = 0;
         this.laneNr = laneNr;
+        this.binNr = newBinNr;
         this.showLaneNr();
         successor.call(this);
     }
@@ -290,8 +294,9 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
     function latchHead() {
         this.blockNr = this.binBlockNr[newBinNr];
         this.showBlockNr();
-        this.$$("MTTapeHead").style.bottom = this.headLatchedBottom.toString() + "px";
-        this.$$("MTTapeHeadRod").style.bottom = (this.headLatchedBottom+0).toString() + "px";
+        this.tapeHead.style.bottom = this.headLatchedBottom.toFixed(0) + "px";
+        this.tapeHeadRod.style.bottom = (this.headLatchedBottom).toFixed(0) + "px";
+        D205Util.addClass(this.$$("TapeBin" + newBinNr), "tapeBinSelected");
         this.timer = setCallback(this.mnemonic, this, this.headLatchTime, selectLaneFinish);
     }
 
@@ -328,13 +333,13 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
 
     function startTraversal() {
         lastStamp = performance.now();
-        forward = newBinNr > binNr;
         this.timer = setCallback(this.mnemonic, this, this.headBinInterval, traverseBins);
     }
 
     function unlatchHead() {
-        this.$$("MTTapeHead").style.bottom = this.headUnlatchedBottom.toString() + "px";
-        this.$$("MTTapeHeadRod").style.bottom = (this.headUnlatchedBottom+0).toString() + "px";
+        this.tapeHead.style.bottom = this.headUnlatchedBottom.toFixed(0) + "px";
+        this.tapeHeadRod.style.bottom = (this.headUnlatchedBottom).toFixed(0) + "px";
+        D205Util.removeClass(this.$$("TapeBin" + binNr), "tapeBinSelected");
         this.timer = setCallback(this.mnemonic, this, this.headAccelTime, startTraversal);
     }
 
@@ -346,12 +351,13 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
     if (this.laneNr == laneNr) {
         successor.call(this);
     } else {
+        binNr = this.binNr;
+        newBinNr = laneNr >>> 1;
         this.binBlockNr[binNr] = this.blockNr;
-        binNr = Math.floor(this.laneNr/2);
-        newBinNr = Math.floor(laneNr/2);
         if (binNr == newBinNr) {
             selectLaneFinish.call(this);
         } else {
+            forward = (newBinNr > binNr);
             this.timer = setCallback(this.mnemonic, this, this.headUnlatchTime, unlatchHead);
         }
     }
@@ -365,9 +371,9 @@ D205DataFile.prototype.tapeRewind = function tapeRewind() {
     then readies the unit again when the rewind is complete */
     var binNr;
     var lastStamp;
+    var tapeInches;
 
     function rewindFinish() {
-        this.timer = 0;
         this.busy = false;
         this.tapeState = this.tapeLocal;
         D205Util.removeClass(this.$$("MTRewindingLight"), "annunciatorLit");
@@ -375,16 +381,16 @@ D205DataFile.prototype.tapeRewind = function tapeRewind() {
     }
 
     function laneFinish() {
-
+        this.timer = 0;
         this.binBlockNr[binNr] = this.blockNr = 0;
         this.showBlockNr();
         this.$$("BinMeter" + binNr).style.height = "0";
         if (this.laneNr < 2) {
             this.selectLane(99, rewindStart);
-        } else if (this.laneNr > 3) {
-            this.selectLane(this.laneNr-2, rewindStart);
-        } else {
+        } else if (this.laneNr < 4) {
             this.selectLane(0, rewindFinish);
+        } else {
+            this.selectLane(this.laneNr-2, rewindStart);
         }
     }
 
@@ -398,24 +404,25 @@ D205DataFile.prototype.tapeRewind = function tapeRewind() {
         }
 
         if (this.tapeState != this.tapeRewinding) {
-            this.selectLane(0, rewindFinish);   // STOP REWIND was clicked
-            this.binBlockNr[binNr] = this.blockNr;
-        } else if (this.tapeInches <= 0) {
+            this.binBlockNr[binNr] = this.blockNr;      // STOP REWIND was clicked
+            this.selectLane(0, rewindFinish);   
+        } else if (tapeInches <= 0) {
             laneFinish.call(this);
         } else {
             inches = interval*this.rewindSpeed;
-            this.blockNr = Math.round(this.tapeInches/this.blockLength);
+            this.blockNr = Math.round(tapeInches/this.blockLength);
             this.showBlockNr();
             lastStamp = stamp;
             this.timer = setCallback(this.mnemonic, this, this.spinUpdateInterval, rewindDelay);
+            tapeInches -= inches;
             this.spinReel(-inches);
         }
     }
 
     function rewindStart() {
         lastStamp = performance.now();
-        binNr = Math.floor(this.laneNr/2);
-        this.tapeInches = this.blockNr*this.blockLength;
+        binNr = this.binNr;
+        tapeInches = this.blockNr*this.blockLength;
         this.timer = setCallback(this.mnemonic, this, this.spinUpdateInterval, rewindDelay);
     }
 
@@ -499,6 +506,85 @@ D205DataFile.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
+D205DataFile.prototype.genericDBError = function genericDBError(ev) {
+    // Formats a generic alert message when an otherwise-unhandled data base error occurs */
+
+    alert("DataFile storage \"" + ev.target.result.name +
+          "\" UNHANDLED ERROR: " + ev.target.result.error);
+};
+
+/**************************************/
+D205DataFile.prototype.openDatabase = function openDatabase(successor) {
+    /* Attempts to open the DataFile storage database specified by this.storageName.
+    If successful, sets this.db to the IDB object and calls the successor function */
+    var req;                            // open request object
+    var that = this;
+
+    this.setTapeReady(false);
+    req = indexedDB.open(this.storageName, this.storageVersion);
+
+    req.onerror = function idbOpenOnerror(ev) {
+        alert("Cannot open " + that.mnemonic + " DataFile storage\ndata base \"" +
+              that.storageName + "\":\n" + ev.target.error);
+    };
+
+    req.onblocked = function idbOpenOnblocked(ev) {
+        alert(that.mnemonic + " DataFile storage open is blocked -- CANNOT CONTINUE");
+    };
+
+    req.onupgradeneeded = function idbOpenOnupgradeneeded(ev) {
+        /* Handles the onupgradeneeded event for the IDB data base. Upgrades
+        the schema to the current version. For a new data base, creates the default
+        configuration. "ev" is the upgradeneeded event */
+        var aborted = false;
+        var db = ev.target.result;
+        var req = ev.target;
+        var txn = req.transaction;
+
+        txn.onabort = function upgradeOnAbort(ev) {
+            alert("Aborted DB upgrade " + that.mnemonic + " DataFile storage\ndata base \"" +
+                  that.storageName + "\":\n" + ev.target.error);
+        };
+
+        txn.onerror = function upgradeOnAbort(ev) {
+            alert("Error in DB upgrade " + that.mnemonic + " DataFile storage\ndata base \"" +
+                  that.storageName + "\":\n" + ev.target.error);
+        };
+
+        if (ev.oldVersion < 1) {
+            // New data base: create stores for each possible unit
+            db.createObjectStore("DFA");
+            db.createObjectStore("DFB");
+            db.createObjectStore("DFC");
+            db.createObjectStore("DFD");
+            db.createObjectStore("DFE");
+            db.createObjectStore("DFF");
+            db.createObjectStore("DFG");
+            db.createObjectStore("DFH");
+            db.createObjectStore("DFI");
+            db.createObjectStore("DFJ");
+        }
+
+        if (ev.newVersion > that.storageVersion) {
+            alert("DataFile storage upgrade " + that.mnemonic + ", unsupported IDB version: old=" +
+                  ev.oldVersion + ", new=" + ev.newVersion);
+            txn.abort();
+        }
+    };
+
+    req.onsuccess = function idbOpenOnsuccess(ev) {
+        var idbError = D205Util.bindMethod(that, that.genericIDBError);
+
+        // Save the DB object reference globally for later use
+        that.db = ev.target.result;
+        // Set up the generic error handlers
+        that.db.onerror = idbError;
+        that.db.onabort = idbError;
+        successor.call(that);
+    };
+};
+
+/**************************************/
 D205DataFile.prototype.buildBins = function buildBins() {
     /* Creates the 50 bin bars to represent the individual tape strips */
     var bin;
@@ -510,15 +596,16 @@ D205DataFile.prototype.buildBins = function buildBins() {
 
     for (x=0; x<maxBins; ++x) {
         bin = document.createElement("div");
+        bin.id = "TapeBin" + x;
         bin.className = "tapeBin";
-        bin.style.left = (x*this.binWidth + this.binOffset).toString() + "px";
+        bin.style.left = (x*this.binWidth + this.binOffset).toFixed(0) + "px";
         binDiv.appendChild(bin);
 
         meter = document.createElement("div");
-        meter.className = "binMeter";
         meter.id = "BinMeter" + x;
+        meter.className = "binMeter";
         this.binBlockNr[x] = blockNr = Math.floor(Math.random()*this.maxTapeBlocks);
-        meter.style.height = (blockNr*100/this.maxTapeBlocks).toString() + "%";
+        meter.style.height = (blockNr*100/this.maxTapeBlocks).toFixed(1) + "%";
         bin.appendChild(meter);
     }
 };
@@ -534,7 +621,10 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
 
     body = this.$$("MTDiv");
     this.reelIcon = this.$$("MTReel");
-    this.buildBins();
+    this.blockNrText = this.$$("MTBlockNrText");
+    this.laneNrText = this.$$("MTLaneNrText");
+    this.tapeHead = this.$$("MTTapeHead");
+    this.tapeHeadRod = this.$$("MTTapeHeadRod");
 
     this.unitDesignateList = this.$$("UnitDesignate");
     this.unitDesignateList.selectedIndex = prefs.designate;
@@ -554,9 +644,14 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
     this.notWrite = prefs.notWriteSwitch;
     this.notWriteSwitch.set(this.notWrite ? 1 : 0);
 
-    this.setTapeReady(this.remote);
-    this.selectLane(this.maxLanes-1, function() {
-        this.selectLane(Math.round(this.maxLanes/2), function() {})
+    this.openDatabase(function openSuccessor() {
+        this.window.focus();
+        this.buildBins();
+        this.selectLane(this.maxLanes-1, function() {
+            this.selectLane(Math.round(this.maxLanes/2), function() {
+                this.setTapeReady(this.remote);
+            });
+        });
     });
 
     this.window.addEventListener("beforeunload",
@@ -578,18 +673,66 @@ D205DataFile.prototype.readBlock = function readBlock(receiveBlock) {
     /* Reads the next block from the tape. If at EOT, makes the drive not ready
     and terminates the read. After delaying for tape motion, calls the receiveBlock
     callback function to pass the block to the control unit and thence the processor */
-    var wx = this.blockNr*this.blockWords;
+    var blockAddr = this.laneNr*this.maxTapeBlocks + this.blockNr;
+    var p1;                             // promise for asynchronous tape motion
+    var p2;                             // promise for fetching data from IDB
+    var that = this;                    // local context reference
 
-    if (this.blockNr >= this.imgMaxBlocks) {
+    if (this.blockNr >= this.maxTapeBlocks) {
+        this.blockNr = this.maxTapeBlocks;
         this.setTapeReady(false);
         this.designatedLamp.set(0);
         this.busy = false;
         receiveBlock(null, true);       // terminate the I/O
     } else {
-        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function readBlockComplete() {
-            ++this.blockNr;
-            this.showBlockNr();
-            receiveBlock(this.image[this.laneNr].subarray(wx, wx+this.blockWords), false);
+        // Create a promise for the asynchronous tape motion
+        p1 = new Promise(function readMotionPromise(resolve, reject) {
+            that.moveTape(that.blockLength, that.blockLength/that.tapeSpeed, resolve);
+        });
+
+        // Create a promise for the asynchronous data base access
+        p2 = new Promise(function readDBPromise(resolve, reject) {
+            var req;
+            var txn;
+
+            ++that.blockNr;
+            txn = that.db.transaction(that.mnemonic);
+            txn.onerror = function writeTxnOnError(ev) {
+                console.log(that.mnemonic + " read txn onerror: " + ev.target.error.name);
+                reject();
+            };
+            txn.onabort = function writeTxnOnAbort(ev) {
+                console.log(that.mnemonic + " read txn onabort: " + ev.target.error.name);
+                reject();
+            };
+
+            req = txn.objectStore(that.mnemonic).get(blockAddr);
+            req.onsuccess = function readDBOnsuccess(ev) {
+                var buf = ev.target.result;
+                var x;
+
+                if (!buf) {             // no block previously written: supply zeroes
+                    that.blockBuf.fill(0);
+                } else {                // block previously written to tape: copy it
+                    for (x=0; x<that.blockWords; ++x) {
+                        that.blockBuf[x] = buf[x];
+                    }
+                }
+                resolve();
+            };
+        });
+
+        // Resolve the promises
+        p2.then(function readDBResolved() {
+            p1.then(function readMotionResolved() {
+                that.showBlockNr();
+                receiveBlock(that.blockBuf, false);
+            }); // no reject possible
+        }).catch(function readDBError() {
+            that.setTapeReady(false);
+            that.designatedLamp.set(0);
+            that.busy = false;
+            receiveBlock(null, true);   // terminate the I/O
         });
     }
 };
@@ -625,39 +768,74 @@ D205DataFile.prototype.readInitiate = function readInitiate(receiveBlock) {
 
 /**************************************/
 D205DataFile.prototype.writeBlock = function writeBlock(block, sendBlock, lastBlock) {
-    /* Writes the next block from the tape. If at EOT, makes the drive not ready
-    and terminates the write. Calls the receiveBlock callback function to pass the
-    block to the processor */
-    var lane = this.image[this.laneNr];
-    var wx = this.blockNr*this.blockWords;
-    var x;
+    /* Writes the next block to the tape. If at EOT, makes the drive not ready
+    and terminates the write. Calls the sendBlock callback function to request the
+    next block from the processor */
+    var blockAddr = this.laneNr*this.maxTapeBlocks + this.blockNr;
+    var p1;                             // promise for asynchronous tape motion
+    var p2;                             // promise for fetching data from IDB
+    var that = this;                    // local context reference
 
-    if (this.blockNr >= this.imgMaxBlocks) {
+    if (this.blockNr >= this.maxTapeBlocks) {
+        this.blockNr = this.maxTapeBlocks;
         this.setTapeReady(false);
         this.designatedLamp.set(0);
         this.busy = false;
         sendBlock(true);                // terminate the I/O
     } else {
-        // If the NOT WRITE switch is on, do not copy the block data to the tape image
-        if (!this.notWrite) {
-            this.imgWritten = true;
-            if (this.blockNr > this.imgTopBlockNr) {
-                this.imgTopBlockNr = this.blockNr;
-            }
-            for (x=0; x<this.blockWords; ++x) {
-                lane[wx+x] = block[x];
-            }
-        }
-
+        // Create a promise for the asynchronous tape motion
         // Tape motion occurs regardless of the NOT WRITE switch
-        this.moveTape(this.blockLength, this.blockLength/this.tapeSpeed, function writeBlockComplete() {
-            ++this.blockNr;
-            this.showBlockNr();
-            sendBlock(false);
-            if (lastBlock) {
-                this.designatedLamp.set(0);
-                this.busy = false;
+        p1 = new Promise(function writeMotionPromise(resolve, reject) {
+            that.moveTape(that.blockLength, that.blockLength/that.tapeSpeed, resolve);
+        });
+
+        // Create a promise for the asynchronous data base access
+        p2 = new Promise(function writeDBPromise(resolve, reject) {
+            var req;
+            var txn;
+            var x;
+
+            if (that.notWrite || that.binNotWrite[that.binNr]) {
+                // If the NOT WRITE switch is on, do not write to tape, just declare success
+                resolve();
+            } else {
+                for (x=0; x<that.blockWords; ++x) {
+                    that.blockBuf[x] = block[x];
+                }
+
+                ++that.blockNr;
+                txn = that.db.transaction(that.mnemonic, "readwrite");
+                txn.onerror = function writeTxnOnError(ev) {
+                    console.log(that.mnemonic + " write txn onerror: " + ev.target.error.name);
+                    reject();
+                };
+                txn.onabort = function writeTxnOnAbort(ev) {
+                    console.log(that.mnemonic + " write txn onabort: " + ev.target.error.name);
+                    reject();
+                };
+
+                req = txn.objectStore(that.mnemonic).put(that.blockBuf, blockAddr);
+                req.onsuccess = function writeDBOnsuccess(ev) {
+                    resolve();
+                };
             }
+        });
+
+        // Resolve the promises
+        p2.then(function writeDBResolved() {
+            p1.then(function writeMotionResolved() {
+                that.showBlockNr();
+                sendBlock(false);
+                if (lastBlock) {
+                    that.designatedLamp.set(0);
+                    that.busy = false;
+                }
+            }); // no reject possible
+        }).catch(function writeDBError() {
+            that.setTapeReady(false);
+            that.designatedLamp.set(0);
+            that.busy = false;
+            sendBlock(true);            // terminate the I/O
         });
     }
 };
@@ -672,9 +850,8 @@ D205DataFile.prototype.writeInitiate = function writeInitiate(sendBlock, lastBlo
 
 /**************************************/
 D205DataFile.prototype.writeReadyTest = function writeReadyTest() {
-    /* Initiates a read operation on the unit. If the drive is busy or not ready,
-    returns true. Otherwise, delays for the start-up time of the driver and calls
-    readBlock() to read the next block and send it to the Processor */
+    /* Returns true if the drive is busy or not ready; otherwise returns false,
+    sets the drive to busy, and turns on the DESIGNATED lamp */
     var result = false;
 
     if (this.busy) {
@@ -706,7 +883,8 @@ D205DataFile.prototype.search = function search(laneNr, targetBlock, complete, l
 
         this.busy = false;
         this.designatedLamp.set(0);
-        if (this.blockNr > this.imgMaxBlocks) {
+        if (this.blockNr >= this.maxTapeBlocks) {
+            this.blockNr = this.maxTapeBlocks;
             this.setTapeReady(false);
         }
         complete(this.blockNr == targetBlock);
@@ -735,7 +913,8 @@ D205DataFile.prototype.search = function search(laneNr, targetBlock, complete, l
         this.showBlockNr();
         if (testDisabled()) {
             finishSearch.call(this);
-        } else if (this.blockNr > this.imgMaxBlocks) {
+        } else if (this.blockNr >= this.maxTapeBlocks) {
+            this.blockNr = this.maxTapeBlocks;
             finishSearch.call(this);
         } else if (this.blockNr <= targetBlock) {
             this.moveTape(this.blockLength, delay, searchForward);
@@ -753,12 +932,13 @@ D205DataFile.prototype.search = function search(laneNr, targetBlock, complete, l
         result = true;                  // report unit not ready
     } else {
         this.busy = true;
-        this.laneNr = laneNr & 0x01;    // TSU uses only low-order lane bit
         this.designatedLamp.set(1);
 
         // Begin by searching forward until we are past the target block
         lampSet(true);                  // indicate forward motion
-        this.moveTape(this.blockLength, delay+this.startupTime, searchForward);
+        this.selectLane(laneNr, function searchLaneSelected() {
+            this.moveTape(this.blockLength, delay+this.startupTime, searchForward);
+        });
     }
     //console.log(this.mnemonic + " search:           result=" + result.toString());
 

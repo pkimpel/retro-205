@@ -15,7 +15,7 @@
 window.addEventListener("load", function() {
     var config = new D205SystemConfig();// system configuration object
     var devices = {};                   // hash of I/O devices for the Processor
-    var p;                              // the Processor object
+    var processor;                      // the Processor object
     var statusMsgTimer = 0;             // status message timer control cookie
 
     /**************************************/
@@ -23,13 +23,15 @@ window.addEventListener("load", function() {
         /* Powers down the Processor and shuts down all of the panels and I/O devices */
         var e;
 
-        p.powerDown();
+        processor.powerDown();
         for (e in devices) {
-            devices[e].shutDown();
-            devices[e] = null;
+            if (devices[e]) {
+                devices[e].shutDown();
+                devices[e] = null;
+            }
         }
 
-        p = null;
+        processor = null;
         document.getElementById("StartUpBtn").disabled = false;
         document.getElementById("StartUpBtn").focus();
         document.getElementById("ConfigureBtn").disabled = false;
@@ -39,16 +41,29 @@ window.addEventListener("load", function() {
     /**************************************/
     function systemStartup(ev) {
         /* Establishes the system components */
+        var u;
+        var x;
 
         ev.target.disabled = true;
         document.getElementById("ConfigureBtn").disabled = true;
 
-        p = new D205Processor(config, devices);
-        devices.ControlConsole = new D205ControlConsole(p);
-        devices.CardatronControl = new D205CardatronControl(p);
-        devices.MagTapeControl = new D205MagTapeControl(p);
+        processor = new D205Processor(config, devices);
+        devices.ControlConsole = new D205ControlConsole(processor);
+
+        if (config.getNode("Cardatron.hasCardatron")) {
+            devices.CardatronControl = new D205CardatronControl(processor);
+        } else {
+            devices.CardatronControl = null;
+        }
+
+        if (config.getNode("MagTape.hasMagTape")) {
+            devices.MagTapeControl = new D205MagTapeControl(processor);
+        } else {
+            devices.MagTapeControl = null;
+        }
+
         // Supervisory panel must be instantiated last
-        devices.SupervisoryPanel = new D205SupervisoryPanel(p, systemShutDown);
+        devices.SupervisoryPanel = new D205SupervisoryPanel(processor, systemShutDown);
     }
 
     /**************************************/
@@ -97,6 +112,7 @@ window.addEventListener("load", function() {
         if (!window.localStorage) {missing += ", window.localStorage"}
         if (!window.postMessage) {missing += ", window.postMessage"}
         if (!(window.performance && "now" in performance)) {missing += ", performance.now"}
+        if (!window.Promise) {missing += ", window.Promise"}
 
         if (missing.length == 0) {
             return true;

@@ -55,11 +55,19 @@ Shell-Assembler-M2-Output.tape
 Shell-Assembler-Bootstrap.card
     One-card program to load Shell-Assembler-Load.tape from unit 0, lane
     89 (DataFile) or lane 1 (tape drive). Format-6 band selection digit
-    in columns 1-3. Use with Shell-Assembler-Load.tape.
+    in columns 1-3. Use with Shell-Assembler-Load.tape. Leaves the card
+    reader with Reload Lockout set, so the source deck can immediately
+    follow this one with no blank cards for padding.
 
 Shell-Assembler-Load.tape
     Loadable tape image of the Shell Assembler extracted from the
     transcribed listing files for the first and second movements.
+
+Shell-Load-DataFile.card
+    Card program to load Shell-Assembler-Load.tape from DataReader
+    unit 1 to DataFile unit 0. 230 blocks starting at block 0120, lane
+    1 of the DataReader are copied to block 0120, lane 89 of the
+    DataFile.
 
 Shell-Macro-Tests/Sample-Macros.card
     Shell Assembler source card deck containing two sample macro definitions (from Section VII of Part I of the Shell Assembler Manual). Assembling these with the Shell-Assembler-Load.tape image above will generate an updated tape image with these macros inserted into the library.
@@ -91,3 +99,5 @@ December 2015
 
 2016-06-06  P.Kimpel
     Add Sample-Macros-3 files.
+2016-12-17  P.Kimpel
+    Add Shell-Load-DataFile.card utility.

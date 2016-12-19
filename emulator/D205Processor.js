@@ -160,7 +160,7 @@ function D205Processor(config, devices) {
 /**************************************/
 
 /* Global constants */
-D205Processor.version = "0.06";
+D205Processor.version = "0.06a";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -169,7 +169,8 @@ D205Processor.wordTime = 60000/D205Processor.drumRPM/D205Processor.trackSize;
                                         // one word time, about 0.084 ms at 3570rpm (=> 142.8 KHz)
 D205Processor.wordsPerMilli = 1/D205Processor.wordTime;
                                         // word times per millisecond
-D205Processor.neonPersistence = 1000/30;// persistence of neon bulb glow [ms]
+D205Processor.neonPersistence = 1000/30;
+                                        // persistence of neon bulb glow [ms]
 D205Processor.maxGlowTime = D205Processor.neonPersistence*D205Processor.wordsPerMilli;
                                         // panel bulb glow persistence [word-times]
 D205Processor.lampGlowInterval = 50;    // background lamp sampling interval (ms)
@@ -1920,6 +1921,7 @@ D205Processor.prototype.cardatronOutputWordReady = function cardatronOutputWordR
     if (this.tog3IO) {                  // if false, we've probably been cleared
         this.SHIFT = 0x09;              // for display only
         this.A = this.D;                // move D with the memory word to A
+        this.togTWA = 1;                // for display only
         this.procTime -= performance.now()*D205Processor.wordsPerMilli;
         this.ioCallback(this.A, this.boundCardatronOutputWord, this.boundCardatronOutputFinished);
     }
@@ -1933,8 +1935,8 @@ D205Processor.prototype.cardatronOutputWord = function cardatronOutputWord(recei
     this.procTime += performance.now()*D205Processor.wordsPerMilli;
     if (this.tog3IO) {                  // if false, we've probably been cleared
         // Increment the source address (except on the first word)
-        this.SHIFTCONTROL = 0x01;   // for display only
-        this.SHIFT = 0x15;          // for display only
+        this.SHIFTCONTROL = 0x01;       // for display only
+        this.SHIFT = 0x15;              // for display only
         if (this.togCOUNT) {
             this.CADDR = this.bcdAdd(this.CADDR, 1)%0x10000;
         } else {
@@ -1952,6 +1954,7 @@ D205Processor.prototype.cardatronOutputFinished = function cardatronOutputFinish
 
     if (this.tog3IO) {                  // if false, we've probably been cleared
         this.tog3IO = 0;
+        this.togTWA = 0;                // for display only
         this.procTime += performance.now()*D205Processor.wordsPerMilli;
         this.executeComplete();
     }
@@ -1962,6 +1965,7 @@ D205Processor.prototype.cardatronInputWord = function cardatronInputWord() {
     // Solicits the next input word from the Cardatron Control Unit */
 
     this.togTF = 0;                     // for display only, reset finish pulse
+    this.togTWA = 1;                    // for display only
     this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
     this.cardatron.inputWord(this.selectedUnit, this.boundCardatronReceiveWord);
 };
@@ -1981,6 +1985,7 @@ D205Processor.prototype.cardatronReceiveWord = function cardatronReceiveWord(wor
         this.tog3IO = 0;
         this.togSTART = 0;
         this.togTF = 0;                 // for display only
+        this.togTWA = 0;                // for display only
         this.D = word-900000000000;     // remove the finished signal; for display only, not stored
         this.executeComplete();
     } else {
@@ -2134,7 +2139,15 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
     if (!this.togMT3P) {
         loop = null;
     } else {
-        loop = (this.togMT1BV4 ? this.L4 : this.L5);
+        // Select the appropriate loop to send data to the drive
+        if (this.togMT1BV4) {
+            loop = this.L4;
+            this.toggleGlow.glowL4 = 1; // turn on the lamp and let normal decay work
+        } else {
+            loop = this.L5;
+            this.toggleGlow.glowL5 = 1;
+        }
+
         if (!lastBlock) {
             this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
             // Flip the loop-buffer toggles
@@ -2185,7 +2198,7 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
     which time the blockFromLoop will (should?) have completed. Returns true if
     the processor has been cleared and the tape control unit should abort the I/O */
     var aborted = false;                // return value
-    var loop = (this.togMT1BV4 ? this.L4 : this.L5);
+    var loop;
     var sign;                           // sign digit
     var that = this;
     var w;                              // scratch word
@@ -2216,6 +2229,15 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
         aborted = true;
     } else {
         this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
+        // Select the appropriate loop to receive data from the drive
+        if (this.togMT1BV4) {
+            loop = this.L4;
+            this.toggleGlow.glowL4 = 1; // turn on the lamp and let normal decay work
+        } else {
+            loop = this.L5;
+            this.toggleGlow.glowL5 = 1;
+        }
+
         if (!block) {                   // control unit aborted the I/O
             blockStoreComplete();
         } else {
@@ -2228,7 +2250,7 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
                     // Adjust sign digit and do B modification as necessary
                     sign = ((w - w%0x10000000000)/0x10000000000) % 0x08; // low-order 3 bits only
                     if (this.tswSuppressB) {
-                        this.togClear = 1;  // no B modification
+                        this.togCLEAR = 1;  // no B modification
                     } else {
                         this.togCLEAR = ((sign & 0x02) ? 0 : 1);
                         sign &= 0x01;

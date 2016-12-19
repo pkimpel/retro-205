@@ -148,6 +148,9 @@ DIV.tapeBin {
     border:             1px solid white;
     background-color:   white}
 
+DIV.tapeBinSelected {
+    background-color:   yellow}
+
 DIV.binMeter {
     position:           absolute;
     bottom:             0;

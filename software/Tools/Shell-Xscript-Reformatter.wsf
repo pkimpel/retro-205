@@ -17,8 +17,8 @@ Option Explicit
 ' second movements, and outputs:
 '   1. An assembler card deck for the first movement's source.
 '   2. An assembler card deck for the second movement's source.
-'   3. A tape image containing the loadable object code for the assembler. 
-'      Note that the assembler object code is placed on lane 1 of the tape 
+'   3. A tape image containing the loadable object code for the assembler.
+'      Note that the assembler object code is placed on lane 1 of the tape
 '      starting at block 120.
 '
 ' This script should be executed in the currentpath of the transcription
@@ -81,7 +81,7 @@ Sub ExtractCode(byVal xScriptName, byRef M)
     line = xFile.ReadLine
     lineNr = lineNr+1
 
-    '-- If the op code blank and object code is not present, generate a REM card
+    '-- If the op code is blank and object code is not present, generate a REM card
     '-- If the source text is blank and object code IS present, do not generate a card
     If Len(RTrim(Mid(line, 51, 5))) = 0 And Len(RTrim(Mid(line, 14, 20))) = 0 Then
       cardFile.WriteLine "1" & Space(18) & "REM  " & Mid(line, 57, 1) & _

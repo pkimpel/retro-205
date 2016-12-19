@@ -69,7 +69,7 @@ function D205MagTapeControl(p) {
             this.tapeUnit[x] = new D205MagTapeDrive(u.type, x, this.config);
             break;
         case "DF":
-            this.tapeUnit[x] = null;    // Not yet implemented
+            this.tapeUnit[x] = new D205DataFile(u.type, x, this.config);
             break;
         default:
             this.tapeUnit[x] = null;
@@ -99,14 +99,16 @@ D205MagTapeControl.prototype.clear = function clear() {
 D205MagTapeControl.prototype.findDesignate = function findDesignate(u) {
     /* Searches this.tapeUnit[] to find the internal index of the unit that is
     designated as "u". If found, returns the internal index; if not found,
-    returns -1. If more than one unit with the same designate is found,
+    returns -1. If more than one ready unit with the same designate is found,
     returns -2 */
     var index = -1;
+    var unit;
     var x;
 
     for (x=this.tapeUnit.length-1; x>=0; --x) {
-        if (this.tapeUnit[x]) {
-            if (this.tapeUnit[x].unitDesignate == u) {
+        unit = this.tapeUnit[x];
+        if (unit && unit.ready) {
+            if (unit.unitDesignate == u) {
                 if (index == -1) {
                     index = x;
                 } else {
@@ -320,12 +322,12 @@ D205MagTapeControl.prototype.writeTerminate = function writeTerminate(abortWrite
 /**************************************/
 D205MagTapeControl.prototype.writeSendBlock = function writeSendBlock(abortWrite) {
     /* Called by the tape drive when it is ready for the next block to be written.
-    Retrieve the next buffered block from the Processor and passes it to the drive.
+    Retrieves the next buffered block from the Processor and passes it to the drive.
     Unless this is the last block to write, the drive will call this again after
     tape motion is complete. Note that this.memoryBlockCallback() will return null
     if the processor has been cleared and the I/O must be aborted */
-    var block;
-    var lastBlock = abortWrite;
+    var block;                          // 20-word block from memory
+    var lastBlock = abortWrite;         // true if this will be the last block
     var t = D205Processor.bcdBinary(this.T);
 
     // First, decrement the block counter in the T register:
@@ -363,9 +365,9 @@ D205MagTapeControl.prototype.writeInitiate = function writeInitiate(blockReceive
 /**************************************/
 D205MagTapeControl.prototype.write = function write(unitNr, blocks, receiveInitiate) {
     /* Initiates a write on the designated unit. "blocks" is the number of blocks
-    to read in BCD; "receiveInitiate" is the call-back function to begin memory
+    to write in BCD; "receiveInitiate" is the call-back function to begin memory
     transfer from the processor. Returns true if the control is still busy with
-    another command or the unit is busy, and does not do the read */
+    another command or the unit is busy, and does not do the write */
     var result = false;                 // return value
     var unit;                           // tape unit object
     var ux;                             // internal unit index
@@ -422,7 +424,8 @@ D205MagTapeControl.prototype.search = function search(unitNr, laneNr, addr) {
     Takes place in the control unit and drive independently of the processor.
     Returns true if the control is still busy with another command or the unit
     is busy, and does not do the search */
-    var blockNr = D205Processor.bcdBinary(addr);
+    var block = D205Processor.bcdBinary(addr);
+    var lane = D205Processor.bcdBinary(laneNr);
     var result = false;                 // return value
     var unit;                           // tape unit object
     var ux;                             // internal unit index
@@ -444,7 +447,7 @@ D205MagTapeControl.prototype.search = function search(unitNr, laneNr, addr) {
             this.controlBusy = true;
             unit = this.tapeUnit[ux];
             this.searchLamp.set(1);
-            result = unit.search(laneNr, blockNr, this.boundSearchComplete,
+            result = unit.search(lane, block, this.boundSearchComplete,
                     this.boundDirectionLampSet, this.boundTestDisabled);
             if (result) {
                 this.controlBusy = false;

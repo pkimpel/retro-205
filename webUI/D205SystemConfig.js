@@ -30,14 +30,7 @@ function D205SystemConfig() {
     if (!s) {
         this.createConfigData();
     } else {
-        try {
-            this.configData = JSON.parse(s);
-        } catch (e) {
-            alert("Could not parse system configuration data:\n" +
-                  e.message + "\n" +
-                  "Reinitializing configuration");
-            this.createConfigData();
-        }
+        this.loadConfigData(s);
     }
 }
 
@@ -93,6 +86,7 @@ D205SystemConfig.prototype.createConfigData = function createConfigData() {
             groupsKnob: 0},
 
         Cardatron: {
+            hasCardatron: true,
             units: [
                 null,                   // unit[0] not used
                 {type: "CR1", formatSelect: 0, formatCol: 1},
@@ -105,6 +99,7 @@ D205SystemConfig.prototype.createConfigData = function createConfigData() {
                 ]},
 
         MagTape: {
+            hasMagTape: true,
             suppressBSwitch: false,     // false => off => suppress B-register modification
             units: [
                 null,                   // unit[0] not used
@@ -169,6 +164,30 @@ D205SystemConfig.prototype.createConfigData = function createConfigData() {
         }
         this.flushHandler();
         localStorage.removeItem("retro-205-Flexowriter-Prefs");
+    }
+};
+
+/**************************************/
+D205SystemConfig.prototype.loadConfigData = function loadConfigData(jsonConfig) {
+    /* Attempts to parse the JSON configuration data string and store it in
+    this.configData. If the parse is unsuccessful, recreates the default configuration.
+    Applies any necessary updates to older configurations */
+
+    try {
+        this.configData = JSON.parse(jsonConfig);
+    } catch (e) {
+        alert("Could not parse system configuration data:\n" +
+              e.message + "\nReinitializing configuration");
+        this.createConfigData();
+    }
+
+    // Apply updates
+    if (this.getNode("Cardatron.hasCardatron") === undefined) {
+        this.putNode("Cardatron.hasCardatron", true);
+    }
+
+    if (this.getNode("MagTape.hasMagTape") === undefined) {
+        this.putNode("MagTape.hasMagTape", true);
     }
 };
 
@@ -361,6 +380,8 @@ D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
     cd.ControlConsole.hasPaperTapePunch = this.$$("ConsoleTapePunch").checked;
 
     // Cardatron units
+
+    cd.Cardatron.hasCardatron = false;
     for (x=1; x<=7; ++x) {
         unit = cd.Cardatron.units[x];
         prefix = "Cardatron" + x;
@@ -368,14 +389,18 @@ D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
         unit.type = (e.selectedIndex < 0 ? "NONE" : e.options[e.selectedIndex].value);
         switch (unit.type.substring(0, 2)) {
         case "LP":
+            cd.Cardatron.hasCardatron = true;
             unit.algolGlyphs = this.$$(prefix + "AlgolGlyphs").checked;
             unit.greenBar = this.$$(prefix + "Greenbar").checked;
             break;
         case "CP":
+            cd.Cardatron.hasCardatron = true;
             unit.algolGlyphs = this.$$(prefix + "AlgolGlyphs").checked;
             unit.greenBar = false;
             break;
         case "CR":
+            cd.Cardatron.hasCardatron = true;
+            // no break
         default:
             unit.algolGlyphs = false;
             unit.greenBar = false;
@@ -383,8 +408,11 @@ D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
         } // switch unit.type
     } // for x
 
+
+
     // Magnetic Tape units
 
+    cd.MagTape.hasMagTape = false;
     cd.MagTape.suppressBSwitch = !this.$$("SuppressBMod").checked;
 
     for (x=1; x<=10; ++x) {
@@ -396,6 +424,9 @@ D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
         unit.remoteSwitch = this.$$(prefix + "Remote").checked;
         unit.rewindReadySwitch = this.$$(prefix + "RewindReady").checked;
         unit.notWriteSwitch = this.$$(prefix + "NotWrite").checked;
+        if (unit.type != "NONE") {
+            cd.MagTape.hasMagTape = true;
+        }
     } // for x
 
     this.flushHandler();                // store the configuration
