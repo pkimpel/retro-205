@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205Util.js
+* retro-205/webUI D205Util.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see

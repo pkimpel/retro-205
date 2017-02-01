@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205CardatronOutput.js
+* retro-205/webUI D205CardatronOutput.js
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see

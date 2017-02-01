@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205MagTapeDrive.css
+* retro-205/webUI D205MagTapeDrive.css
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -201,7 +201,7 @@ SELECT {
     border:             1px solid white;
     color:              white;
     width:              100%}
-    
+
 #MTLoadNotes {
     position:           absolute;
     top:                40px;

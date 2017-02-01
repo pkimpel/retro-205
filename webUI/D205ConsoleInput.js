@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205ConsoleInput.js
+* retro-205/webUI D205ConsoleInput.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see

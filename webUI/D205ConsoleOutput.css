@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205ConsoleOutput.css
+* retro-205/webUI D205ConsoleOutput.css
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -117,7 +117,7 @@
 #ResetBtn {
     left:               32px;
     bottom:             20px}
-    
+
 #ZeroSuppressSwitch {
     position:           absolute;
     width:              24px;
@@ -148,7 +148,7 @@
     width:              100px;
     left:               75px;
     bottom:             4px}
-    
+
 #TabSpaceSwitch {
     position:           absolute;
     width:              24px;
@@ -166,7 +166,7 @@
     width:              100px;
     left:               175px;
     top:                56px}
-    
+
 #LinesKnob {
     position:           absolute;
     text-align:         center;
@@ -179,7 +179,7 @@
     width:              100px;
     left:               175px;
     bottom:             4px}
-    
+
 #GroupingCountersBar {
     position:           absolute;
     top:                2px;
@@ -187,7 +187,7 @@
     z-index:            -1;
     width:              1px;
     height:             66px;
-    border-left:        1px solid white}        
+    border-left:        1px solid white}
 #GroupingCountersSwitch {
     position:           absolute;
     width:              24px;
@@ -221,7 +221,7 @@
     width:              100px;
     left:               275px;
     top:                56px}
-    
+
 #GroupsKnob {
     position:           absolute;
     text-align:         center;
@@ -234,7 +234,7 @@
     width:              100px;
     left:               275px;
     bottom:             4px}
-    
+
 #AutoStopSwitch {
     position:           absolute;
     width:              24px;
@@ -252,7 +252,7 @@
     width:              100px;
     left:               375px;
     top:                56px}
-    
+
 #PowerSwitch {
     position:           absolute;
     width:              24px;
@@ -270,4 +270,3 @@
     width:              100px;
     left:               375px;
     bottom:             4px}
-    
