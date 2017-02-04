@@ -13,15 +13,15 @@ Option Explicit
 '       http://www.opensource.org/licenses/mit-license.php
 '-----------------------------------------------------------------------
 ' VBScript to extract source and object code from the Shell Assembler
-' transcriptions. It reads the transcription files for the first and
-' second movements, and outputs:
+' assembly listing transcriptions. It reads the transcription files for
+' the first and second movements, and outputs:
 '   1. An assembler card deck for the first movement's source.
 '   2. An assembler card deck for the second movement's source.
 '   3. A tape image containing the loadable object code for the assembler.
 '      Note that the assembler object code is placed on lane 1 of the tape
 '      starting at block 120.
 '
-' This script should be executed in the currentpath of the transcription
+' This script should be executed in the current path of the transcription
 ' files. Output files will be written to that path as well.
 '
 ' Uses Scripting Runtime FileSystemObject.

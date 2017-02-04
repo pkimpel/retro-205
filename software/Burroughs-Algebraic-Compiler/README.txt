@@ -2,6 +2,10 @@ Index of folder retro-205/software/Burroughs-Algebraic-Compiler:
 Object code and sample programs for the Burroughs Algebraic Compiler for
 the 205, as prepared for the retro-205 emulator.
 
+See also the folder retro-206/software/Knuth-Algol-58/, which contains
+an earlier version of the compiler transcribed from a scanned listing by
+Paul Kimpel.
+
 Unless otherwise specified, all files are in standard Windows text
 format, with carriage-return/line-feed delimiters.
 
@@ -84,6 +88,12 @@ PaperTape-Version/
     Directory containing a version of the compiler adapted by Tom Sawyer
     for paper tape input and Cardatron output.
 
+Knuth-Test-Program/
+    Card decks and listing for a program to test the Algol-58 compiler.
+    A copy of the original listing was kindly provided to the project
+    by Professor Knuth. See the README.txt file in this folder for
+    details.
+
 tests/
     Directory containing various sample and test programs for the
     compiler. See the README.txt file within this directory for details.
@@ -91,4 +101,5 @@ tests/
 
 Paul Kimpel
 February 2017
+
 
