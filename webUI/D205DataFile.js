@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205DataFile.js
+* retro-205/webUI D205DataFile.js
 ************************************************************************
 * Copyright (c) 2016, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -365,10 +365,12 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
 };
 
 /**************************************/
-D205DataFile.prototype.tapeRewind = function tapeRewind() {
-    /* Rewinds the tape. Makes the drive not-ready and delays for an appropriate
-    amount of time depending on how far up-tape we are. If the unit is in remote,
-    then readies the unit again when the rewind is complete */
+D205DataFile.prototype.unitRewind = function unitRewind() {
+    /* Rewinds all tapes in the DataFile unit to block 0000. Makes the drive
+    not-ready, and for each tape, delays for an appropriate amount of time
+    depending on how far up-tape we are. Note that this operation can be
+    initiated even if the unit is presently in remote. If the unit is in
+    remote, then readies the unit again after the rewind is complete */
     var binNr;
     var lastStamp;
     var tapeInches;
@@ -405,7 +407,7 @@ D205DataFile.prototype.tapeRewind = function tapeRewind() {
 
         if (this.tapeState != this.tapeRewinding) {
             this.binBlockNr[binNr] = this.blockNr;      // STOP REWIND was clicked
-            this.selectLane(0, rewindFinish);   
+            this.selectLane(0, rewindFinish);
         } else if (tapeInches <= 0) {
             laneFinish.call(this);
         } else {
@@ -447,7 +449,7 @@ D205DataFile.prototype.RewindBtn_onclick = function RewindBtn_onclick(ev) {
     /* Handle the click event for the REWIND button */
 
     if (!this.busy && this.tapeState != this.tapeRewinding) {
-        this.tapeRewind();
+        this.unitRewind();
     }
 };
 
@@ -635,12 +637,12 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
     this.notWriteLamp = new ColoredLamp(body, null, null, "NotWriteLamp", "orangeLamp", "orangeLit");
 
     this.remoteSwitch = new ToggleSwitch(body, null, null, "RemoteSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.remote = prefs.remoteSwitch;
     this.remoteSwitch.set(this.remote ? 1 : 0);
 
     this.notWriteSwitch = new ToggleSwitch(body, null, null, "NotWriteSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.notWrite = prefs.notWriteSwitch;
     this.notWriteSwitch.set(this.notWrite ? 1 : 0);
 

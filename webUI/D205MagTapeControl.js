@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/D205MagTapeControl.js
+* retro-205/webUI D205MagTapeControl.js
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -202,7 +202,7 @@ D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad() {
     this.searchLamp.setCaption("S", true);
 
     this.suppressBSwitch = new ToggleSwitch(body, null, null, "SuppressBSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.p.tswSuppressB = this.suppressBMod = !this.p.config.getNode("MagTape.suppressBSwitch");
     this.suppressBSwitch.set(this.suppressBMod ? 0 : 1);
 

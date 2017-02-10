@@ -25,7 +25,7 @@
 * sooner than requested, and that due either to other activity or to browser
 * limitations the delay may be longer than requested, the timing behavior of
 * setCallback() may be divided into "categories." For each category, a separate
-* record is kept of the current total deviation between the requested delay and 
+* record is kept of the current total deviation between the requested delay and
 * the actual delay. A portion of this deviation is then applied to the requested
 * delay on subsequent calls in an attempt to smooth out the differences. We are
 * going for good average behavior here, and some too-quick call-backs are better
@@ -166,7 +166,7 @@
 
         delayBias = delayDev[categoryName];
         if (!delayBias) {
-            delayDev[categoryName] = 0;         // got a new one
+            delayDev[categoryName] = 0;         // bias was zero, or got a new one
         } else {
             ratio = delay/delayBias;
             if (ratio > 1) {

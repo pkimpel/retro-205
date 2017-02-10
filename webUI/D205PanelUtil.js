@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205Panel.js
+* retro-205/webUI D205PanelUtil.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -7,6 +7,12 @@
 ************************************************************************
 * JavaScript object definition for the ElectroData/Burroughs Datatron 205
 * Maintenance & Control Panel utility constructors.
+*   NeonLamp
+*   ColoredLamp
+*   ToggleSwitch
+*   ThreeWaySwitch
+*   BlackControlKnob
+*   PanelRegister
 ************************************************************************
 * 2014-10-04  P.Kimpel
 *   Original version, from retro-b5500 B5500DDPanel.js.
@@ -15,7 +21,7 @@
 /***********************************************************************
 *  Panel Neon Lamp                                                     *
 ***********************************************************************/
-function NeonLamp(element, x, y, id) {
+function NeonLamp(parent, x, y, id) {
     /* Constructor for the neon lamp objects used within panels. x & y are the
     coordinates of the lamp within its containing element; id is the DOM id */
 
@@ -34,8 +40,8 @@ function NeonLamp(element, x, y, id) {
         this.element.style.top = y.toString() + "px";
     }
 
-    if (element) {
-        element.appendChild(this.element);
+    if (parent) {
+        parent.appendChild(this.element);
     }
 }
 
@@ -54,6 +60,13 @@ NeonLamp.levelClass = [                 // css class names for the lamp levels
             NeonLamp.litClass + "4",
             NeonLamp.litClass + "5",
             NeonLamp.litClass];
+
+/**************************************/
+NeonLamp.prototype.addEventListener = function addEventListener(eventName, handler, useCapture) {
+    /* Sets an event handler whenever the image element is clicked */
+
+    this.element.addEventListener(eventName, handler, useCapture);
+};
 
 /**************************************/
 NeonLamp.prototype.set = function set(state) {
@@ -100,7 +113,7 @@ NeonLamp.prototype.setCaption = function setCaption(caption, atBottom) {
 /***********************************************************************
 *  Panel Colored Lamp                                                  *
 ***********************************************************************/
-function ColoredLamp(element, x, y, id, offClass, onClass) {
+function ColoredLamp(parent, x, y, id, offClass, onClass) {
     /* Constructor for the colored lamp objects used within panels. x & y are
     the coordinates of the lamp within its containing element; id is the DOM id */
 
@@ -130,8 +143,8 @@ function ColoredLamp(element, x, y, id, offClass, onClass) {
         this.element.style.top = y.toString() + "px";
     }
 
-    if (element) {
-        element.appendChild(this.element);
+    if (parent) {
+        parent.appendChild(this.element);
     }
 }
 
@@ -140,6 +153,13 @@ function ColoredLamp(element, x, y, id, offClass, onClass) {
 ColoredLamp.lampLevels = 6;
 ColoredLamp.topCaptionClass = "coloredLampTopCaption";
 ColoredLamp.bottomCaptionClass = "coloredLampBottomCaption";
+
+/**************************************/
+ColoredLamp.prototype.addEventListener = function addEventListener(eventName, handler, useCapture) {
+    /* Sets an event handler whenever the image element is clicked */
+
+    this.element.addEventListener(eventName, handler, useCapture);
+};
 
 /**************************************/
 ColoredLamp.prototype.set = function set(state) {
@@ -186,7 +206,7 @@ ColoredLamp.prototype.setCaption = function setCaption(caption, atBottom) {
 /***********************************************************************
 *  Panel Toggle Switch                                                 *
 ***********************************************************************/
-function ToggleSwitch(element, x, y, id, offImage, onImage) {
+function ToggleSwitch(parent, x, y, id, offImage, onImage) {
     /* Constructor for the toggle switch objects used within panels. x & y are
     the coordinates of the switch within its containing element; id is the DOM id */
 
@@ -207,8 +227,8 @@ function ToggleSwitch(element, x, y, id, offImage, onImage) {
         this.element.style.top = y.toString() + "px";
     }
 
-    if (element) {
-        element.appendChild(this.element);
+    if (parent) {
+        parent.appendChild(this.element);
     }
 }
 
@@ -216,6 +236,13 @@ function ToggleSwitch(element, x, y, id, offImage, onImage) {
 
 ToggleSwitch.topCaptionClass = "toggleSwitchTopCaption";
 ToggleSwitch.bottomCaptionClass = "toggleSwitchBottomCaption";
+
+/**************************************/
+ToggleSwitch.prototype.addEventListener = function addEventListener(eventName, handler, useCapture) {
+    /* Sets an event handler whenever the image element is clicked */
+
+    this.element.addEventListener(eventName, handler, useCapture);
+};
 
 /**************************************/
 ToggleSwitch.prototype.set = function set(state) {
@@ -265,12 +292,12 @@ ToggleSwitch.prototype.setCaption = function setCaption(caption, atBottom) {
 /***********************************************************************
 *  Panel Three-way Toggle Switch                                       *
 ***********************************************************************/
-function ThreeWaySwitch(element, x, y, id, offImage, onImage1, onImage2) {
+function ThreeWaySwitch(parent, x, y, id, offImage, onImage1, onImage2) {
     /* Constructor for the three-way toggle switch objects used within panels.
     x & y are the coordinates of the switch within its containing element;
     id is the DOM id */
 
-    this.state = 0;                     // current switch state, 0=off
+    this.state = 0;                     // current switch state, 0=off, 1=down, 2=up
     this.topCaptionDiv = null;          // optional top caption element
     this.bottomCaptionDiv = null;       // optional bottom caption element
     this.offImage = offImage;           // image used for the off state
@@ -288,8 +315,8 @@ function ThreeWaySwitch(element, x, y, id, offImage, onImage1, onImage2) {
         this.element.style.top = y.toString() + "px";
     }
 
-    if (element) {
-        element.appendChild(this.element);
+    if (parent) {
+        parent.appendChild(this.element);
     }
 }
 
@@ -299,6 +326,13 @@ ThreeWaySwitch.topCaptionClass = "ToggleSwitchTopCaption";
 ThreeWaySwitch.bottomCaptionClass = "ToggleSwitchBottomCaption";
 
 /**************************************/
+ThreeWaySwitch.prototype.addEventListener = function addEventListener(eventName, handler, useCapture) {
+    /* Sets an event handler whenever the image element is clicked */
+
+    this.element.addEventListener(eventName, handler, useCapture);
+};
+
+/**************************************/
 ThreeWaySwitch.prototype.set = function set(state) {
     /* Changes the visible state of the switch according to the value
     of "state" */
@@ -306,14 +340,14 @@ ThreeWaySwitch.prototype.set = function set(state) {
     if (this.state != state) {          // the state has changed
         switch (state) {
         case 1:
-            this.state = 1;
+            this.state = 1;             // down position
             this.element.src = this.onImage1;
             break;
-        case 2:
+        case 2:                         // up position
             this.state = 2;
             this.element.src = this.onImage2;
             break;
-        default:
+        default:                        // middle position
             this.state = 0;
             this.element.src = this.offImage;
             break;
@@ -355,7 +389,7 @@ ThreeWaySwitch.prototype.setCaption = function setCaption(caption, atBottom) {
 /***********************************************************************
 *  Black Control Knob                                                  *
 ***********************************************************************/
-function BlackControlKnob(element, x, y, id, initial, positions) {
+function BlackControlKnob(parent, x, y, id, initial, positions) {
     /* Constructor for the black control knob objects used within panels. x & y are
     the coordinates of the knob within its containing element; id is the DOM id;
     initial is the 0-relative index indicating the default position of the switch;
@@ -381,8 +415,8 @@ function BlackControlKnob(element, x, y, id, initial, positions) {
         this.element.style.top = y.toString() + "px";
     }
 
-    if (element) {
-        element.appendChild(this.element);
+    if (parent) {
+        parent.appendChild(this.element);
     }
 
     this.set(initial);                  // set to its initial position
@@ -394,6 +428,13 @@ BlackControlKnob.topCaptionClass = "blackControlKnobTopCaption";
 BlackControlKnob.bottomCaptionClass = "blackControlKnobBottomCaption";
 BlackControlKnob.className = "blackControlKnob1";
 BlackControlKnob.size = 64;             // width/height in pixels
+
+/**************************************/
+BlackControlKnob.prototype.addEventListener = function addEventListener(eventName, handler, useCapture) {
+    /* Sets an event handler whenever the canvas element is clicked */
+
+    this.element.addEventListener(eventName, handler, useCapture);
+};
 
 /**************************************/
 BlackControlKnob.prototype.set = function set(position) {
@@ -497,9 +538,9 @@ BlackControlKnob.prototype.setCaption = function setCaption(caption, atBottom) {
 /***********************************************************************
 *  Panel Register                                                      *
 ***********************************************************************/
-function PanelRegister(element, bits, rows, idPrefix, caption) {
+function PanelRegister(parent, bits, rows, idPrefix, caption) {
     /* Constructor for the register objects used within panels:
-        element:the DOM element (usually a <div>) within which the register will be built
+        parent:the DOM element (usually a <div>) within which the register will be built
         bits:   number of bits in register
         rows:   number of rows used to display the bit lamps
         caption:optional caption displayed at the bottom of the register
@@ -508,9 +549,9 @@ function PanelRegister(element, bits, rows, idPrefix, caption) {
     var b;
     var cx;
     var cy;
-    var lamp;
+    var e;
 
-    this.element = element;             // containing element for the panel
+    this.element = parent;              // containing element for the panel
     this.bits = bits;                   // number of bits in the register
     this.caption = caption || "";       // panel caption
     this.lastValue = 0;                 // prior register value
@@ -524,18 +565,19 @@ function PanelRegister(element, bits, rows, idPrefix, caption) {
         } else {
             cy -= PanelRegister.vSpacing;
         }
-        this.lamps[b] = lamp = new NeonLamp(element, cx, cy, idPrefix + b.toString());
+
+        this.lamps[b] = new NeonLamp(parent, cx, cy, idPrefix + b.toString());
     }
 
     this.captionDiv = document.createElement("div");
     this.captionDiv.className = PanelRegister.captionClass;
     if (caption) {
-        lamp = document.createElement("span");
-        lamp.className = PanelRegister.captionSpanClass;
-        lamp.appendChild(document.createTextNode(caption));
-        this.captionDiv.appendChild(lamp);
+        e = document.createElement("span");
+        e.className = PanelRegister.captionSpanClass;
+        e.appendChild(document.createTextNode(caption));
+        this.captionDiv.appendChild(e);
     }
-    this.element.appendChild(this.captionDiv);
+    parent.appendChild(this.captionDiv);
 }
 
 /**************************************/

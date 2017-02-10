@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205MagTapeDrive.js
+* retro-205/webUI D205MagTapeDrive.js
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -754,17 +754,17 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
     this.notWriteLamp = new ColoredLamp(body, null, null, "NotWriteLamp", "orangeLamp", "orangeLit");
 
     this.remoteSwitch = new ToggleSwitch(body, null, null, "RemoteSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.remote = prefs.remoteSwitch;
     this.remoteSwitch.set(this.remote ? 1 : 0);
 
     this.rewindReadySwitch = new ToggleSwitch(body, null, null, "RewindReadySwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.rewindReady = prefs.rewindReadySwitch;
     this.rewindReadySwitch.set(this.rewindReady ? 1 : 0);
 
     this.notWriteSwitch = new ToggleSwitch(body, null, null, "NotWriteSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.notWrite = prefs.notWriteSwitch;
     this.notWriteSwitch.set(this.notWrite ? 1 : 0);
 

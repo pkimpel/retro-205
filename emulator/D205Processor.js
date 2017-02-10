@@ -157,10 +157,12 @@ function D205Processor(config, devices) {
     this.loadDefaultProgram();          // Preload a default program
 }
 
-/**************************************/
 
-/* Global constants */
-D205Processor.version = "0.06a";
+/***********************************************************************
+*   Global Constants                                                   *
+***********************************************************************/
+
+D205Processor.version = "0.06b";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -209,6 +211,167 @@ D205Processor.mask2 = [ // (2**n)-1 for n from 0 to 52
           0x0FFFFFFFFFFF,   0x1FFFFFFFFFFF,   0x3FFFFFFFFFFF  , 0x7FFFFFFFFFFF,
          0x0FFFFFFFFFFFF,  0x1FFFFFFFFFFFF,  0x3FFFFFFFFFFFF,  0x7FFFFFFFFFFFF,
         0x0FFFFFFFFFFFFF] ;
+
+
+/***********************************************************************
+*   Utility Functions                                                  *
+***********************************************************************/
+
+/**************************************/
+D205Processor.bindMethod = function bindMethod(context, f) {
+    /* Returns a new function that binds the function "f" to the object "context".
+    Note that this is a static constructor property function, NOT an instance
+    method of the CC object */
+
+    return function bindMethodAnon() {return f.apply(context, arguments)};
+};
+
+/**************************************/
+D205Processor.bcdBinary = function bcdBinary(v) {
+    /* Converts the BCD value "v" to a binary number and returns it */
+    var d;
+    var power = 1;
+    var result = 0;
+
+    while(v) {
+        d = v % 0x10;
+        result += d*power;
+        power *= 10;
+        v = (v-d)/0x10;
+    }
+    return result;
+};
+
+/**************************************/
+D205Processor.binaryBCD = function binaryBCD(v) {
+    /* Converts the binary value "v" to a BCD number and returns it */
+    var d;
+    var power = 1;
+    var result = 0;
+
+    while(v) {
+        d = v % 10;
+        result += d*power;
+        power *= 0x10;
+        v = (v-d)/10;
+    }
+    return result;
+};
+
+
+/***********************************************************************
+*   Bit and Field Manipulation Functions                               *
+***********************************************************************/
+
+/**************************************/
+D205Processor.bitTest = function bitTest(word, bit) {
+    /* Extracts and returns the specified bit from the word */
+    var p;                              // bottom portion of word power of 2
+
+    if (bit > 0) {
+        return ((word - word % (p = D205Processor.pow2[bit]))/p) % 2;
+    } else {
+        return word % 2;
+    }
+};
+
+/**************************************/
+D205Processor.bitSet = function bitSet(word, bit) {
+    /* Sets the specified bit in word and returns the updated word */
+    var ue = bit+1;                     // word upper power exponent
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[bit];
+    var bottom =                        // unaffected bottom portion of word
+        (bit <= 0 ? 0 : (word % bpower));
+    var top =                           // unaffected top portion of word
+        word - (word % D205Processor.pow2[ue]);
+
+    return bpower + top + bottom;
+};
+
+/**************************************/
+D205Processor.bitReset = function bitReset(word, bit) {
+    /* Resets the specified bit in word and returns the updated word */
+    var ue = bit+1;                     // word upper power exponent
+    var bottom =                        // unaffected bottom portion of word
+        (bit <= 0 ? 0 : (word % D205Processor.pow2[bit]));
+    var top =                           // unaffected top portion of word
+        word - (word % D205Processor.pow2[ue]);
+
+    return top + bottom;
+};
+
+/**************************************/
+D205Processor.bitFlip = function bitFlip(word, bit) {
+    /* Complements the specified bit in word and returns the updated word */
+    var ue = bit+1;                     // word upper power exponent
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[bit];
+    var bottom =                        // unaffected bottom portion of word
+        (bit <= 0 ? 0 : (word % bpower));
+    var middle =                        // bottom portion of word starting with affected bit
+        word % D205Processor.pow2[ue];
+    var top = word - middle;            // unaffected top portion of word
+
+    if (middle >= bpower) {             // if the affected bit is a one
+        return top + bottom;                // return the result with it set to zero
+    } else {                            // otherwise
+        return bpower + top + bottom;       // return the result with it set to one
+    }
+};
+
+/**************************************/
+D205Processor.fieldIsolate = function fieldIsolate(word, start, width) {
+    /* Extracts a bit field [start:width] from word and returns the field */
+    var le = start-width+1;             // lower power exponent
+    var p;                              // bottom portion of word power of 2
+
+    return (le <= 0 ? word :
+                      (word - word % (p = D205Processor.pow2[le]))/p
+            ) % D205Processor.pow2[width];
+};
+
+/**************************************/
+D205Processor.fieldInsert = function fieldInsert(word, start, width, value) {
+    /* Inserts a bit field from the low-order bits of value ([48-width:width])
+    into word.[start:width] and returns the updated word */
+    var ue = start+1;                   // word upper power exponent
+    var le = ue-width;                  // word lower power exponent
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[le];
+    var bottom =                        // unaffected bottom portion of word
+        (le <= 0 ? 0 : (word % bpower));
+    var top =                           // unaffected top portion of word
+        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
+
+    return (value % D205Processor.pow2[width])*bpower + top + bottom;
+};
+
+/**************************************/
+D205Processor.fieldTransfer = function fieldTransfer(word, wstart, width, value, vstart) {
+    /* Inserts a bit field from value.[vstart:width] into word.[wstart:width] and
+    returns the updated word */
+    var ue = wstart+1;                  // word upper power exponent
+    var le = ue-width;                  // word lower power exponent
+    var ve = vstart-width+1;            // value lower power exponent
+    var vpower;                         // bottom port of value power of 2
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[le];
+    var bottom =                        // unaffected bottom portion of word
+        (le <= 0 ? 0 : (word % bpower));
+    var top =                           // unaffected top portion of word
+        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
+
+    return ((ve <= 0 ? value :
+                       (value - value % (vpower = D205Processor.pow2[ve]))/vpower
+                ) % D205Processor.pow2[width]
+            )*bpower + top + bottom;
+};
+
+
+/***********************************************************************
+*   System Clear                                                       *
+***********************************************************************/
 
 /**************************************/
 D205Processor.prototype.clear = function clear() {
@@ -333,51 +496,6 @@ D205Processor.prototype.clearControl = function clearControl() {
     // I/O globals
     this.kDigit = 0;                    // variant/format digits from upper part of instruction
     this.selectedUnit = 0;              // currently-selected unit number
-};
-
-/***********************************************************************
-*   Utility Functions                                                  *
-***********************************************************************/
-
-/**************************************/
-D205Processor.bindMethod = function bindMethod(context, f) {
-    /* Returns a new function that binds the function "f" to the object "context".
-    Note that this is a static constructor property function, NOT an instance
-    method of the CC object */
-
-    return function bindMethodAnon() {return f.apply(context, arguments)};
-};
-
-/**************************************/
-D205Processor.bcdBinary = function bcdBinary(v) {
-    /* Converts the BCD value "v" to a binary number and returns it */
-    var d;
-    var power = 1;
-    var result = 0;
-
-    while(v) {
-        d = v % 0x10;
-        result += d*power;
-        power *= 10;
-        v = (v-d)/0x10;
-    }
-    return result;
-};
-
-/**************************************/
-D205Processor.binaryBCD = function binaryBCD(v) {
-    /* Converts the binary value "v" to a BCD number and returns it */
-    var d;
-    var power = 1;
-    var result = 0;
-
-    while(v) {
-        d = v % 10;
-        result += d*power;
-        power *= 0x10;
-        v = (v-d)/10;
-    }
-    return result;
 };
 
 
@@ -516,8 +634,6 @@ D205Processor.prototype.sampleLamps = function sampleLamps(alpha, memAlpha) {
         tg.glowL5 =     tg.glowL5*alpha1;
         tg.glowL6 =     tg.glowL6*alpha1;
         tg.glowL7 =     tg.glowL7*alpha1;
-
-        if (isNaN(tg.glowMAIN)) {debugger}
     }
 };
 
@@ -584,115 +700,6 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
 
 
 /***********************************************************************
-*   Bit and Field Manipulation Functions                               *
-***********************************************************************/
-
-/**************************************/
-D205Processor.prototype.bitTest = function bitTest(word, bit) {
-    /* Extracts and returns the specified bit from the word */
-    var p;                              // bottom portion of word power of 2
-
-    if (bit > 0) {
-        return ((word - word % (p = D205Processor.pow2[bit]))/p) % 2;
-    } else {
-        return word % 2;
-    }
-};
-
-/**************************************/
-D205Processor.prototype.bitSet = function bitSet(word, bit) {
-    /* Sets the specified bit in word and returns the updated word */
-    var ue = bit+1;                     // word upper power exponent
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[bit];
-    var bottom =                        // unaffected bottom portion of word
-        (bit <= 0 ? 0 : (word % bpower));
-    var top =                           // unaffected top portion of word
-        word - (word % D205Processor.pow2[ue]);
-
-    return bpower + top + bottom;
-};
-
-/**************************************/
-D205Processor.prototype.bitReset = function bitReset(word, bit) {
-    /* Resets the specified bit in word and returns the updated word */
-    var ue = bit+1;                     // word upper power exponent
-    var bottom =                        // unaffected bottom portion of word
-        (bit <= 0 ? 0 : (word % D205Processor.pow2[bit]));
-    var top =                           // unaffected top portion of word
-        word - (word % D205Processor.pow2[ue]);
-
-    return top + bottom;
-};
-
-/**************************************/
-D205Processor.prototype.bitFlip = function bitFlip(word, bit) {
-    /* Complements the specified bit in word and returns the updated word */
-    var ue = bit+1;                     // word upper power exponent
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[bit];
-    var bottom =                        // unaffected bottom portion of word
-        (bit <= 0 ? 0 : (word % bpower));
-    var middle =                        // bottom portion of word starting with affected bit
-        word % D205Processor.pow2[ue];
-    var top = word - middle;            // unaffected top portion of word
-
-    if (middle >= bpower) {             // if the affected bit is a one
-        return top + bottom;                // return the result with it set to zero
-    } else {                            // otherwise
-        return bpower + top + bottom;       // return the result with it set to one
-    }
-};
-
-/**************************************/
-D205Processor.prototype.fieldIsolate = function fieldIsolate(word, start, width) {
-    /* Extracts a bit field [start:width] from word and returns the field */
-    var le = start-width+1;             // lower power exponent
-    var p;                              // bottom portion of word power of 2
-
-    return (le <= 0 ? word :
-                      (word - word % (p = D205Processor.pow2[le]))/p
-            ) % D205Processor.pow2[width];
-};
-
-/**************************************/
-D205Processor.prototype.fieldInsert = function fieldInsert(word, start, width, value) {
-    /* Inserts a bit field from the low-order bits of value ([48-width:width])
-    into word.[start:width] and returns the updated word */
-    var ue = start+1;                   // word upper power exponent
-    var le = ue-width;                  // word lower power exponent
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[le];
-    var bottom =                        // unaffected bottom portion of word
-        (le <= 0 ? 0 : (word % bpower));
-    var top =                           // unaffected top portion of word
-        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
-
-    return (value % D205Processor.pow2[width])*bpower + top + bottom;
-};
-
-/**************************************/
-D205Processor.prototype.fieldTransfer = function fieldTransfer(word, wstart, width, value, vstart) {
-    /* Inserts a bit field from value.[vstart:width] into word.[wstart:width] and
-    returns the updated word */
-    var ue = wstart+1;                  // word upper power exponent
-    var le = ue-width;                  // word lower power exponent
-    var ve = vstart-width+1;            // value lower power exponent
-    var vpower;                         // bottom port of value power of 2
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[le];
-    var bottom =                        // unaffected bottom portion of word
-        (le <= 0 ? 0 : (word % bpower));
-    var top =                           // unaffected top portion of word
-        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
-
-    return ((ve <= 0 ? value :
-                       (value - value % (vpower = D205Processor.pow2[ve]))/vpower
-                ) % D205Processor.pow2[width]
-            )*bpower + top + bottom;
-};
-
-/***********************************************************************
 *   The 205 Adder and Arithmetic Operations                            *
 ***********************************************************************/
 
@@ -721,26 +728,26 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
 
     // Loop through the 11 digits including sign digits
     for (x=0; x<11; ++x) {
-        // shift low-order augend digit right into the adder
+        // Shift low-order augend digit right into the adder
         ad = am % 0x10;
         am = (am - ad)/0x10;
         if (ad > 9) {
             this.stopForbidden = 1;
             this.togCST = 1;            // halt the processor
+        } else if (compl) {
+            ad = 9-ad;
         }
 
-        // add the digits plus carry, complementing as necessary
+        // Add the digits plus carry, complementing as necessary
         dd = dm % 0x10;
         if (dd > 9) {
             this.stopForbidden = 1;
             this.togCST = 1;            // halt the processor
         }
-        if (compl) {
-            ad = 9-ad;
-        }
+
         adder = ad + dd + carry;
 
-        // decimal-correct the adder
+        // Decimal-correct the adder
         if (adder < 10) {
             carry = 0;
         } else {
@@ -748,13 +755,13 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
             carry = 1;
         }
 
-        // compute the carry toggle register (just for display)
+        // Compute the carry toggle register (just for display)
         ct = (((ad & dd) | (ad & ct) | (dd & ct)) << 1) + carry;
         this.updateAdderGlow(adder, ct);
 
-        // rotate the adder into the sign digit
+        // Rotate the adder into the sign digit
         am += adder*0x10000000000;
-        // shift the addend right to the next digit
+        // Shift the addend right to the next digit
         dm = (dm - dd)/0x10;
     } // for x
 
@@ -1716,6 +1723,7 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
             (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.successor, high);
 };
 
+
 /***********************************************************************
 *   Console I/O Module                                                 *
 ***********************************************************************/
@@ -1909,6 +1917,7 @@ D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingl
     }
 };
 
+
 /***********************************************************************
 *   Cardatron I/O Module                                               *
 ***********************************************************************/
@@ -2084,6 +2093,7 @@ D205Processor.prototype.cardatronReceiveWord = function cardatronReceiveWord(wor
         }
     }
 };
+
 
 /***********************************************************************
 *   Magnetic Tape I/O Module                                           *
@@ -2282,6 +2292,7 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
     return aborted;
 };
 
+
 /***********************************************************************
 *   External Control Module                                            *
 ***********************************************************************/
@@ -2387,7 +2398,7 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
 D205Processor.prototype.fetch = function fetch() {
     /* Implements the Fetch cycle of the 205 processor. This is initiated either
     by pressing START on one of the consoles with the Timing Toggle=1 (Fetch),
-    or by the prior operation complete if the processor is in continuous mode */
+    or by the prior Operation Complete if the processor is in continuous mode */
 
     this.CADDR = this.C % 0x100000000;  // C operand and control addresses
     this.CCONTROL = this.CADDR % 0x10000; // C control address
@@ -2411,6 +2422,7 @@ D205Processor.prototype.fetch = function fetch() {
         this.readMemory(this.fetchComplete);  // load D from the operand address
     }
 };
+
 
 /***********************************************************************
 *   Execute Module                                                     *
@@ -2471,19 +2483,19 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
     case 0x65:          //---------------- CSU  Clear and Subtract A
         this.procTime += 3;
         // Complement the D sign -- any sign overflow will be ignored by integerAdd
-        this.A = this.bcdAdd(0, this.bitFlip(this.D, 40));
+        this.A = this.bcdAdd(0, D205Processor.bitFlip(this.D, 40));
         this.D = 0;
         break;
 
     case 0x66:          //---------------- CADA Clear and Add Absolute
         this.procTime += 3;
-        this.A = this.bcdAdd(0, this.bitReset(this.D, 40));
+        this.A = this.bcdAdd(0, D205Processor.bitReset(this.D, 40));
         this.D = 0;
         break;
 
     case 0x67:          //---------------- CSUA Clear and Subtract Absolute
         this.procTime += 3;
-        this.A = this.bcdAdd(0, this.bitSet(this.D, 40));
+        this.A = this.bcdAdd(0, D205Processor.bitSet(this.D, 40));
         this.D = 0;
         break;
 
@@ -2524,19 +2536,19 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
 
     case 0x75:          //---------------- SU   Subtract
         this.procTime += 3;
-        this.D = this.bitFlip(this.D, 40);              // complement the D sign
+        this.D = D205Processor.bitFlip(this.D, 40);              // complement the D sign
         this.integerAdd();
         break;
 
     case 0x76:          //---------------- ADA  Add Absolute
         this.procTime += 3;
-        this.D = this.bitReset(this.D, 40);             // clear the D sign
+        this.D = D205Processor.bitReset(this.D, 40);             // clear the D sign
         this.integerAdd();
         break;
 
     case 0x77:          //---------------- SUA  Subtract Absolute
         this.procTime += 3;
-        this.D = this.bitSet(this.D, 40);               // set the D sign
+        this.D = D205Processor.bitSet(this.D, 40);      // set the D sign
         this.integerAdd();
         break;
 

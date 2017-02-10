@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205upervisoryPanel.css
+* retro-205/webUI D205upervisoryPanel.css
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -566,3 +566,16 @@ DIV.panelRegCaption {           /* Overrides class in D205Common.css */
 #VersionDiv {
     right:              8px;
     bottom:             8px}
+
+
+/***** Diagnostics Panel (DEBUG) *****/
+
+#Diagnostics {
+    display:            none}
+
+#CallbackTable {
+    position:           relative;
+    top:                1ex;
+    visibility:         visible;
+    border-collapse:    collapse;
+    border-spacing:     0}
