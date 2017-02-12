@@ -755,7 +755,7 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
 
     this.remoteSwitch = new ToggleSwitch(body, null, null, "RemoteSwitch",
             D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
-    this.remote = prefs.remoteSwitch;
+    this.remote = 0;            // was prefs.remoteSwitch; -- preserving the state of the REMOTE switch was a pain
     this.remoteSwitch.set(this.remote ? 1 : 0);
 
     this.rewindReadySwitch = new ToggleSwitch(body, null, null, "RewindReadySwitch",

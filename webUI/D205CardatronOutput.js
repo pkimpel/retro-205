@@ -89,42 +89,45 @@ D205CardatronOutput.digitsPerMilli = 0.001/D205CardatronOutput.digitTime;
                                         // digit times per millisecond: 113.8
 
 // Translate info band zone & numeric digits to ASCII character codes.
-// See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 2.
+// See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 2;
+// and ElectroData Technical Newsletter #5 of February 14, 1958.
 D205CardatronOutput.prototype.outputXlate = [
         // 0    1    2    3    4    5    6    7    8    9   10   11   12
-        [0x20,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x20,0x23,0x40],     // zone digit 0
-        [0x26,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x20,0x2E,0xA4],     // zone digit 1
-        [0x2D,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x20,0x24,0x2A],     // zone digit 2
-        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 3
-        [0x30,0x2F,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x20,0x2C,0x25],     // zone digit 4
-        [0x7B,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 5
-        [0x21,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 6
-        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 7
-        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 8
-        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 9
-        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 10
-        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 11
+        [0x20,0x31,0x32,0x33,0x34,0x35,0x36,0x37,0x38,0x39,0x20,0x23,0x40],     // zone digit  0
+        [0x26,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x20,0x2E,0xA4],     // zone digit  1
+        [0x2D,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x20,0x24,0x2A],     // zone digit  2
+        [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit  3
+        [0x30,0x2F,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x20,0x2C,0x25],     // zone digit  4
+        [0x40,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit  5
+        [0x2D,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit  6
+        [0x20,0x20,0x39,0x2E,0xA4,0xA4,0x2E,0xA4,0x20,0x20,0x20,0x2E,0xA4],     // zone digit  7
+        [0x20,0x4A,0x49,0x24,0x2A,0x2A,0x24,0x2A,0x20,0x20,0x20,0x24,0x2A],     // zone digit  8
+        [0x20,0x20,0x52,0x27,0x25,0x25,0x2C,0x25,0x20,0x20,0x20,0x27,0x25],     // zone digit  9
+        [0x2D,0x20,0x52,0x20,0x20,0x40,0x23,0x40,0x20,0x20,0x20,0x20,0x20],     // zone digit 10
+        [0x20,0x26,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 11
         [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20]];    // zone digit 12
 
 // Translate buffer zone digits to internal zone decades.
 // Each row is indexed by the zone digit from the buffer drum info band;
 // each column is indexed by the PREVIOUS numeric digit from the info band.
-// See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 12.
-D205CardatronOutput.prototype.zoneXlate = [
-        //0 1  2  3  4  5  6  7  8  9
-        [0, 0, 0, 1, 1, 0, 0, 0, 0, 0],         // zone digit 0
-        [1, 0, 0, 2, 2, 0, 0, 0, 0, 0],         // zone digit 1
-        [2, 4, 0, 4, 4, 0, 0, 0, 0, 0],         // zone digit 2
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],         // zone digit 3
-        [5, 1, 1, 1, 1, 1, 1, 1, 1, 1],         // zone digit 4
-        [6, 2, 2, 2, 2, 2, 2, 2, 2, 2],         // zone digit 5
-        [0, 0, 4, 4, 4, 4, 4, 4, 4, 4],         // zone digit 6
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],         // there are no zone=7 digits
-        [4, 0, 0, 0, 0, 0, 0, 0, 0, 0],         // zone digit 8
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];        // there are no zone=9 digits
+// See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 12;
+// and ElectroData Technical Newsletter #5 of February 14, 1958.
+D205CardatronOutput.prototype.zoneXlate = [         // numeric digit:0 1 2 3 4 5 6 7 8 9
+        //0   1   2   3   4   5   6   7   8   9     //               = = = = = = = = = =
+        [ 0,  1,  7,  1,  7,  7,  7,  7,  0,  1],   // zone digit 0:   A 9 . ¤ ¤ . ¤ 8 I
+        [ 1,  8,  8,  8,  8,  8,  8,  8,  1,  2],   // zone digit 1: & J I $ * * $ * H R
+        [ 2,  4,  9,  4,  4,  9,  9,  9,  2,  4],   // zone digit 2: - / R , % % , % Q Z
+        [10,  0, 10,  0,  0, 10, 10, 10,  2,  0],   // zone digit 3: - 1 R # @ @ # @ Q 9
+        [ 1,  1,  1,  1,  1,  1,  1,  1,  1,  1],   // zone digit 4: & A B C D E F G H I
+        [ 6,  2,  2,  2,  2,  2,  2,  2,  2,  2],   // zone digit 5: - J K L M N O P Q R
+        [ 4, 11,  4,  4,  4,  4,  4,  4,  4,  4],   // zone digit 6: 0 & S T U V W X Y Z
+        [ 6,  2,  2,  2,  2,  2,  2,  2,  2,  2],   // zone digit 7: - J K L M N O P Q R
+        [ 4,  0,  0,  0,  0,  0,  0,  0,  0,  0],   // zone digit 8: 0 1 2 3 4 5 6 7 8 9
+        [ 1,  2,  1,  2,  2,  2,  2,  2,  1,  2]];  // zone digit 9: & J B L M N O P H R
+
 
 // Truthset for leading-zero suppression in output lines. A 1 indicates the
-// character is to be replaced by a space; a zero indicates a non-suppressable
+// character is to be replaced by a space; a 0 indicates a non-suppressable
 // code and the end of leading-zero suppression.
 D205CardatronOutput.prototype.zeroSuppressSet = [
       //0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F
@@ -839,19 +842,19 @@ D205CardatronOutput.prototype.outputWord = function outputWord(
                         // Zone digit: requires special handling in the sign-digit position
                         // and if the corresponding numeric digit came from a 3-8 or 4-8 punch
                         nu = true;              // next is a numeric digit
-                        if (x < 10) {
-                            // If the prior numeric digit was 3 or 4 AND this zone is 0-3,
-                            // store an 11 or 12 for the numeric digit to indicate a 3-8 or 4-8 punch.
-                            if (d < 4) {
-                                if (ix > 0 && (lastNumeric == 3 || lastNumeric == 4)) {
-                                    info[ix-1] = lastNumeric+8;
-                                }
-                            }
-                            info[ix] = this.zoneXlate[d][lastNumeric];
-                        } else {
+                        if (x > 9) {
                             // For a zone digit in the sign position, store a 5 (+) or 6 (-)
                             // so that the sign will be printed/punched as a zone 11/12.
                             info[ix] = (d & 0x01) + 5;
+                        } else if (d > 3) {
+                            info[ix] = this.zoneXlate[d][lastNumeric];
+                        } else {
+                            // If the prior numeric digit was 3 or 4 AND this zone is 0-3,
+                            // store an 11 or 12 for the prior digit to indicate a 3-8 or 4-8 punch.
+                            if (ix > 0 && (lastNumeric == 3 || lastNumeric == 4)) {
+                                info[ix-1] = lastNumeric+8;
+                            }
+                            info[ix] = this.zoneXlate[d][lastNumeric];
                         }
                     }
                     ++ix;

@@ -60,16 +60,16 @@ D205ConsoleOutput.midSwitch = "./resources/ToggleMid.png";
 D205ConsoleOutput.onSwitch = "./resources/ToggleUp.png";
 
 D205ConsoleOutput.cardatronXlate = [        // translate internal Cardatron code to ANSI
-        " ", "?", "?", ".", "\u00A4", "?", "?", "?", "?", "?",  // 00-09
-        "&", "?", "?", "$", "*", "?", "?", "?", "?", "?",       // 10-19
+        " ", "?", "?", ".", "?", "?", "?", "?", "?", "?",       // 00-09
+        "&", "?", "?", "$", "&", "?", "?", "$", "&", "?",       // 10-19
         "-", "/", "?", ",", "%", "?", "?", "?", "?", "?",       // 20-29
-        "?", "?", "?", "#", "@", "?", "?", "?", "?", "?",       // 30-39
-        "+", "A", "B", "C", "D", "E", "F", "G", "H", "I",       // 40-49
-        "-", "J", "K", "L", "M", "N", "O", "P", "Q", "R",       // 50-59
+        "?", "?", "?", "?", "\t", "\n", "?", "?", "?", "?",     // 30-39
+        "?", "A", "B", "C", "D", "E", "F", "G", "H", "I",       // 40-49
+        "?", "J", "K", "L", "M", "N", "O", "P", "Q", "R",       // 50-59
         "?", "?", "S", "T", "U", "V", "W", "X", "Y", "Z",       // 60-69
-        "?", "?", "?", "?", "?", "?", "?", "?", "?", "?",       // 70-79
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",       // 70-79
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",       // 80-89
-        "?", "?", "?", "?", "?", "?", "?", "?", "?", "?"];      // 90-99
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];      // 90-99
 
 
 /**************************************/
@@ -439,7 +439,7 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
     result of a POF instruction. Delays for an appropriate amount of time, then
     calls the Processor's signalOK function. */
     var delay = 120;                    // default character output delay, ms
-    var tabCol;
+    var tabCol;                         // tabulation column
 
     if (this.stopPrintout) {
         this.pendingOutputFcn = writeFormatDigit;
@@ -549,8 +549,9 @@ D205ConsoleOutput.prototype.writeSignDigit = function writeSignDigit(outputUnit,
 /**************************************/
 D205ConsoleOutput.prototype.writeNumberDigit = function writeNumberDigit(outputUnit, digit, signalOK) {
     /* Sets the current digit in the translator and outputs it if appropriate */
-    var charCode;
+    var char;                           // ASCII character to output
     var delay = 70;                     // default delay
+    var tabCol;                         // tabulation column
 
     switch (outputUnit) {
     case 1:                             // Flexowriter
@@ -558,9 +559,25 @@ D205ConsoleOutput.prototype.writeNumberDigit = function writeNumberDigit(outputU
             if (this.formatDigit == 4) {    // translate alphanumerically
                 if (this.alphaLock) {
                     this.alphaLock = 0;
-                    charCode = this.alphaFirstDigit*10 + digit;
-                    this.flexChar(D205ConsoleOutput.cardatronXlate[charCode]);
                     delay = 62;
+                    char = D205ConsoleOutput.cardatronXlate[this.alphaFirstDigit*10 + digit];
+                    switch (char) {
+                    case "?":               // some characters are just ignored by the Flex
+                        break;
+                    case "\t":              // tabulate
+                        tabCol = Math.floor((this.flexCol + 8)/8)*8;
+                        while (this.flexCol < tabCol) {
+                            this.flexChar(" ");
+                        }
+                        break;
+                    case "\n":              // carriage return
+                        this.flexEmptyLine();
+                        delay = 200;
+                        break;
+                    default:                // all printable characters
+                        this.flexChar(char);
+                        break;
+                    }
                 } else {
                     this.alphaLock = 1;
                     this.alphaFirstDigit = digit;

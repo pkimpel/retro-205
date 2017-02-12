@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "0.06b";
+D205Processor.version = "0.06c";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -2122,21 +2122,24 @@ D205Processor.prototype.magTapeInitiateSend = function magTapeInitiateSend(write
 };
 
 /**************************************/
-D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) {
+D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(block, lastBlock) {
     /* Sends a block of data from a loop buffer to the tape control unit and
     initiates the load of the alternate loop buffer. this.togMT1BV4 and
-    this.togMT1BV5 control alternation of the loop buffers. "lastBlock" indicates
-    this will be the last block requested by the control unit and no further
-    blocks should be buffered. If the C-register address is 8000 or higher, the
-    loop is not loaded from main memory, and the current contents of the loop
-    are written to tape. Since tape block writes take 46 ms, they are much
-    longer than any memory-to-loop transfer, so this routine simply exits after
-    the next blockToLoop is initiated, and the processor then waits for the tape
-    control unit to request the next block, by which time the blockToLoop will
-    have completed. Returns null if the processor has been cleared and the I/O
-    must be aborted */
+    this.togMT1BV5 control alternation of the loop buffers. "block" is the tape
+    control's buffer; "lastBlock" indicates this will be the last block
+    requested by the control unit and no further blocks should be buffered. If
+    the C-register address is 8000 or higher, the loop is not loaded from main
+    memory, and the current contents of the loop are written to tape. Since tape
+    block writes take 46 ms, they are much longer than any memory-to-loop
+    transfer, so this routine simply exits after the next blockToLoop is
+    initiated, and the processor then waits for the tape control unit to request
+    the next block, by which time the blockToLoop will have completed. Returns
+    true if the processor has been cleared and the I/O must be aborted */
+    var aborted = false;
     var loop;
+    var loopOffset = D205Processor.bcdBinary(this.CADDR)%D205Processor.loopSize;
     var that = this;
+    var x;
 
     function blockFetchComplete() {
         that.procTime -= performance.now()*D205Processor.wordsPerMilli; // suspend time again during I/O
@@ -2147,7 +2150,7 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
     //        " : " + block[0].toString(16) + ", " + block[19].toString(16));
 
     if (!this.togMT3P) {
-        loop = null;
+        aborted = true;
     } else {
         // Select the appropriate loop to send data to the drive
         if (this.togMT1BV4) {
@@ -2158,9 +2161,14 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
             this.toggleGlow.glowL5 = 1;
         }
 
+        // Copy the loop data to the tape control's buffer, adjusting for the mod-20 address
+        for (x=D205Processor.loopSize-1; x>=0; --x) {
+            block[x] = loop[(x+loopOffset)%D205Processor.loopSize];
+        }
+
+        // Flip the buffer toggles and request the next block from memory
         if (!lastBlock) {
             this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-            // Flip the loop-buffer toggles
             this.togMT1BV5 = this.togMT1BV4;
             this.togMT1BV4 = 1-this.togMT1BV4;
             // Block the loop buffer from main memory if appropriate
@@ -2171,11 +2179,11 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
             }
         }
 
-        this.A = loop[loop.length-1];   // for display only
+        this.A = block[loop.length-1];  // for display only
         this.D = 0;                     // for display only
     }
 
-    return loop;                        // give the loop data to the control unit
+    return aborted;                     // give the loop data to the control unit
 };
 
 /**************************************/
@@ -2209,6 +2217,7 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
     the processor has been cleared and the tape control unit should abort the I/O */
     var aborted = false;                // return value
     var loop;
+    var loopOffset = D205Processor.bcdBinary(this.CADDR)%D205Processor.loopSize;
     var sign;                           // sign digit
     var that = this;
     var w;                              // scratch word
@@ -2252,8 +2261,8 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
             blockStoreComplete();
         } else {
             // Copy the tape block data to the appropriate high-speed loop
-            for (x=0; x<loop.length; ++x) {
-                this.D = w = block[x];  // D for display only
+            for (x=0; x<D205Processor.loopSize; ++x) {
+                w = block[x];
                 if (w < 0x20000000000) {
                     this.togCLEAR = 1;  // no B modification
                 } else {
@@ -2275,9 +2284,10 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
                     w = this.bcdAdd(w, this.B);
                 }
 
-                loop[x] = w;
+                loop[(x+loopOffset)%D205Processor.loopSize] = w;
             } // for x
 
+            this.D = w;                 // last word, for display only
             this.A = w;                 // for display only
 
             // Block the loop buffer to main memory if appropriate
@@ -2950,7 +2960,7 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x30:      //---------------- CUB  Change Unconditionally, Block to 7000 Loop
             this.procTime += 4;
-            this.SHIFT = 0.15;                          // for display only
+            this.SHIFT = 0x15;                          // for display only
             this.SHIFTCONTROL = 0x0F;                   // for display only
             this.CCONTROL = this.CADDR%0x100 + 0x7000;  // set control to loop-7 address
             this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
@@ -2959,7 +2969,7 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x31:      //---------------- CUBR Change Unconditionally, Block to 7000 Loop, Record
             this.procTime += 4;
-            this.SHIFT = 0.15;                          // for display only
+            this.SHIFT = 0x15;                          // for display only
             this.SHIFTCONTROL = 0x0F;                   // for display only
             this.R = this.CCONTROL*0x1000000;           // save current control counter
             this.CCONTROL = this.CADDR%0x100 + 0x7000;  // set control to loop-7 address

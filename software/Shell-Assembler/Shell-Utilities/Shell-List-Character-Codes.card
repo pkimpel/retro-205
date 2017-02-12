@@ -1,0 +1,28 @@
+2        LOC  CTL  OP   TADR  INC  REMARKS                                 SEQ
+1                  REM   LIST ALL CODES TO CARDATRON + FLEX (SHELL)
+1                  ORG    0000
+1              0030CDWF  FMT
+1                  SB    N99       INITIALIZE B=99
+1                  STOP            THE PAUSE THAT REFRESHES
+1        LOOP      CAD   CODE      LOAD CURRENT CODE VALUE
+1                  ST    LINE      STORE CODE IN FIRST CARDATRON WORD
+1                  ST    LINE +0001STORE CODE IN SECOND CARDATRON WORD
+1                  PTWF   0500     PRINT NEW LINE
+1                  CIRA   0007     POSITION DIGITS TO PRINT
+1                  PTW    8302     PRINT NUMERIC CODE
+1                  PTWF   0800     PRINT SPACE
+1                  PTWF   0800     PRINT SPACE
+1                  CIRA   0007     POSITION DIGITS TO PRINT
+1                  PTW    8402     PRINT ALPHANUMERIC CODE
+1                  AD    ONE       INCREMENT CODE VALUE
+1                  ST    CODE      STORE NEW CODE VALUE FOR NEXT LOOP
+1              0030CDW   LINE      OUTPUT TO CARDATRON UNIT 3
+1                  DB    LOOP      DECREMENT B AND LOOP
+1                  STOP   7557     DONE WITH CODES -- HALT
+1                  REM
+1        CODE      NUM   0000000000CURRENT CODE VALUE
+1        ONE       NUM            1CONSTANT 1
+1        N99       NUM           99CONSTANT 99
+1        LINE      REG       2     CARDATRON BUFFER
+1        FMT       WFB             P8ZNN BB + P8ZA 115B
+1                  END    0000

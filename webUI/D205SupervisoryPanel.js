@@ -219,31 +219,31 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
 
         switch (reg) {
         case "A":
-            p.A = B220Processor.bitFlip(p.A, bit);
+            p.A = D205Processor.bitFlip(p.A, bit);
             this.regA.update(p.A);
             break;
         case "B":
-            p.B = B220Processor.bitFlip(p.B, bit);
+            p.B = D205Processor.bitFlip(p.B, bit);
             this.regB.update(p.B);
             break;
         case "C":
-            p.C = B220Processor.bitFlip(p.C, bit);
+            p.C = D205Processor.bitFlip(p.C, bit);
             this.regC.update(p.C);
             break;
         case "D":
-            p.D = B220Processor.bitFlip(p.D, bit);
+            p.D = D205Processor.bitFlip(p.D, bit);
             this.regD.update(p.D);
             break;
         case "R":
-            p.R = B220Processor.bitFlip(p.R, bit);
+            p.R = D205Processor.bitFlip(p.R, bit);
             this.regR.update(p.R);
             break;
         case "ADD":
-            p.ADDER = B220Processor.bitFlip(p.ADDER, bit);
+            p.ADDER = D205Processor.bitFlip(p.ADDER, bit);
             this.regAdder.update(p.ADDER);
             break;
         case "CT":
-            p.CT = B220Processor.bitFlip(p.CT, bit);
+            p.CT = D205Processor.bitFlip(p.CT, bit);
             this.regCarry.update(p.CT);
             break;
         case "TWA":
@@ -261,7 +261,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             case 2:
             case 3:
             case 4:
-                p.SHIFT = B220Processor.bitFlip(p.SHIFT, bit);
+                p.SHIFT = D205Processor.bitFlip(p.SHIFT, bit);
                 break;
             case 5:
                 p.togMT1BV5 ^= 1;
@@ -276,7 +276,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             case 9:
             case 10:
             case 11:
-                p.SHIFTCONTROL = B220Processor.bitFlip(p.SHIFTCONTROL, bit-8);
+                p.SHIFTCONTROL = D205Processor.bitFlip(p.SHIFTCONTROL, bit-8);
                 break;
             case 12:
                 p.togASYNC ^= 1;
@@ -354,7 +354,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             case 37:
             case 38:
             case 39:
-                p.SPECIAL = B220Processor.bitFlip(p.SPECIAL, bit-36);
+                p.SPECIAL = D205Processor.bitFlip(p.SPECIAL, bit-36);
                 break;
             } // switch bit
 
