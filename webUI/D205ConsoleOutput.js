@@ -97,8 +97,9 @@ D205ConsoleOutput.prototype.clear = function clear() {
 
 /**************************************/
 D205ConsoleOutput.prototype.resetCounters = function resetCounters() {
-    /* Resets the grouping counters and turns on the Reset lamp. If there is
-    pending output function that was stopped earlier, it is now called */
+    /* Resets the grouping counters and turns on the Reset lamp. If the carriage
+    is not at the left margine, a new-line is issued. If there is pending output
+    function that was stopped earlier, it is now called */
     var outputFcn;
     var signalOK;
 
@@ -107,6 +108,10 @@ D205ConsoleOutput.prototype.resetCounters = function resetCounters() {
     this.groupCounter = 0;
     this.stopPrintout = 0;
     this.resetLamp.set(1);
+    if (this.flexCol > 0) {
+        this.flexEmptyLine();
+    }
+
     if (this.pendingOutputFcn) {
         outputFcn = this.pendingOutputFcn;
         this.pendingOutputFcn = null;
