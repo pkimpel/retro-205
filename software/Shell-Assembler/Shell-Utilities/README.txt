@@ -31,7 +31,24 @@ Shell-List-Character-Object.card
     Assembler from Shell-List-Character-Codes.card above, wrapped by the
     Shell-Object-Deck-Load program.
 
+Winter-PI-Shell.card
+    A program written in Shell Assembler to compute the first 800 digits
+    of Pi. This has been converted from a one-line C program by Dik T.
+    Winter of CWI in Amsterdam, as reported in:
+    https://cs.uwaterloo.ca/~alopez-o/math-faq/mathtext/node12.html.
+    The program outputs four digits at a time to the Flexowriter. Each
+    four-digit group takes almost six minutes to generate, so a full run
+    should take almost 20 hours.
+
+Winter-PI-Object-Deck.card
+    Loadable object card deck for the Winter-PI program.
+
+Winter-PI-Shell.lst
+    Assembler listing of the Winter-PI-Shell.card program, followed by
+    the output of the program to the Flexowriter.
+
 
 Paul Kimpel
 February 2017
+
 

@@ -85,7 +85,7 @@
 (function (global) {
     /* Define a closure for the setCallback() mechanism */
     var delayDev = {NUL: 0};            // hash of delay time deviations by category
-    var minTimeout = 4.1;               // minimum setTimeout() threshold, milliseconds
+    var minTimeout = 4;                 // minimum setTimeout() threshold, milliseconds
     var lastTokenNr = 0;                // last setCallback token return value
     var pendingCallbacks = {};          // hash of pending callbacks, indexed by token as a string
     var perf = global.performance;      // cached window.performance object

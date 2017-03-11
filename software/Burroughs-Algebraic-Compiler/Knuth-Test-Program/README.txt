@@ -28,9 +28,10 @@ Knuth-Algol-205-Test-Reformatted.card
 Knuth-Algol-205-Test-List-Recovered.lst
     Listing of the test program, as compiled by the "recovered"
     compiler that was transcribed from Professor Knuth's listing on the
-    Computer History Museum web site. This listing includes the
-    generated object code for the program, less the code that would
-    have been generated for the missing run-time libraries.
+    Computer History Museum web site (see /software/Knuth-ALGOL-58/).
+    This listing includes the generated object code for the program,
+    less the code that would have been generated for the missing
+    run-time libraries.
 
 Knuth-Algol-205-Test-List-BEGINEND.lst
     Listing of the BEGINEND version of the test program, as compiled by
@@ -42,7 +43,11 @@ Knuth-Algol-205-Test-List-BEGINEND.lst
     listing was arbitrarily cut off after address 4099, as at that point
     the code being generated is probably meaningless.
 
+Knuth-Algol-205-Test-Punched-Object.card
+    The object deck punched by the "recovered" compiler.
+
 
 Paul Kimpel
 February 2017
+
 

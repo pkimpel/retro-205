@@ -1,0 +1,94 @@
+2  PI SPIGOT ALGORITHM - ELECTRODATA DATATRON 205      021317
+1        LOC  CTL  REM  TADR  INC  REMARKS                                 SEQ
+1                  REM             CALCULATE 800 DIGITS OF PI
+1                  REM             FROM DIK T. WINTER AT CWI
+1                  REM
+1                  ORG    0000
+1                  PTWF   0500     START FLEX ON NEW LINE
+1                  BT4   A         LOAD SCALARS TO LOOP 4
+1                  TAG  4
+1                  CUB  X     +0001
+1                  CAD   FLIM
+1                  ST    C         C=2800
+1                  CAD   A
+1                  SR     0010     SHIFT DIVIDEND
+1                  DIV   FIVE      RA=A DIV 5
+1                  SB    FLIM
+1             1    ST   XF         F(B)=A DIV 5
+1                  DB   7     -0001
+1        L1        CUB  X     +0001BLOCK TO MAIN LOOP
+1                  CAD   C
+1                  M     TWO       C*2
+1                  SL     0010     SHIFT PRODUCT
+1                  ST    G         G=C*2
+1                  NOR  XENDL1     G EQL 0, EXIT LOOP
+1                  CAD   C
+1                  STC   B         B=C
+1                  ST    D         D=0
+1                  SB    B
+1        DO        CUB  X     +0001BLOCK INNER LOOP
+1             1    CAD  XF         LOAD F(B)
+1                  M     A         F(B)*A
+1                  SL     0010     SHIFT PRODUCT TO RA
+1                  AD    D         D+F(B)*A
+1                  ST    D         D=D+F(B)*A
+1                  SR     0010     SAVE D IN RR
+1                  CAD   G
+1                  SU    ONE
+1                  STC   G         G=G-1, RA=0
+1                  DIV   G         RA=D DIV G,RR=D MOD G
+1                  ST    D         D=D DIV G
+1                  SL     0010     SHIFT REMAINDER TO RA
+1             1    ST   XF         F(B)=D MOD G
+1                  CUB  X     +0001BLOCK MORE INNER
+1                  CAD   G
+1                  SU    ONE
+1                  ST    G         G=G-1
+1                  CAD   B
+1                  SU    ONE
+1                  ST    B         B=B-1
+1                  CNZ  7     +0002
+1                  CU   XENDDO     IF B=0, EXIT LOOP
+1                  M     D         D*B
+1                  SL     0010     SHIFT PRODUCT
+1                  ST    D         RA=D=D*B
+1                  DB   XDO        DEC RB, BRANCH
+1        ENDDO     CAD   C
+1                  SU    N14
+1                  ST    C         C=C-14
+1                  CUB  X     +0001BLOCK END OF MAIN LOOP
+1                  CAD   D
+1                  SR     0010
+1                  DIV   A
+1                  AD    E         RA=E+D DIV A
+1                  CIRA   0005     SHIFT FOR OUTPUT
+1                  PTW    8304     OUTPUT 4 DIGITS
+1                  SL     0010     SHIFT REMAINDER
+1                  ST    E         E=D MOD A
+1                  CAD   COL
+1                  AD    FIVE
+1                  ST    COL       COL=COL+1
+1                  SU    ECOL      COL EQL ECOL
+1                  CNZ  7NEXT      NO, BRANCH TO CUB
+1                  PTWF   0500     YES, PRINT NEW LINE
+1                  PTWF   0500     DOUBLE SPACE
+1                  ST    COL       COL=0
+1        NEXT      CUB  XL1        REPEAT MAIN LOOP
+1        ENDL1     STOP   7557
+1                  REM             SCALARS
+1        A         NUM        10000
+1        B         NUM
+1        C         NUM
+1        D         NUM
+1        E         NUM
+1        G         NUM
+1        COL       NUM
+1        ECOL      NUM           50
+1        FLIM      NUM         2800
+1        ONE       NUM            1
+1        TWO       NUM            2
+1        FIVE      NUM            5
+1        N14       NUM           14
+1                  ORG    1000
+1        F         REG    2800     ARRAY F
+1                  END    0000

@@ -98,7 +98,7 @@ D205DataFile.prototype.blockLength = D205DataFile.prototype.blockWords*12/D205Da
 D205DataFile.prototype.startupTime = 6; // tape start time [ms]
 D205DataFile.prototype.searchTurnaroundTime = 21;
                                         // tape turnaround time after a successful search [ms]
-D205DataFile.prototype.rewindSpeed = 0.6; // D205DataFile.prototype.tapeSpeed;
+D205DataFile.prototype.rewindSpeed = 0.6; // should be D205DataFile.prototype.tapeSpeed
                                         // rewind speed [inches/ms] - DataFile does not have high-speed rewind
 D205DataFile.prototype.reelCircumference = 10*Math.PI;
                                         // max circumference of tape [inches]
@@ -650,7 +650,7 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
         this.window.focus();
         this.buildBins();
         this.selectLane(this.maxLanes-1, function() {
-            this.selectLane(Math.round(this.maxLanes/2), function() {
+            this.selectLane(Math.round(this.maxLanes/2), function selectSuccessor() {
                 this.setTapeReady(this.remote);
             });
         });

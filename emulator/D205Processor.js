@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "0.06d";
+D205Processor.version = "1.00";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -171,7 +171,7 @@ D205Processor.wordTime = 60000/D205Processor.drumRPM/D205Processor.trackSize;
                                         // one word time, about 0.084 ms at 3570rpm (=> 142.8 KHz)
 D205Processor.wordsPerMilli = 1/D205Processor.wordTime;
                                         // word times per millisecond
-D205Processor.memSetupTime = 3;         // word times to set up a memory access
+D205Processor.memSetupTime = 2;         // word times to set up a memory access
 
 D205Processor.neonPersistence = 1000/30;
                                         // persistence of neon bulb glow [ms]
@@ -615,11 +615,11 @@ D205Processor.prototype.sampleLamps = function sampleLamps(alpha, memAlpha) {
                 this.togT0)*2 +
                 this.togBKPT)*2 +
                 this.togZCT)*2 +
-                this.togASYNC)*16 +
+                this.togASYNC)*0x10 +
                 this.SHIFTCONTROL)*2 +
                 this.togMT3P)*2 +
                 this.togMT1BV4)*2 +
-                this.togMT1BV5)*32 +
+                this.togMT1BV5)*0x20 +
                 this.SHIFT);
 
     // Decay the memory toggles if no memory access is in progress
@@ -657,7 +657,10 @@ D205Processor.prototype.updateLampGlow = function updateLampGlow(drumTime) {
 D205Processor.prototype.startMemoryTiming = function startMemoryTiming(
         drumTime, latency, words, cbCategory, successor, finish, finishParam) {
     /* Starts the necessary timers for the memory toggles to aid in their
-    display on the panels. Note that "drumTime" is in units of word-times */
+    display on the panels. Then delays the amount of time required for drum
+    latency, data transfer, and amount necessary to bring the processor internal
+    time back in sync with real-world time. Note that "drumTime" is in units of
+    word-times */
 
     this.updateLampGlow(drumTime);
     this.memoryStartTime = drumTime;
@@ -944,12 +947,11 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
 
     this.togCOMPL = 0;
     for (x=0; x<10; ++x) {
-        rc = rd = rm % 0x10;
-        count += rc;
-        while (rc > 0) {
+        rd = rm % 0x10;
+        count += rd;
+        for (rc=rd; rc>0; --rc) {
             am = this.bcdAdd(am, dm, 0, 0);
-            --rc;
-        } // while rd
+        }
 
         ad = am % 0x10;
         am = (am-ad)/0x10;

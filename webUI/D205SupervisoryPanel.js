@@ -211,10 +211,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             bit = 0;
         } else if (ix > 0) {
             reg = id.substring(0, ix);
-            bit = parseInt(id.substring(ix+1));
-            if (isNaN(bit)) {
-                bit = 0;
-            }
+            bit = parseInt(id.substring(ix+1)) || 0;
         }
 
         switch (reg) {

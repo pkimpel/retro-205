@@ -17,6 +17,14 @@ Arithmetic1dollar.tape
     Tape image of object code produced by compiling
     Arithmetic1dollar.card using Algol58_Tape_TomSawyer.tape.
 
+ArithmeticPrime.card
+    A short Algol program written by Tom Sawyer to evaluate performance
+    of the emulator by computing prime numbers.
+
+ArithmeticPrimeProc.card
+    A modified version of ArithmeticPrime.card that uses an internal
+    procedure.
+
 Appendix-C-Example.card
     Source deck for a more complex Algol program, from Appendix C of
     "The Burroughs Algebraic Compiler for the 205 Programmer's Manual"
@@ -47,15 +55,25 @@ Algol58Arithmetic2.pt
     can process that line.
 
 FLOAT-Test.card
-    A small Algol program to test the fixed-to-float conversion library
-    intrinsic function. This program requires Tom Sawyer's corrections
-    to the tape overlay transcription of 31 January 2017.
+    A small Algol program written by Tom Sawyer to test the fixed-to-
+    float conversion library intrinsic function. This program requires
+    Tom Sawyer's corrections to the tape overlay transcription of 31
+    January 2017.
 
 FLOAT-Test.lst
     Compiler listing produced from FLOAT-Test.card.
 
+PCS-1-Test.card
+    A small Algol program written by Tom Sawyer to test the PCS(1)
+    proposition in the compiler.
+
+FLOAT-Test.lst
+    Compiler listing produced from PCS-1-Test.card.
+
 
 Paul Kimpel
 February 2017
+
+
 
 
