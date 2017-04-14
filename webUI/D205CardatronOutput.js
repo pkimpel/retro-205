@@ -680,7 +680,7 @@ D205CardatronOutput.prototype.COSetZSBtn_onClick = function COSetZSBtn_onClick(e
         $$$("COZSColumnList").focus();
     }
 
-    // Outer block of loadTape
+    // Outer block of COSetZSBtn_onClick
     if (this.zsWindow && !this.zsWindow.closed) {
         this.zsWindow.close();
     }
@@ -760,7 +760,7 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad() {
     this.window.addEventListener("beforeunload",
             D205CardatronOutput.prototype.beforeUnload, false);
     this.supply.addEventListener("dblclick",
-            D205Processor.bindMethod(this, D205CardatronOutput.prototype.copySupply));
+            D205Util.bindMethod(this, D205CardatronOutput.prototype.copySupply));
     this.$$("COStopBtn").addEventListener("click",
             D205Util.bindMethod(this, D205CardatronOutput.prototype.COStopBtn_onClick), false);
     this.$$("COStartBtn").addEventListener("click",

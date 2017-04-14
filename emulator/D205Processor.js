@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.00";
+D205Processor.version = "1.00a";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -692,8 +692,6 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
     tg.glowL5 =     tg.glowL5*alpha1 +     this.memL5*alpha;
     tg.glowL6 =     tg.glowL6*alpha1 +     this.memL6*alpha;
     tg.glowL7 =     tg.glowL7*alpha1 +     this.memL7*alpha;
-
-    if (isNaN(tg.glowMAIN)) {debugger}
 
     this.memoryStopTime = drumTime;
     this.memoryStartTime =
@@ -2392,6 +2390,9 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
         }
     }
 
+    //>>>> DEBUG <<<<
+    //console.log("Fetch Compl " + this.C.toString(16) + " " + performance.now());
+
     // If we're not halted and either console has started in Continuous mode, continue
     if (this.togCST || !(this.sswStepContinuous || this.cctContinuous)) {
         this.stop();
@@ -2407,6 +2408,9 @@ D205Processor.prototype.fetch = function fetch() {
     /* Implements the Fetch cycle of the 205 processor. This is initiated either
     by pressing START on one of the consoles with the Timing Toggle=1 (Fetch),
     or by the prior Operation Complete if the processor is in continuous mode */
+
+    //>>>> DEBUG <<<<
+    //console.log("Fetch Start " + this.C.toString(16) + " " + performance.now());
 
     this.CADDR = this.C % 0x100000000;  // C operand and control addresses
     this.CCONTROL = this.CADDR % 0x10000; // C control address

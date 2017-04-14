@@ -285,13 +285,13 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
 
     function selectLaneFinish() {
         this.timer = 0;
-        this.laneNr = laneNr;
-        this.binNr = newBinNr;
-        this.showLaneNr();
         successor.call(this);
     }
 
     function latchHead() {
+        this.binNr = newBinNr;
+        this.laneNr = laneNr;
+        this.showLaneNr();
         this.blockNr = this.binBlockNr[newBinNr];
         this.showBlockNr();
         this.tapeHead.style.bottom = this.headLatchedBottom.toFixed(0) + "px";
@@ -439,7 +439,7 @@ D205DataFile.prototype.unitRewind = function unitRewind() {
         this.setTapeReady(false);
         this.designatedLamp.set(0);
         D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
-        this.selectLane(1, rewindStart);
+        this.selectLane(0, rewindStart);
     }
 };
 
@@ -610,6 +610,10 @@ D205DataFile.prototype.buildBins = function buildBins() {
         meter.style.height = (blockNr*100/this.maxTapeBlocks).toFixed(1) + "%";
         bin.appendChild(meter);
     }
+
+    this.binNr = 0;
+    this.laneNr = 0;
+    this.blockNr = this.binBlockNr[0];
 };
 
 /**************************************/

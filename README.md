@@ -12,7 +12,7 @@ The contents of this project are licensed under the [MIT License](http://www.ope
 
 | Related Sites | URL |
 | ------------- | ----- |
-| Emulator hosting site | http://www.phkimpel.us/ElectroData/205/ |
+| Emulator hosting site | http://www.phkimpel.us/ElectroData-205/ |
 | Tom Sawyer's 205 & 220 blog | http://datatron.blogspot.com/ |
 | Tom Sawyer's 205 web site | http://tjsawyer.com/b205home.php |
 | Documents at bitsavers | http://bitsavers.org/pdf/burroughs/electrodata/205/ |

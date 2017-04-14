@@ -427,6 +427,7 @@ function BlackControlKnob(parent, x, y, id, initial, positions) {
 BlackControlKnob.topCaptionClass = "blackControlKnobTopCaption";
 BlackControlKnob.bottomCaptionClass = "blackControlKnobBottomCaption";
 BlackControlKnob.className = "blackControlKnob1";
+BlackControlKnob.canvasColor = "transparent";
 BlackControlKnob.size = 64;             // width/height in pixels
 
 /**************************************/
@@ -459,7 +460,7 @@ BlackControlKnob.prototype.set = function set(position) {
     dc.save();
     dc.translate(halfSize+0.5, halfSize+0.5);   // move origin to the center
 
-    dc.fillStyle = "#246";                      // fill in the panel background (aids antialiasing)
+    dc.fillStyle = BlackControlKnob.canvasColor;// fill in the panel background (aids antialiasing)
     dc.fillRect(-halfSize, -halfSize, BlackControlKnob.size, BlackControlKnob.size);
 
     silverSkirt = dc.createRadialGradient(0, 0, halfSize, 0, 0, quarterSize);
@@ -484,7 +485,7 @@ BlackControlKnob.prototype.set = function set(position) {
     dc.save();                                  // draw the knob indicator
     dc.rotate(this.positions[this.position]*degrees);
     dc.beginPath();
-    dc.moveTo(0, -halfSize);
+    dc.moveTo(0, 1-halfSize);
     dc.lineTo(-quarterSize/4, -halfSize+quarterSize/2);
     dc.lineTo(quarterSize/4, -halfSize+quarterSize/2);
     dc.closePath();
@@ -523,10 +524,10 @@ BlackControlKnob.prototype.setCaption = function setCaption(caption, atBottom) {
         e = document.createElement("div");
         if (atBottom) {
             this.bottomCaptionDiv = e;
-            e.className = blackControlKnob.bottomCaptionClass;
+            e.className = BlackControlKnob.bottomCaptionClass;
         } else {
             this.topCaptionDiv = e;
-            e.className = blackControlKnob.topCaptionClass;
+            e.className = BlackControlKnob.topCaptionClass;
         }
         e.appendChild(document.createTextNode(caption));
         this.element.appendChild(e);

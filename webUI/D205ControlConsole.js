@@ -24,7 +24,7 @@ function D205ControlConsole(p) {
     this.intervalToken = 0;             // setInterval() token
     this.p = p;                         // D205Processor object
 
-    this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
+    this.boundKeypress = D205Util.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
     this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);

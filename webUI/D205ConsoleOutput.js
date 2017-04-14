@@ -38,7 +38,7 @@ function D205ConsoleOutput(mnemonic, p) {
         this.flexCol = 0;
         this.flexWin = window.open("../webUI/D205Flexowriter.html", "Flexowriter",
                 "location=no,scrollbars=no,resizable,width=668,height=370,left=0,top=0");
-        this.flexWin.addEventListener("load", D205Processor.bindMethod(this,
+        this.flexWin.addEventListener("load", D205Util.bindMethod(this,
                 D205ConsoleOutput.prototype.flexOnload));
     }
 
@@ -49,7 +49,7 @@ function D205ConsoleOutput(mnemonic, p) {
         this.punchEOP = null;
         this.punchWin = window.open("../webUI/D205PaperTapePunch.html", "PaperTapePunch",
                 "location=no,scrollbars=no,resizable,width=290,height=100,left=0,top=430");
-        this.punchWin.addEventListener("load", D205Processor.bindMethod(this,
+        this.punchWin.addEventListener("load", D205Util.bindMethod(this,
                 D205ConsoleOutput.prototype.punchOnload));
     }
 }
@@ -98,7 +98,7 @@ D205ConsoleOutput.prototype.clear = function clear() {
 /**************************************/
 D205ConsoleOutput.prototype.resetCounters = function resetCounters() {
     /* Resets the grouping counters and turns on the Reset lamp. If the carriage
-    is not at the left margine, a new-line is issued. If there is pending output
+    is not at the left margin, a new-line is issued. If there is pending output
     function that was stopped earlier, it is now called */
     var outputFcn;
     var signalOK;
@@ -224,7 +224,7 @@ D205ConsoleOutput.prototype.button_Click = function button_Click(ev) {
     case "ResetBtn":
         this.resetCounters();
         break;
-    } // switch ev.target.it
+    } // switch ev.target.id
 
     ev.preventDefault();
     ev.stopPropagation();
@@ -314,9 +314,9 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     this.flexWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);
     this.flexWin.addEventListener("resize",
-            D205Processor.bindMethod(this, D205ConsoleOutput.prototype.flexResizeWindow));
+            D205Util.bindMethod(this, D205ConsoleOutput.prototype.flexResizeWindow));
     this.flexPaper.addEventListener("dblclick",
-            D205Processor.bindMethod(this, D205ConsoleOutput.prototype.flexCopyPaper));
+            D205Util.bindMethod(this, D205ConsoleOutput.prototype.flexCopyPaper));
 
     this.flex$$("ResetBtn").addEventListener("click", this.boundButton_Click);
 
@@ -423,9 +423,9 @@ D205ConsoleOutput.prototype.punchOnload = function punchOnload() {
     this.punchWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);
     this.punchWin.addEventListener("resize",
-            D205Processor.bindMethod(this, D205ConsoleOutput.prototype.punchResizeWindow));
+            D205Util.bindMethod(this, D205ConsoleOutput.prototype.punchResizeWindow));
     this.punchTape.addEventListener("dblclick",
-            D205Processor.bindMethod(this, D205ConsoleOutput.prototype.punchCopyTape));
+            D205Util.bindMethod(this, D205ConsoleOutput.prototype.punchCopyTape));
 
     //this.punchWin.moveTo(screen.availWidth-this.punchWin.outerWidth,
     //                   screen.availHeight-this.punchWin.outerHeight);
