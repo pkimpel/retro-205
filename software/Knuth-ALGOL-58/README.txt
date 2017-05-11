@@ -116,13 +116,8 @@ Appendix-C-Compile.lst
     Appendix-C-Example.card.
 
 Knuth-Test-Program/
-    Card decks and listing for a program to test the Algol-58 compiler.
-    A copy of the original listing was kindly provided to the project
-    by Professor Knuth. See the README.txt file in this folder for
-    details.
+    (moved to /retro-205/software/Burroughs-Algebraic-Compiler).
 
 
 Paul Kimpel
-December 2016
-
-
+February 2017

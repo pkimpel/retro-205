@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205ConsoleInput.js
+* retro-205/webUI D205ConsoleInput.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -37,7 +37,7 @@ function D205ConsoleInput(mnemonic, p) {
         this.window = window.open("../webUI/D205PaperTapeReader.html", mnemonic,
                 "location=no,scrollbars=no,resizable,width=370,height=100,left=300,top=430");
         this.window.addEventListener("load",
-                D205Processor.bindMethod(this, D205ConsoleInput.prototype.readerOnload), false);
+                D205Util.bindMethod(this, D205ConsoleInput.prototype.readerOnload), false);
         }
 }
 
@@ -152,9 +152,9 @@ D205ConsoleInput.prototype.readerOnload = function readerOnload() {
     this.window.addEventListener("beforeunload",
             D205ConsoleInput.prototype.beforeUnload, false);
     this.$$("PRFileSelector").addEventListener("change",
-            D205Processor.bindMethod(this, D205ConsoleInput.prototype.fileSelector_onChange));
+            D205Util.bindMethod(this, D205ConsoleInput.prototype.fileSelector_onChange));
     this.tapeSupplyBar.addEventListener("click",
-            D205Processor.bindMethod(this, D205ConsoleInput.prototype.PRTapeSupplyBar_onclick));
+            D205Util.bindMethod(this, D205ConsoleInput.prototype.PRTapeSupplyBar_onclick));
 
     this.window.resizeBy(de.scrollWidth - this.window.innerWidth + 4, // kludge for right-padding/margin
                          de.scrollHeight - this.window.innerHeight);

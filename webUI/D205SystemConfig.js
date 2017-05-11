@@ -5,7 +5,7 @@
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
-* D205 System Configuration management object.
+* ElectroData/Burroughs Emulator 205 System Configuration management object.
 *
 * Defines the system configuration used internally by the emulator and the
 * methods used to manage that configuration data.

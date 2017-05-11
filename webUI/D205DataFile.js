@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205DataFile.js
+* retro-205/webUI D205DataFile.js
 ************************************************************************
 * Copyright (c) 2016, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -98,7 +98,7 @@ D205DataFile.prototype.blockLength = D205DataFile.prototype.blockWords*12/D205Da
 D205DataFile.prototype.startupTime = 6; // tape start time [ms]
 D205DataFile.prototype.searchTurnaroundTime = 21;
                                         // tape turnaround time after a successful search [ms]
-D205DataFile.prototype.rewindSpeed = 0.6; // D205DataFile.prototype.tapeSpeed;
+D205DataFile.prototype.rewindSpeed = 0.6; // should be D205DataFile.prototype.tapeSpeed
                                         // rewind speed [inches/ms] - DataFile does not have high-speed rewind
 D205DataFile.prototype.reelCircumference = 10*Math.PI;
                                         // max circumference of tape [inches]
@@ -285,13 +285,13 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
 
     function selectLaneFinish() {
         this.timer = 0;
-        this.laneNr = laneNr;
-        this.binNr = newBinNr;
-        this.showLaneNr();
         successor.call(this);
     }
 
     function latchHead() {
+        this.binNr = newBinNr;
+        this.laneNr = laneNr;
+        this.showLaneNr();
         this.blockNr = this.binBlockNr[newBinNr];
         this.showBlockNr();
         this.tapeHead.style.bottom = this.headLatchedBottom.toFixed(0) + "px";
@@ -365,10 +365,12 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
 };
 
 /**************************************/
-D205DataFile.prototype.tapeRewind = function tapeRewind() {
-    /* Rewinds the tape. Makes the drive not-ready and delays for an appropriate
-    amount of time depending on how far up-tape we are. If the unit is in remote,
-    then readies the unit again when the rewind is complete */
+D205DataFile.prototype.unitRewind = function unitRewind() {
+    /* Rewinds all tapes in the DataFile unit to block 0000. Makes the drive
+    not-ready, and for each tape, delays for an appropriate amount of time
+    depending on how far up-tape we are. Note that this operation can be
+    initiated even if the unit is presently in remote. If the unit is in
+    remote, then readies the unit again after the rewind is complete */
     var binNr;
     var lastStamp;
     var tapeInches;
@@ -405,7 +407,7 @@ D205DataFile.prototype.tapeRewind = function tapeRewind() {
 
         if (this.tapeState != this.tapeRewinding) {
             this.binBlockNr[binNr] = this.blockNr;      // STOP REWIND was clicked
-            this.selectLane(0, rewindFinish);   
+            this.selectLane(0, rewindFinish);
         } else if (tapeInches <= 0) {
             laneFinish.call(this);
         } else {
@@ -437,7 +439,7 @@ D205DataFile.prototype.tapeRewind = function tapeRewind() {
         this.setTapeReady(false);
         this.designatedLamp.set(0);
         D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
-        this.selectLane(1, rewindStart);
+        this.selectLane(0, rewindStart);
     }
 };
 
@@ -447,7 +449,7 @@ D205DataFile.prototype.RewindBtn_onclick = function RewindBtn_onclick(ev) {
     /* Handle the click event for the REWIND button */
 
     if (!this.busy && this.tapeState != this.tapeRewinding) {
-        this.tapeRewind();
+        this.unitRewind();
     }
 };
 
@@ -608,6 +610,10 @@ D205DataFile.prototype.buildBins = function buildBins() {
         meter.style.height = (blockNr*100/this.maxTapeBlocks).toFixed(1) + "%";
         bin.appendChild(meter);
     }
+
+    this.binNr = 0;
+    this.laneNr = 0;
+    this.blockNr = this.binBlockNr[0];
 };
 
 /**************************************/
@@ -635,12 +641,12 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
     this.notWriteLamp = new ColoredLamp(body, null, null, "NotWriteLamp", "orangeLamp", "orangeLit");
 
     this.remoteSwitch = new ToggleSwitch(body, null, null, "RemoteSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.remote = prefs.remoteSwitch;
     this.remoteSwitch.set(this.remote ? 1 : 0);
 
     this.notWriteSwitch = new ToggleSwitch(body, null, null, "NotWriteSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.notWrite = prefs.notWriteSwitch;
     this.notWriteSwitch.set(this.notWrite ? 1 : 0);
 
@@ -648,7 +654,7 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
         this.window.focus();
         this.buildBins();
         this.selectLane(this.maxLanes-1, function() {
-            this.selectLane(Math.round(this.maxLanes/2), function() {
+            this.selectLane(Math.round(this.maxLanes/2), function selectSuccessor() {
                 this.setTapeReady(this.remote);
             });
         });

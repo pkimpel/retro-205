@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/D205SupervisoryPanel.js
+* retro-205/webUI D205SupervisoryPanel.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -41,8 +41,8 @@ function D205SupervisoryPanel(p, systemShutdown) {
 
 /**************************************/
 D205SupervisoryPanel.displayRefreshPeriod = 50;   // milliseconds
-D205SupervisoryPanel.offSwitchClass = "./resources/ToggleDown.png";
-D205SupervisoryPanel.onSwitchClass = "./resources/ToggleUp.png";
+D205SupervisoryPanel.offSwitchImage = "./resources/ToggleDown.png";
+D205SupervisoryPanel.onSwitchImage = "./resources/ToggleUp.png";
 
 /**************************************/
 D205SupervisoryPanel.prototype.$$ = function $$(e) {
@@ -211,39 +211,36 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             bit = 0;
         } else if (ix > 0) {
             reg = id.substring(0, ix);
-            bit = parseInt(id.substring(ix+1));
-            if (isNaN(bit)) {
-                bit = 0;
-            }
+            bit = parseInt(id.substring(ix+1)) || 0;
         }
 
         switch (reg) {
         case "A":
-            p.A = p.bitFlip(p.A, bit);
+            p.A = D205Processor.bitFlip(p.A, bit);
             this.regA.update(p.A);
             break;
         case "B":
-            p.B = p.bitFlip(p.B, bit);
+            p.B = D205Processor.bitFlip(p.B, bit);
             this.regB.update(p.B);
             break;
         case "C":
-            p.C = p.bitFlip(p.C, bit);
+            p.C = D205Processor.bitFlip(p.C, bit);
             this.regC.update(p.C);
             break;
         case "D":
-            p.D = p.bitFlip(p.D, bit);
+            p.D = D205Processor.bitFlip(p.D, bit);
             this.regD.update(p.D);
             break;
         case "R":
-            p.R = p.bitFlip(p.R, bit);
+            p.R = D205Processor.bitFlip(p.R, bit);
             this.regR.update(p.R);
             break;
         case "ADD":
-            p.ADDER = p.bitFlip(p.ADDER, bit);
+            p.ADDER = D205Processor.bitFlip(p.ADDER, bit);
             this.regAdder.update(p.ADDER);
             break;
         case "CT":
-            p.CT = p.bitFlip(p.CT, bit);
+            p.CT = D205Processor.bitFlip(p.CT, bit);
             this.regCarry.update(p.CT);
             break;
         case "TWA":
@@ -261,7 +258,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             case 2:
             case 3:
             case 4:
-                p.SHIFT = p.bitFlip(p.SHIFT, bit);
+                p.SHIFT = D205Processor.bitFlip(p.SHIFT, bit);
                 break;
             case 5:
                 p.togMT1BV5 ^= 1;
@@ -276,7 +273,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             case 9:
             case 10:
             case 11:
-                p.SHIFTCONTROL = p.bitFlip(p.SHIFTCONTROL, bit-8);
+                p.SHIFTCONTROL = D205Processor.bitFlip(p.SHIFTCONTROL, bit-8);
                 break;
             case 12:
                 p.togASYNC ^= 1;
@@ -354,7 +351,7 @@ D205SupervisoryPanel.prototype.lamp_Click = function lamp_Click(ev) {
             case 37:
             case 38:
             case 39:
-                p.SPECIAL = p.bitFlip(p.SPECIAL, bit-36);
+                p.SPECIAL = D205Processor.bitFlip(p.SPECIAL, bit-36);
                 break;
             } // switch bit
 
@@ -421,11 +418,11 @@ D205SupervisoryPanel.prototype.powerBtn_Click = function powerBtn_Click(ev) {
     /* Handler for the START button: begins execution for the current cycle */
 
     switch(ev.target.id) {
-    case "PowerOnBtn":
-        this.powerOnSystem();
-        break;
     case "PowerOffBtn":
         this.powerOffSystem();
+        break;
+    case "PowerOnBtn":
+        this.powerOnSystem();
         break;
     }
     this.updatePanel();
@@ -681,22 +678,22 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     // Switches & Knobs
 
     this.pulseSourceSwitch = new ToggleSwitch(body, null, null, "PulseSourceSwitch",
-            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
+            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.pulseSourceSwitch.set(prefs.pulseSourceSwitch);
     this.wordContSwitch = new ToggleSwitch(body, null, null, "WordContSwitch",
-            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
+            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.wordContSwitch.set(prefs.wordContSwitch);
     this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob",
         prefs.frequencyKnob, [-60, -30, 0, 30, 60]);
 
     this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
-            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
+            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
     this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch",
-            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
+            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.lockNormalSwitch.set(this.p.sswLockNormal = prefs.lockNormalSwitch);
     this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch",
-            D205SupervisoryPanel.offSwitchClass, D205SupervisoryPanel.onSwitchClass);
+            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.stepContinuousSwitch.set(this.p.sswStepContinuous = prefs.stepContinuousSwitch);
 
     // Events

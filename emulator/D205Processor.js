@@ -157,10 +157,12 @@ function D205Processor(config, devices) {
     this.loadDefaultProgram();          // Preload a default program
 }
 
-/**************************************/
 
-/* Global constants */
-D205Processor.version = "0.06a";
+/***********************************************************************
+*   Global Constants                                                   *
+***********************************************************************/
+
+D205Processor.version = "1.00a";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -169,6 +171,8 @@ D205Processor.wordTime = 60000/D205Processor.drumRPM/D205Processor.trackSize;
                                         // one word time, about 0.084 ms at 3570rpm (=> 142.8 KHz)
 D205Processor.wordsPerMilli = 1/D205Processor.wordTime;
                                         // word times per millisecond
+D205Processor.memSetupTime = 2;         // word times to set up a memory access
+
 D205Processor.neonPersistence = 1000/30;
                                         // persistence of neon bulb glow [ms]
 D205Processor.maxGlowTime = D205Processor.neonPersistence*D205Processor.wordsPerMilli;
@@ -209,6 +213,167 @@ D205Processor.mask2 = [ // (2**n)-1 for n from 0 to 52
           0x0FFFFFFFFFFF,   0x1FFFFFFFFFFF,   0x3FFFFFFFFFFF  , 0x7FFFFFFFFFFF,
          0x0FFFFFFFFFFFF,  0x1FFFFFFFFFFFF,  0x3FFFFFFFFFFFF,  0x7FFFFFFFFFFFF,
         0x0FFFFFFFFFFFFF] ;
+
+
+/***********************************************************************
+*   Utility Functions                                                  *
+***********************************************************************/
+
+/**************************************/
+D205Processor.bindMethod = function bindMethod(context, f) {
+    /* Returns a new function that binds the function "f" to the object "context".
+    Note that this is a static constructor property function, NOT an instance
+    method of the CC object */
+
+    return function bindMethodAnon() {return f.apply(context, arguments)};
+};
+
+/**************************************/
+D205Processor.bcdBinary = function bcdBinary(v) {
+    /* Converts the BCD value "v" to a binary number and returns it */
+    var d;
+    var power = 1;
+    var result = 0;
+
+    while(v) {
+        d = v % 0x10;
+        result += d*power;
+        power *= 10;
+        v = (v-d)/0x10;
+    }
+    return result;
+};
+
+/**************************************/
+D205Processor.binaryBCD = function binaryBCD(v) {
+    /* Converts the binary value "v" to a BCD number and returns it */
+    var d;
+    var power = 1;
+    var result = 0;
+
+    while(v) {
+        d = v % 10;
+        result += d*power;
+        power *= 0x10;
+        v = (v-d)/10;
+    }
+    return result;
+};
+
+
+/***********************************************************************
+*   Bit and Field Manipulation Functions                               *
+***********************************************************************/
+
+/**************************************/
+D205Processor.bitTest = function bitTest(word, bit) {
+    /* Extracts and returns the specified bit from the word */
+    var p;                              // bottom portion of word power of 2
+
+    if (bit > 0) {
+        return ((word - word % (p = D205Processor.pow2[bit]))/p) % 2;
+    } else {
+        return word % 2;
+    }
+};
+
+/**************************************/
+D205Processor.bitSet = function bitSet(word, bit) {
+    /* Sets the specified bit in word and returns the updated word */
+    var ue = bit+1;                     // word upper power exponent
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[bit];
+    var bottom =                        // unaffected bottom portion of word
+        (bit <= 0 ? 0 : (word % bpower));
+    var top =                           // unaffected top portion of word
+        word - (word % D205Processor.pow2[ue]);
+
+    return bpower + top + bottom;
+};
+
+/**************************************/
+D205Processor.bitReset = function bitReset(word, bit) {
+    /* Resets the specified bit in word and returns the updated word */
+    var ue = bit+1;                     // word upper power exponent
+    var bottom =                        // unaffected bottom portion of word
+        (bit <= 0 ? 0 : (word % D205Processor.pow2[bit]));
+    var top =                           // unaffected top portion of word
+        word - (word % D205Processor.pow2[ue]);
+
+    return top + bottom;
+};
+
+/**************************************/
+D205Processor.bitFlip = function bitFlip(word, bit) {
+    /* Complements the specified bit in word and returns the updated word */
+    var ue = bit+1;                     // word upper power exponent
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[bit];
+    var bottom =                        // unaffected bottom portion of word
+        (bit <= 0 ? 0 : (word % bpower));
+    var middle =                        // bottom portion of word starting with affected bit
+        word % D205Processor.pow2[ue];
+    var top = word - middle;            // unaffected top portion of word
+
+    if (middle >= bpower) {             // if the affected bit is a one
+        return top + bottom;                // return the result with it set to zero
+    } else {                            // otherwise
+        return bpower + top + bottom;       // return the result with it set to one
+    }
+};
+
+/**************************************/
+D205Processor.fieldIsolate = function fieldIsolate(word, start, width) {
+    /* Extracts a bit field [start:width] from word and returns the field */
+    var le = start-width+1;             // lower power exponent
+    var p;                              // bottom portion of word power of 2
+
+    return (le <= 0 ? word :
+                      (word - word % (p = D205Processor.pow2[le]))/p
+            ) % D205Processor.pow2[width];
+};
+
+/**************************************/
+D205Processor.fieldInsert = function fieldInsert(word, start, width, value) {
+    /* Inserts a bit field from the low-order bits of value ([48-width:width])
+    into word.[start:width] and returns the updated word */
+    var ue = start+1;                   // word upper power exponent
+    var le = ue-width;                  // word lower power exponent
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[le];
+    var bottom =                        // unaffected bottom portion of word
+        (le <= 0 ? 0 : (word % bpower));
+    var top =                           // unaffected top portion of word
+        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
+
+    return (value % D205Processor.pow2[width])*bpower + top + bottom;
+};
+
+/**************************************/
+D205Processor.fieldTransfer = function fieldTransfer(word, wstart, width, value, vstart) {
+    /* Inserts a bit field from value.[vstart:width] into word.[wstart:width] and
+    returns the updated word */
+    var ue = wstart+1;                  // word upper power exponent
+    var le = ue-width;                  // word lower power exponent
+    var ve = vstart-width+1;            // value lower power exponent
+    var vpower;                         // bottom port of value power of 2
+    var bpower =                        // bottom portion of word power of 2
+        D205Processor.pow2[le];
+    var bottom =                        // unaffected bottom portion of word
+        (le <= 0 ? 0 : (word % bpower));
+    var top =                           // unaffected top portion of word
+        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
+
+    return ((ve <= 0 ? value :
+                       (value - value % (vpower = D205Processor.pow2[ve]))/vpower
+                ) % D205Processor.pow2[width]
+            )*bpower + top + bottom;
+};
+
+
+/***********************************************************************
+*   System Clear                                                       *
+***********************************************************************/
 
 /**************************************/
 D205Processor.prototype.clear = function clear() {
@@ -335,51 +500,6 @@ D205Processor.prototype.clearControl = function clearControl() {
     this.selectedUnit = 0;              // currently-selected unit number
 };
 
-/***********************************************************************
-*   Utility Functions                                                  *
-***********************************************************************/
-
-/**************************************/
-D205Processor.bindMethod = function bindMethod(context, f) {
-    /* Returns a new function that binds the function "f" to the object "context".
-    Note that this is a static constructor property function, NOT an instance
-    method of the CC object */
-
-    return function bindMethodAnon() {return f.apply(context, arguments)};
-};
-
-/**************************************/
-D205Processor.bcdBinary = function bcdBinary(v) {
-    /* Converts the BCD value "v" to a binary number and returns it */
-    var d;
-    var power = 1;
-    var result = 0;
-
-    while(v) {
-        d = v % 0x10;
-        result += d*power;
-        power *= 10;
-        v = (v-d)/0x10;
-    }
-    return result;
-};
-
-/**************************************/
-D205Processor.binaryBCD = function binaryBCD(v) {
-    /* Converts the binary value "v" to a BCD number and returns it */
-    var d;
-    var power = 1;
-    var result = 0;
-
-    while(v) {
-        d = v % 10;
-        result += d*power;
-        power *= 0x10;
-        v = (v-d)/10;
-    }
-    return result;
-};
-
 
 /***********************************************************************
 * Timing and Statistics Functions                                      *
@@ -495,11 +615,11 @@ D205Processor.prototype.sampleLamps = function sampleLamps(alpha, memAlpha) {
                 this.togT0)*2 +
                 this.togBKPT)*2 +
                 this.togZCT)*2 +
-                this.togASYNC)*16 +
+                this.togASYNC)*0x10 +
                 this.SHIFTCONTROL)*2 +
                 this.togMT3P)*2 +
                 this.togMT1BV4)*2 +
-                this.togMT1BV5)*32 +
+                this.togMT1BV5)*0x20 +
                 this.SHIFT);
 
     // Decay the memory toggles if no memory access is in progress
@@ -516,8 +636,6 @@ D205Processor.prototype.sampleLamps = function sampleLamps(alpha, memAlpha) {
         tg.glowL5 =     tg.glowL5*alpha1;
         tg.glowL6 =     tg.glowL6*alpha1;
         tg.glowL7 =     tg.glowL7*alpha1;
-
-        if (isNaN(tg.glowMAIN)) {debugger}
     }
 };
 
@@ -536,12 +654,22 @@ D205Processor.prototype.updateLampGlow = function updateLampGlow(drumTime) {
 };
 
 /**************************************/
-D205Processor.prototype.startMemoryTiming = function startMemoryTiming(drumTime) {
+D205Processor.prototype.startMemoryTiming = function startMemoryTiming(
+        drumTime, latency, words, cbCategory, successor, finish, finishParam) {
     /* Starts the necessary timers for the memory toggles to aid in their
-    display on the panels. Note that "drumTime" is in units of word-times */
+    display on the panels. Then delays the amount of time required for drum
+    latency, data transfer, and amount necessary to bring the processor internal
+    time back in sync with real-world time. Note that "drumTime" is in units of
+    word-times */
 
     this.updateLampGlow(drumTime);
     this.memoryStartTime = drumTime;
+
+    this.procTime += latency + words + D205Processor.memSetupTime; // emulated time at end of drum access
+    this.memACTION = 1;
+    this.successor = successor;
+    this.scheduler = setCallback(cbCategory, this,
+            (this.procTime-drumTime)/D205Processor.wordsPerMilli, finish, finishParam);
 };
 
 /**************************************/
@@ -565,8 +693,6 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
     tg.glowL6 =     tg.glowL6*alpha1 +     this.memL6*alpha;
     tg.glowL7 =     tg.glowL7*alpha1 +     this.memL7*alpha;
 
-    if (isNaN(tg.glowMAIN)) {debugger}
-
     this.memoryStopTime = drumTime;
     this.memoryStartTime =
             this.memMAIN =
@@ -582,115 +708,6 @@ D205Processor.prototype.stopMemoryTiming = function stopMemoryTiming() {
             this.memL7 = 0;
 };
 
-
-/***********************************************************************
-*   Bit and Field Manipulation Functions                               *
-***********************************************************************/
-
-/**************************************/
-D205Processor.prototype.bitTest = function bitTest(word, bit) {
-    /* Extracts and returns the specified bit from the word */
-    var p;                              // bottom portion of word power of 2
-
-    if (bit > 0) {
-        return ((word - word % (p = D205Processor.pow2[bit]))/p) % 2;
-    } else {
-        return word % 2;
-    }
-};
-
-/**************************************/
-D205Processor.prototype.bitSet = function bitSet(word, bit) {
-    /* Sets the specified bit in word and returns the updated word */
-    var ue = bit+1;                     // word upper power exponent
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[bit];
-    var bottom =                        // unaffected bottom portion of word
-        (bit <= 0 ? 0 : (word % bpower));
-    var top =                           // unaffected top portion of word
-        word - (word % D205Processor.pow2[ue]);
-
-    return bpower + top + bottom;
-};
-
-/**************************************/
-D205Processor.prototype.bitReset = function bitReset(word, bit) {
-    /* Resets the specified bit in word and returns the updated word */
-    var ue = bit+1;                     // word upper power exponent
-    var bottom =                        // unaffected bottom portion of word
-        (bit <= 0 ? 0 : (word % D205Processor.pow2[bit]));
-    var top =                           // unaffected top portion of word
-        word - (word % D205Processor.pow2[ue]);
-
-    return top + bottom;
-};
-
-/**************************************/
-D205Processor.prototype.bitFlip = function bitFlip(word, bit) {
-    /* Complements the specified bit in word and returns the updated word */
-    var ue = bit+1;                     // word upper power exponent
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[bit];
-    var bottom =                        // unaffected bottom portion of word
-        (bit <= 0 ? 0 : (word % bpower));
-    var middle =                        // bottom portion of word starting with affected bit
-        word % D205Processor.pow2[ue];
-    var top = word - middle;            // unaffected top portion of word
-
-    if (middle >= bpower) {             // if the affected bit is a one
-        return top + bottom;                // return the result with it set to zero
-    } else {                            // otherwise
-        return bpower + top + bottom;       // return the result with it set to one
-    }
-};
-
-/**************************************/
-D205Processor.prototype.fieldIsolate = function fieldIsolate(word, start, width) {
-    /* Extracts a bit field [start:width] from word and returns the field */
-    var le = start-width+1;             // lower power exponent
-    var p;                              // bottom portion of word power of 2
-
-    return (le <= 0 ? word :
-                      (word - word % (p = D205Processor.pow2[le]))/p
-            ) % D205Processor.pow2[width];
-};
-
-/**************************************/
-D205Processor.prototype.fieldInsert = function fieldInsert(word, start, width, value) {
-    /* Inserts a bit field from the low-order bits of value ([48-width:width])
-    into word.[start:width] and returns the updated word */
-    var ue = start+1;                   // word upper power exponent
-    var le = ue-width;                  // word lower power exponent
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[le];
-    var bottom =                        // unaffected bottom portion of word
-        (le <= 0 ? 0 : (word % bpower));
-    var top =                           // unaffected top portion of word
-        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
-
-    return (value % D205Processor.pow2[width])*bpower + top + bottom;
-};
-
-/**************************************/
-D205Processor.prototype.fieldTransfer = function fieldTransfer(word, wstart, width, value, vstart) {
-    /* Inserts a bit field from value.[vstart:width] into word.[wstart:width] and
-    returns the updated word */
-    var ue = wstart+1;                  // word upper power exponent
-    var le = ue-width;                  // word lower power exponent
-    var ve = vstart-width+1;            // value lower power exponent
-    var vpower;                         // bottom port of value power of 2
-    var bpower =                        // bottom portion of word power of 2
-        D205Processor.pow2[le];
-    var bottom =                        // unaffected bottom portion of word
-        (le <= 0 ? 0 : (word % bpower));
-    var top =                           // unaffected top portion of word
-        (ue <= 0 ? 0 : (word - (word % D205Processor.pow2[ue])));
-
-    return ((ve <= 0 ? value :
-                       (value - value % (vpower = D205Processor.pow2[ve]))/vpower
-                ) % D205Processor.pow2[width]
-            )*bpower + top + bottom;
-};
 
 /***********************************************************************
 *   The 205 Adder and Arithmetic Operations                            *
@@ -721,26 +738,26 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
 
     // Loop through the 11 digits including sign digits
     for (x=0; x<11; ++x) {
-        // shift low-order augend digit right into the adder
+        // Shift low-order augend digit right into the adder
         ad = am % 0x10;
         am = (am - ad)/0x10;
         if (ad > 9) {
             this.stopForbidden = 1;
             this.togCST = 1;            // halt the processor
+        } else if (compl) {
+            ad = 9-ad;
         }
 
-        // add the digits plus carry, complementing as necessary
+        // Add the digits plus carry, complementing as necessary
         dd = dm % 0x10;
         if (dd > 9) {
             this.stopForbidden = 1;
             this.togCST = 1;            // halt the processor
         }
-        if (compl) {
-            ad = 9-ad;
-        }
+
         adder = ad + dd + carry;
 
-        // decimal-correct the adder
+        // Decimal-correct the adder
         if (adder < 10) {
             carry = 0;
         } else {
@@ -748,13 +765,13 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
             carry = 1;
         }
 
-        // compute the carry toggle register (just for display)
+        // Compute the carry toggle register (just for display)
         ct = (((ad & dd) | (ad & ct) | (dd & ct)) << 1) + carry;
         this.updateAdderGlow(adder, ct);
 
-        // rotate the adder into the sign digit
+        // Rotate the adder into the sign digit
         am += adder*0x10000000000;
-        // shift the addend right to the next digit
+        // Shift the addend right to the next digit
         dm = (dm - dd)/0x10;
     } // for x
 
@@ -803,6 +820,7 @@ D205Processor.prototype.integerAdd = function integerAdd() {
     } // switch this.ADDER
 
     // Set toggles for display purposes and return the result
+    this.procTime += 6;                 // total = 6 + 2 if decomplement needed
     this.togSIGN = sign;
     this.A = am;
     this.D = 0;
@@ -886,6 +904,7 @@ D205Processor.prototype.integerExtract = function integerExtract() {
     }
 
     // Set toggles for display purposes and return the result
+    this.procTime += 6;
     this.togCOMPL = 0;
     this.togSIGN = sign;
     this.CT = ct;
@@ -926,12 +945,11 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
 
     this.togCOMPL = 0;
     for (x=0; x<10; ++x) {
-        rc = rd = rm % 0x10;
-        count += rc;
-        while (rc > 0) {
+        rd = rm % 0x10;
+        count += rd;
+        for (rc=rd; rc>0; --rc) {
             am = this.bcdAdd(am, dm, 0, 0);
-            --rc;
-        } // while rd
+        }
 
         ad = am % 0x10;
         am = (am-ad)/0x10;
@@ -960,7 +978,7 @@ D205Processor.prototype.integerDivide = function integerDivide() {
     signed 10-digit quotient in A and the remainder in R. All values are BCD
     with the sign in the 11th digit position. Sets Forbidden-Combination stop
     as necessary. If the magnitude of the divisor (D) is less or equal to the
-    magnitude of the dividend (A), the Overflow stop it set and division
+    magnitude of the dividend (A), the Overflow stop is set and division
     terminates, unconditionally setting A & R to zero */
     var am = this.A % 0x10000000000;    // current remainder (A) mantissa
     var aSign = ((this.A - am)/0x10000000000) & 0x01;
@@ -1049,35 +1067,33 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
     de = (dm - dm%0x100000000)/0x100000000;
     dm %= 0x100000000;
 
-    // If the exponents are unequal, normalize the larger and scale the smaller
+    // If the exponents are unequal, scale the smaller and normalize the larger
     // until they are in alignment, or one mantissa becomes zero.
-    if (am == 0) {
-        ae = de;
-    } else if (dm == 0) {
-        de = ae;
-    } else if (ae > de) {
-        // Normalize A
-        while (ae > de && am < 0x10000000) {
-            am *= 0x10;                 // shift left
-            ae = this.bcdAdd(1, ae, 1, 1);      // --ae
-        }
+    if (ae > de) {
         // Scale D until its exponent matches or the mantissa goes to zero.
         while (ae > de && dm > 0) {
             d = dm % 0x10;
             dm = (dm - d)/0x10;         // shift right
             de = this.bcdAdd(1, de, 0, 0);      // ++de
         }
-    } else if (ae < de) {
-        // Normalize D
-        while (ae < de && dm < 0x10000000) {
-            dm *= 0x10;                 // shift left
-            de = this.bcdAdd(1, de, 1, 1);      // --de
+        // Normalize A
+        while (ae > de && am < 0x10000000) {
+            am *= 0x10;                 // shift left
+            ae = this.bcdAdd(1, ae, 1, 1);      // --ae
+            this.procTime += 2;
         }
+    } else if (ae < de) {
         // Scale A until its exponent matches or the mantissa goes to zero.
         while (ae < de && am > 0) {
             d = am % 0x10;
             am = (am - d)/0x10;         // shift right
             ae = this.bcdAdd(1, ae, 0, 0);      // ++ae
+        }
+        // Normalize D
+        while (ae < de && dm < 0x10000000) {
+            dm *= 0x10;                 // shift left
+            de = this.bcdAdd(1, de, 1, 1);      // --de
+            this.procTime += 2;
         }
     }
 
@@ -1122,6 +1138,7 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
                 ++this.SPECIAL;         // for display only
                 am *= 0x10;             // shift left
                 ae = this.bcdAdd(1, ae, 1, 1);  // --ae
+                this.procTime += 2;
             } else {
                 // Exponent underflow: set R and the reconstructed A to zero.
                 am = ae = sign = 0;
@@ -1134,6 +1151,7 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
     }
 
     // Set toggles for display purposes and set the result.
+    this.procTime += 7;                 // total = 7 + 2 if decomplement needed + normalizing shifts
     this.togSIGN = sign;
     this.A = (sign*0x100 + ae)*0x100000000 + am;
     this.D = 0;
@@ -1230,7 +1248,7 @@ D205Processor.prototype.floatingMultiply = function floatingMultiply() {
                 this.R = rm;
             }
 
-            this.procTime += 13 + count*2;
+            this.procTime += 16 + count*2;
         }
     }
 
@@ -1269,28 +1287,6 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
     de = (dm - dm%0x100000000)/0x100000000;
     dm %= 0x100000000;
 
-    // Normalize A & R
-    while (am && am < 0x10000000) {
-        if (ae <= 0) {
-            am = 0;                     // exponent underflow
-        } else {
-            rd = (rm - rm%0x1000000000)/0x1000000000;
-            rm = (rm % 0x1000000000)*0x10;
-            am = am*0x10 + rd;      // shift left
-            ae = this.bcdAdd(1, ae, 1, 1);      // --ae
-        }
-    }
-
-    // Normalize D
-    while (dm && dm < 0x10000000) {
-        if (de <= 0) {
-            dm = 0;                     // exponent underflow
-        } else {
-            dm *= 0x10;                 // shift left
-            de = this.bcdAdd(1, de, 1, 1);      // --de
-        }
-    }
-
     // Check for zero operands and commence the division
     if (am == 0) {
         this.A = this.R = sign = 0;     // dividend is zero so result is zero
@@ -1299,6 +1295,30 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
         this.togDIVALARM = 1;           // for display only
         this.setOverflow(1);
     } else {
+        // Normalize A & R
+        while (am && am < 0x10000000) {
+            if (ae <= 0) {
+                am = 0;                 // exponent underflow
+            } else {
+                rd = (rm - rm%0x1000000000)/0x1000000000;
+                rm = (rm % 0x1000000000)*0x10;
+                am = am*0x10 + rd;      // shift left
+                ae = this.bcdAdd(1, ae, 1, 1);      // --ae
+                ++count;
+            }
+        }
+
+        // Normalize D
+        while (dm && dm < 0x10000000) {
+            if (de <= 0) {
+                dm = 0;                 // exponent underflow
+            } else {
+                dm *= 0x10;             // shift left
+                de = this.bcdAdd(1, de, 1, 1);      // --de
+                ++count;
+            }
+        }
+
         // Add the exponent bias to the dividend exponent and check for underflow
         ae = this.bcdAdd(ae, 0x50);
         if (ae < de) {
@@ -1350,6 +1370,7 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
                     rd = (rm - rm%0x10000000000)/0x10000000000;
                     rm %= 0x10000000000;
                     am = (am%0x1000000000)*0x10 + rd;
+                    ++count;
                 }
 
                 this.SHIFTCONTROL = 0x0E;           // for display only
@@ -1361,9 +1382,9 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
             }
 
             if (this.stopOverflow) {
-                this.procTime += 24;
+                this.procTime += 27;
             } else {
-                this.procTime += 52 + count*2;
+                this.procTime += 55 + count*2;
             }
         }
     }
@@ -1429,12 +1450,7 @@ D205Processor.prototype.readMemory = function readMemory(successor) {
     }
 
     latency = (addr%trackSize - drumTime%trackSize + trackSize)%trackSize;
-    this.procTime += latency+1;         // emulated time at end of drum access
-    this.memACTION = 1;
-    this.startMemoryTiming(drumTime);
-    this.successor = successor;
-    this.scheduler = setCallback(cbCategory, this,
-            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.readMemoryFinish);
+    this.startMemoryTiming(drumTime, latency, 1, cbCategory, successor, this.readMemoryFinish);
 };
 
 /**************************************/
@@ -1493,12 +1509,7 @@ D205Processor.prototype.writeMemory = function writeMemory(successor, clearA) {
     }
 
     latency = (addr%trackSize - drumTime%trackSize + trackSize)%trackSize;
-    this.procTime += latency+1;         // emulated time at end of drum access
-    this.memACTION = 1;
-    this.startMemoryTiming(drumTime);
-    this.successor = successor;
-    this.scheduler = setCallback(cbCategory, this,
-            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, clearA);
+    this.startMemoryTiming(drumTime, latency, 1, cbCategory, successor, this.writeMemoryFinish, clearA);
 };
 
 /**************************************/
@@ -1556,12 +1567,7 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
 
     latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
                 D205Processor.trackSize)%D205Processor.trackSize;
-    this.procTime += latency+D205Processor.loopSize; // emulated time at end of drum access
-    this.memACTION = 1;
-    this.startMemoryTiming(drumTime);
-    this.successor = successor;
-    this.scheduler = setCallback("MEMM", this,
-            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
+    this.startMemoryTiming(drumTime, latency, D205Processor.loopSize+2, "MEMM", successor, this.writeMemoryFinish, false);
 };
 
 /**************************************/
@@ -1629,12 +1635,7 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
 
     latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
                 D205Processor.trackSize)%D205Processor.trackSize;
-    this.procTime += latency+D205Processor.loopSize; // emulated time at end of drum access
-    this.memACTION = 1;
-    this.startMemoryTiming(drumTime);
-    this.successor = successor;
-    this.scheduler = setCallback("MEMM", this,
-            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.writeMemoryFinish, false);
+    this.startMemoryTiming(drumTime, latency, D205Processor.loopSize+2, "MEMM", successor, this.writeMemoryFinish, false);
 };
 
 /**************************************/
@@ -1671,17 +1672,22 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     to the Computer History Museum in Mountain View, California */
     var addr;                           // main binary address, mod 4000
     var aWord = this.A % 0x10000000000; // search target word
-    var drumTime;                       // current drum position [word-times]
+    var drumTime =                      // current drum position [word-times]
+            performance.now()*D205Processor.wordsPerMilli;
     var dWord;                          // result of comparison D:A
     var found = false;                  // true if matching word found
+    var latency = 0;                    // drum latency on first call, else 0
+    var successor = null;               // successor function after drum delay
     var x = 0;                          // iteration control
 
+    addr = D205Processor.bcdBinary(this.CADDR % 0x4000);
     if (!this.memACCESS) {
         this.memACCESS = this.memACTION = this.memMAIN = this.memLM = 1;
-        this.startMemoryTiming(performance.now()*D205Processor.wordsPerMilli);
+        latency = (addr%D205Processor.trackSize - drumTime%D205Processor.trackSize +
+                    D205Processor.trackSize)%D205Processor.trackSize;
+        this.startMemoryTiming(drumTime, latency, 0, "MEMM", searchMemory, searchMemory, high);
     }
 
-    addr = D205Processor.bcdBinary(this.CADDR % 0x4000);
     do {
         dWord = this.bcdAdd(aWord, this.D % 0x10000000000, 1, 1); // effectively abs(D)-abs(A)
         if (dWord == 0) {
@@ -1703,18 +1709,16 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     if (found) {
         this.A = this.D;
         this.R = this.CADDR*0x1000000 + this.R%0x1000000;
-        this.successor = this.searchMemoryFinish;
+        successor = this.searchMemoryFinish;
     } else if (this.stopOverflow) {
-        this.successor = this.searchMemoryFinish;
+        successor = this.searchMemoryFinish;
     } else {
-        this.successor = searchMemory;
+        successor = searchMemory;
     }
 
-    this.procTime += x;
-    drumTime = performance.now()*D205Processor.wordsPerMilli;
-    this.scheduler = setCallback("MEML", this,
-            (this.procTime-drumTime)/D205Processor.wordsPerMilli, this.successor, high);
+    this.startMemoryTiming(drumTime, latency, x, "MEMM", successor, successor, high);
 };
+
 
 /***********************************************************************
 *   Console I/O Module                                                 *
@@ -1909,6 +1913,7 @@ D205Processor.prototype.consoleReceiveSingleDigit = function consoleReceiveSingl
     }
 };
 
+
 /***********************************************************************
 *   Cardatron I/O Module                                               *
 ***********************************************************************/
@@ -2085,6 +2090,7 @@ D205Processor.prototype.cardatronReceiveWord = function cardatronReceiveWord(wor
     }
 };
 
+
 /***********************************************************************
 *   Magnetic Tape I/O Module                                           *
 ***********************************************************************/
@@ -2112,21 +2118,24 @@ D205Processor.prototype.magTapeInitiateSend = function magTapeInitiateSend(write
 };
 
 /**************************************/
-D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) {
+D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(block, lastBlock) {
     /* Sends a block of data from a loop buffer to the tape control unit and
     initiates the load of the alternate loop buffer. this.togMT1BV4 and
-    this.togMT1BV5 control alternation of the loop buffers. "lastBlock" indicates
-    this will be the last block requested by the control unit and no further
-    blocks should be buffered. If the C-register address is 8000 or higher, the
-    loop is not loaded from main memory, and the current contents of the loop
-    are written to tape. Since tape block writes take 46 ms, they are much
-    longer than any memory-to-loop transfer, so this routine simply exits after
-    the next blockToLoop is initiated, and the processor then waits for the tape
-    control unit to request the next block, by which time the blockToLoop will
-    have completed. Returns null if the processor has been cleared and the I/O
-    must be aborted */
+    this.togMT1BV5 control alternation of the loop buffers. "block" is the tape
+    control's buffer; "lastBlock" indicates this will be the last block
+    requested by the control unit and no further blocks should be buffered. If
+    the C-register address is 8000 or higher, the loop is not loaded from main
+    memory, and the current contents of the loop are written to tape. Since tape
+    block writes take 46 ms, they are much longer than any memory-to-loop
+    transfer, so this routine simply exits after the next blockToLoop is
+    initiated, and the processor then waits for the tape control unit to request
+    the next block, by which time the blockToLoop will have completed. Returns
+    true if the processor has been cleared and the I/O must be aborted */
+    var aborted = false;
     var loop;
+    var loopOffset = D205Processor.bcdBinary(this.CADDR)%D205Processor.loopSize;
     var that = this;
+    var x;
 
     function blockFetchComplete() {
         that.procTime -= performance.now()*D205Processor.wordsPerMilli; // suspend time again during I/O
@@ -2137,7 +2146,7 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
     //        " : " + block[0].toString(16) + ", " + block[19].toString(16));
 
     if (!this.togMT3P) {
-        loop = null;
+        aborted = true;
     } else {
         // Select the appropriate loop to send data to the drive
         if (this.togMT1BV4) {
@@ -2148,9 +2157,14 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
             this.toggleGlow.glowL5 = 1;
         }
 
+        // Copy the loop data to the tape control's buffer, adjusting for the mod-20 address
+        for (x=D205Processor.loopSize-1; x>=0; --x) {
+            block[x] = loop[(x+loopOffset)%D205Processor.loopSize];
+        }
+
+        // Flip the buffer toggles and request the next block from memory
         if (!lastBlock) {
             this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-            // Flip the loop-buffer toggles
             this.togMT1BV5 = this.togMT1BV4;
             this.togMT1BV4 = 1-this.togMT1BV4;
             // Block the loop buffer from main memory if appropriate
@@ -2161,11 +2175,11 @@ D205Processor.prototype.magTapeSendBlock = function magTapeSendBlock(lastBlock) 
             }
         }
 
-        this.A = loop[loop.length-1];   // for display only
+        this.A = block[loop.length-1];  // for display only
         this.D = 0;                     // for display only
     }
 
-    return loop;                        // give the loop data to the control unit
+    return aborted;                     // give the loop data to the control unit
 };
 
 /**************************************/
@@ -2199,6 +2213,7 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
     the processor has been cleared and the tape control unit should abort the I/O */
     var aborted = false;                // return value
     var loop;
+    var loopOffset = D205Processor.bcdBinary(this.CADDR)%D205Processor.loopSize;
     var sign;                           // sign digit
     var that = this;
     var w;                              // scratch word
@@ -2242,8 +2257,8 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
             blockStoreComplete();
         } else {
             // Copy the tape block data to the appropriate high-speed loop
-            for (x=0; x<loop.length; ++x) {
-                this.D = w = block[x];  // D for display only
+            for (x=0; x<D205Processor.loopSize; ++x) {
+                w = block[x];
                 if (w < 0x20000000000) {
                     this.togCLEAR = 1;  // no B modification
                 } else {
@@ -2265,9 +2280,10 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
                     w = this.bcdAdd(w, this.B);
                 }
 
-                loop[x] = w;
+                loop[(x+loopOffset)%D205Processor.loopSize] = w;
             } // for x
 
+            this.D = w;                 // last word, for display only
             this.A = w;                 // for display only
 
             // Block the loop buffer to main memory if appropriate
@@ -2281,6 +2297,7 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
 
     return aborted;
 };
+
 
 /***********************************************************************
 *   External Control Module                                            *
@@ -2368,10 +2385,13 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
         if (!this.sswLockNormal) {
             this.setTimingToggle(1);    // stay in Fetch to skip this instruction
         }
-        if (breakDigit & 0x01) {
-            this.togCST = 1;            // halt the processor
+        if (this.togBKPT) {
+            this.togCST = 1;            // halt the processor (breakpoint digit=9)
         }
     }
+
+    //>>>> DEBUG <<<<
+    //console.log("Fetch Compl " + this.C.toString(16) + " " + performance.now());
 
     // If we're not halted and either console has started in Continuous mode, continue
     if (this.togCST || !(this.sswStepContinuous || this.cctContinuous)) {
@@ -2387,7 +2407,10 @@ D205Processor.prototype.fetchComplete = function fetchComplete() {
 D205Processor.prototype.fetch = function fetch() {
     /* Implements the Fetch cycle of the 205 processor. This is initiated either
     by pressing START on one of the consoles with the Timing Toggle=1 (Fetch),
-    or by the prior operation complete if the processor is in continuous mode */
+    or by the prior Operation Complete if the processor is in continuous mode */
+
+    //>>>> DEBUG <<<<
+    //console.log("Fetch Start " + this.C.toString(16) + " " + performance.now());
 
     this.CADDR = this.C % 0x100000000;  // C operand and control addresses
     this.CCONTROL = this.CADDR % 0x10000; // C control address
@@ -2411,6 +2434,7 @@ D205Processor.prototype.fetch = function fetch() {
         this.readMemory(this.fetchComplete);  // load D from the operand address
     }
 };
+
 
 /***********************************************************************
 *   Execute Module                                                     *
@@ -2445,6 +2469,7 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
     /* Executes an instruction that requires an operand, after that operand
     has been read from memory into the D register */
 
+    ++this.procTime;                    // minimum alpha for Class II ops is 5 word-times
     switch (this.COP) {
     case 0x60:          //---------------- M    Multiply
         this.integerMultiply(false);
@@ -2458,32 +2483,31 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         break;
 
     case 0x63:          //---------------- EX   Extract
-        this.procTime += 3;
         this.integerExtract();
         break;
 
     case 0x64:          //---------------- CAD  Clear and Add A
-        this.procTime += 3;
+        this.procTime += 6;
         this.A = this.bcdAdd(0, this.D);
         this.D = 0;
         break;
 
     case 0x65:          //---------------- CSU  Clear and Subtract A
-        this.procTime += 3;
+        this.procTime += 6;
         // Complement the D sign -- any sign overflow will be ignored by integerAdd
-        this.A = this.bcdAdd(0, this.bitFlip(this.D, 40));
+        this.A = this.bcdAdd(0, D205Processor.bitFlip(this.D, 40));
         this.D = 0;
         break;
 
     case 0x66:          //---------------- CADA Clear and Add Absolute
-        this.procTime += 3;
-        this.A = this.bcdAdd(0, this.bitReset(this.D, 40));
+        this.procTime += 6;
+        this.A = this.bcdAdd(0, D205Processor.bitReset(this.D, 40));
         this.D = 0;
         break;
 
     case 0x67:          //---------------- CSUA Clear and Subtract Absolute
-        this.procTime += 3;
-        this.A = this.bcdAdd(0, this.bitSet(this.D, 40));
+        this.procTime += 6;
+        this.A = this.bcdAdd(0, D205Processor.bitSet(this.D, 40));
         this.D = 0;
         break;
 
@@ -2498,7 +2522,7 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         break;
 
     case 0x72:          //---------------- SB   Set B
-        this.procTime += 3;
+        this.procTime += 6;
         this.SHIFT = 0x15;                              // for display only
         this.SHIFTCONTROL = 0;                          // for display only
         this.togADDAB = 1;                              // for display only
@@ -2510,7 +2534,7 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         break;
 
     case 0x73:          //---------------- OSGD Overflow on Sign Difference
-        this.procTime += 2;
+        this.procTime += 5;
         this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01; // for display, mostly
         this.setOverflow(this.togSIGN ^
                 (((this.D - this.D%0x10000000000)/0x10000000000) & 0x01));
@@ -2518,49 +2542,41 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
         break;
 
     case 0x74:          //---------------- AD   Add
-        this.procTime += 3;
         this.integerAdd();
         break;
 
     case 0x75:          //---------------- SU   Subtract
-        this.procTime += 3;
-        this.D = this.bitFlip(this.D, 40);              // complement the D sign
+        this.D = D205Processor.bitFlip(this.D, 40);              // complement the D sign
         this.integerAdd();
         break;
 
     case 0x76:          //---------------- ADA  Add Absolute
-        this.procTime += 3;
-        this.D = this.bitReset(this.D, 40);             // clear the D sign
+        this.D = D205Processor.bitReset(this.D, 40);             // clear the D sign
         this.integerAdd();
         break;
 
     case 0x77:          //---------------- SUA  Subtract Absolute
-        this.procTime += 3;
-        this.D = this.bitSet(this.D, 40);               // set the D sign
+        this.D = D205Processor.bitSet(this.D, 40);      // set the D sign
         this.integerAdd();
         break;
 
     // 0x78-0x79:       //---------------- (no op)
 
     case 0x80:          //---------------- FAD  Floating Add
-        this.procTime += 4;
         this.floatingAdd();
         break;
 
     case 0x81:          //---------------- FSU  Floating Subtract
-        this.procTime += 4;
         // Complement the D sign -- any sign overflow will be ignored by floatingAdd.
         this.D += 0x10000000000;
         this.floatingAdd();
         break;
 
     case 0x82:          //---------------- FM   Floating Multiply
-        this.procTime += 3;
         this.floatingMultiply();
         break;
 
     case 0x83:          //---------------- FDIV Floating Divide
-        this.procTime += 3;
         this.floatingDivide();
         break;
 
@@ -2581,25 +2597,21 @@ D205Processor.prototype.executeWithOperand = function executeWithOperand() {
     // 0x88-0x89:       //---------------- (no op)
 
     case 0x90:          //---------------- FAA  Floating Add Absolute
-        this.procTime += 4;
         this.D %= 0x10000000000;        // clear the D-sign digit
         this.floatingAdd();
         break;
 
     case 0x91:          //---------------- FSA  Floating Subtract Absolute
-        this.procTime += 4;
         this.D = this.D%0x10000000000 + 0x10000000000; // set the D-sign
         this.floatingAdd();
         break;
 
     case 0x92:          //---------------- FMA  Floating Multiply Absolute
-        this.procTime += 3;
         this.D %= 0x10000000000;        // clear the D-sign digit
         this.floatingMultiply();
         break;
 
     case 0x93:          //---------------- FDA  Floating Divide Absolute
-        this.procTime += 3;
         this.D %= 0x10000000000;        // clear the D-sign digit
         this.floatingDivide();
         break;
@@ -2640,12 +2652,11 @@ D205Processor.prototype.execute = function execute() {
         this.stopControl = 1;                   // turn on CONTROL lamp
         this.executeComplete();
     } else if (this.COP >= 0x60) {      // if operator requires an operand
-        ++this.procTime;                        // minimum alpha for Class II is 5 word-times
         this.clearControlToggles();
         this.readMemory(this.executeWithOperand);
     } else {                            // otherwise execute a non-operand instruction
         this.clearControlToggles();
-        this.procTime += 3;                     // minimum Class I execution is 3 word-times
+        this.procTime += 4;                     // minimum Class I execution is 4 word-times
 
         switch (this.COP) {
         case 0x00:      //---------------- PTR  Paper-tape/keyboard read
@@ -2656,7 +2667,7 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x01:      //---------------- CIRA Circulate A
             x = D205Processor.bcdBinary(this.CADDR % 0x20);
-            this.procTime += x+8;
+            this.procTime += x+5;
             x = 19-x;
             this.SHIFT = D205Processor.binaryBCD(x);    // for display only
             this.togDELAY = 1;                          // for display only
@@ -2670,7 +2681,6 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x02:      //---------------- STC  Store and Clear A
-            this.procTime += 1;
             this.writeMemory(this.executeComplete, true);
             break;
 
@@ -2696,7 +2706,7 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x04:      //---------------- CNZ  Change on Non-Zero
-            this.procTime += 3;
+            this.procTime += 5;
             this.togZCT = 1;                            // for display only
             this.D = 0;
             this.integerAdd();                          // clears the sign digit, among other things
@@ -2712,7 +2722,6 @@ D205Processor.prototype.execute = function execute() {
         // 0x05:        //---------------- (no op)
 
         case 0x06:      //---------------- UA   Unit Adjust
-            this.procTime += 2;
             if (this.A % 2 == 0) {
                 ++this.A;
             }
@@ -2759,7 +2768,6 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x12:      //---------------- ST   Store A
-            this.procTime += 1;
             this.writeMemory(this.executeComplete, false);
             break;
 
@@ -2813,7 +2821,7 @@ D205Processor.prototype.execute = function execute() {
                 }
             } while (x < 10);
             this.A += w - this.A%0x10000000000;         // restore the sign
-            this.procTime += (x+1)*2;
+            this.procTime += x*2 + 8;
 
             this.SPECIAL = x;                           // the result
             this.SHIFTCONTROL |= 0x04;                  // for display only
@@ -2829,14 +2837,12 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x16:      //---------------- ADSC Add Special Counter to A
-            this.procTime += 3;
             this.D = this.SPECIAL;
             this.integerAdd();
             this.executeComplete();
             break;
 
         case 0x17:      //---------------- SUSC Subtract Special Counter from A
-            this.procTime += 3;
             this.D = this.SPECIAL + 0x10000000000;      // set to negative
             this.integerAdd();
             this.executeComplete();
@@ -2845,7 +2851,7 @@ D205Processor.prototype.execute = function execute() {
         // 0x18-0x19:   //---------------- (no op)
 
         case 0x20:      //---------------- CU   Change Unconditionally
-            this.procTime += 2;
+            this.procTime += 4;
             this.SHIFT = 0x15;                          // for display only
             this.SHIFTCONTROL = 0x07;                   // for display only
             this.CCONTROL = this.CADDR;                 // copy address to control counter
@@ -2854,7 +2860,7 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x21:      //---------------- CUR  Change Unconditionally, Record
-            this.procTime += 2;
+            this.procTime += 4;
             this.SHIFT = 0x15;                          // for display only
             this.SHIFTCONTROL = 0x07;                   // for display only
             this.R = this.CCONTROL*0x1000000;           // save current control counter
@@ -2864,7 +2870,7 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x22:      //---------------- DB   Decrease B and Change on Negative
-            this.procTime += 3;
+            this.procTime += 5;
             this.togADDAB = 1;                          // for display only
             this.togDELTABDIV = 1;                      // for display only
             this.togZCT = 1;                            // for display only
@@ -2884,7 +2890,7 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x23:      //---------------- RO   Round A, Clear R
-            this.procTime += 3;
+            this.procTime += 6;
             this.togSIGN = ((this.A - this.A%0x10000000000)/0x10000000000) & 0x01;
             // Add round-off (as the carry bit) to absolute value of A.
             this.A = this.bcdAdd(this.A%0x10000000000, 0, 0, (this.R < 0x5000000000 ? 0 : 1));
@@ -2901,7 +2907,6 @@ D205Processor.prototype.execute = function execute() {
         case 0x25:      //---------------- BF5  Block from 5000 loop
         case 0x26:      //---------------- BF6  Block from 6000 loop
         case 0x27:      //---------------- BF7  Block from 7000 loop
-            this.procTime +=2;
             this.blockFromLoop(this.COP-0x20, this.executeComplete);
             break;
 
@@ -2910,7 +2915,7 @@ D205Processor.prototype.execute = function execute() {
                 this.procTime += 1;
                 this.SHIFTCONTROL = 0x04;               // no -- set for display only
             } else {
-                this.procTime += 2;
+                this.procTime += 4;
                 this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x07;               // for display only
@@ -2925,7 +2930,7 @@ D205Processor.prototype.execute = function execute() {
                 this.procTime += 1;
                 this.SHIFTCONTROL = 0x04;               // for display only
             } else {
-                this.procTime += 2;
+                this.procTime += 4;
                 this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x07;               // for display only
@@ -2938,7 +2943,7 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x30:      //---------------- CUB  Change Unconditionally, Block to 7000 Loop
             this.procTime += 4;
-            this.SHIFT = 0.15;                          // for display only
+            this.SHIFT = 0x15;                          // for display only
             this.SHIFTCONTROL = 0x0F;                   // for display only
             this.CCONTROL = this.CADDR%0x100 + 0x7000;  // set control to loop-7 address
             this.C = (this.COP*0x10000 + this.CADDR)*0x10000 + this.CCONTROL;
@@ -2947,7 +2952,7 @@ D205Processor.prototype.execute = function execute() {
 
         case 0x31:      //---------------- CUBR Change Unconditionally, Block to 7000 Loop, Record
             this.procTime += 4;
-            this.SHIFT = 0.15;                          // for display only
+            this.SHIFT = 0x15;                          // for display only
             this.SHIFTCONTROL = 0x0F;                   // for display only
             this.R = this.CCONTROL*0x1000000;           // save current control counter
             this.CCONTROL = this.CADDR%0x100 + 0x7000;  // set control to loop-7 address
@@ -2956,7 +2961,7 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x32:      //---------------- IB   Increase B
-            this.procTime += 3;
+            this.procTime += 5;
             this.togADDAB = 1;                          // for display only
             this.togDELTABDIV = 1;                      // for display only
             this.togZCT = 1;                            // for display only
@@ -2968,7 +2973,6 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x33:      //---------------- CR   Clear R
-            this.procTime += 2;
             this.SHIFTCONTROL = 0x04;                   // for display only
             this.R = 0;
             this.executeComplete();
@@ -2978,17 +2982,15 @@ D205Processor.prototype.execute = function execute() {
         case 0x35:      //---------------- BT5  Block to 5000 Loop
         case 0x36:      //---------------- BT6  Block to 6000 Loop
         case 0x37:      //---------------- BT7  Block to 7000 Loop
-            this.procTime +=2;
             this.blockToLoop(this.COP-0x30, this.executeComplete);
             break;
 
         case 0x38:      //---------------- CCB  Change Conditionally, Block to 7000 Loop
+            this.procTime += 4;
             if (!this.stopOverflow) {                   // check if branch should occur
-                this.procTime += 3;
                 this.SHIFTCONTROL = 0x04;               // for display only
                 this.executeComplete();
             } else {
-                this.procTime += 4;
                 this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x0F;               // for display only
@@ -2999,12 +3001,11 @@ D205Processor.prototype.execute = function execute() {
             break;
 
         case 0x39:      //---------------- CCBR Change Conditionally, Block to 7000 Loop, Record
+            this.procTime += 4;
             if (!this.stopOverflow) {                   // check if branch should occur
-                this.procTime += 3;
                 this.SHIFTCONTROL = 0x04;               // for display only
                 this.executeComplete();
             } else {
-                this.procTime += 4;
                 this.setOverflow(0);                    // reset overflow and do the branch
                 this.SHIFT = 0x15;                      // for display only
                 this.SHIFTCONTROL = 0x0F;               // for display only

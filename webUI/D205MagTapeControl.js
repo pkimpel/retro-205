@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/D205MagTapeControl.js
+* retro-205/webUI D205MagTapeControl.js
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -43,6 +43,8 @@ function D205MagTapeControl(p) {
     this.memoryBlockCallback = null;    // stashed block-sending/receiving call-back function
     this.memoryTerminateCallback = null;// stashed memory-sending terminate call-back function
     this.suppressBMod = true;           // suppress B-modification of words on input
+    this.tapeBlock = new Float64Array(20);
+                                        // 20-word block buffer for tape I/O
 
     /* Set up the tape units from the system configuration. These can be any
     combination of Model 544 Tape Storage Units (DataReaders) and Model 560
@@ -202,7 +204,7 @@ D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad() {
     this.searchLamp.setCaption("S", true);
 
     this.suppressBSwitch = new ToggleSwitch(body, null, null, "SuppressBSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.p.tswSuppressB = this.suppressBMod = !this.p.config.getNode("MagTape.suppressBSwitch");
     this.suppressBSwitch.set(this.suppressBMod ? 0 : 1);
 
@@ -324,9 +326,9 @@ D205MagTapeControl.prototype.writeSendBlock = function writeSendBlock(abortWrite
     /* Called by the tape drive when it is ready for the next block to be written.
     Retrieves the next buffered block from the Processor and passes it to the drive.
     Unless this is the last block to write, the drive will call this again after
-    tape motion is complete. Note that this.memoryBlockCallback() will return null
+    tape motion is complete. Note that this.memoryBlockCallback() will return true
     if the processor has been cleared and the I/O must be aborted */
-    var block;                          // 20-word block from memory
+    var aborted;                        // true if processor aborted the I/O
     var lastBlock = abortWrite;         // true if this will be the last block
     var t = D205Processor.bcdBinary(this.T);
 
@@ -338,13 +340,13 @@ D205MagTapeControl.prototype.writeSendBlock = function writeSendBlock(abortWrite
         lastBlock = true;
     }
 
-    block = this.memoryBlockCallback(lastBlock);
-    if (abortWrite || !block) {
+    aborted = this.memoryBlockCallback(this.tapeBlock, lastBlock);
+    if (abortWrite || aborted) {
         this.writeTerminate(false);
     } else if (lastBlock || this.disabled) {
-        this.currentUnit.writeBlock(block, this.boundWriteTerminate, true);
+        this.currentUnit.writeBlock(this.tapeBlock, this.boundWriteTerminate, true);
     } else {
-        this.currentUnit.writeBlock(block, this.boundWriteSendBlock, false);
+        this.currentUnit.writeBlock(this.tapeBlock, this.boundWriteSendBlock, false);
     }
 };
 

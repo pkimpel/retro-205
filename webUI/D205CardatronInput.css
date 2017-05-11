@@ -1,8 +1,8 @@
 /***********************************************************************
-* retro-205/emulator D205CardatronInput.css
+* retro-205/webUI D205CardatronInput.css
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
-* Licensed under the MIT License, 
+* Licensed under the MIT License,
 *       see http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
 * Datatron 205 emulator Cardatron Input Unit web interface style sheet.
@@ -38,7 +38,7 @@
 #NoFormatLamp {
     top:                16px;
     left:               160px}
-    
+
 #StartMachineLamp {
     top:                0;
     left:               208px}
@@ -48,7 +48,7 @@
 #FormatLockoutLamp {
     top:                0;
     left:               272px}
-    
+
 #FormatSelect4Lamp {
     top:                28px;
     left:               208px}
@@ -58,19 +58,19 @@
 #FormatSelect1Lamp {
     top:                28px;
     left:               272px}
-    
+
 #FormatSelectDiv {
     position:           absolute;
     text-align:         center;
     font-size:          5pt;
-    font-weight:        bold;        
+    font-weight:        bold;
     top:                16px;
     left:               304px}
 #FormatColumnDiv {
     position:           absolute;
     text-align:         center;
     font-size:          5pt;
-    font-weight:        bold;        
+    font-weight:        bold;
     top:                16px;
     left:               388px}
 

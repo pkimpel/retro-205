@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/D205ControlConsole.js
+* retro-205/webUI D205ControlConsole.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -24,7 +24,7 @@ function D205ControlConsole(p) {
     this.intervalToken = 0;             // setInterval() token
     this.p = p;                         // D205Processor object
 
-    this.boundKeypress = D205Processor.bindMethod(this, D205ControlConsole.prototype.keypress);
+    this.boundKeypress = D205Util.bindMethod(this, D205ControlConsole.prototype.keypress);
     this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
     this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
     this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);
@@ -46,8 +46,8 @@ function D205ControlConsole(p) {
 /**************************************/
 D205ControlConsole.slowRefreshPeriod = 1000;    // milliseconds
 D205ControlConsole.displayRefreshPeriod = 50;   // milliseconds
-D205ControlConsole.offSwitchClass = "./resources/ToggleDown.png";
-D205ControlConsole.onSwitchClass = "./resources/ToggleUp.png";
+D205ControlConsole.offSwitchImage = "./resources/ToggleDown.png";
+D205ControlConsole.onSwitchImage = "./resources/ToggleUp.png";
 
 /**************************************/
 D205ControlConsole.prototype.$$ = function $$(e) {
@@ -347,13 +347,13 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     // Switches & Knobs
 
     this.poSuppressSwitch = new ToggleSwitch(body, null, null, "POSuppressSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.poSuppressSwitch.set(this.p.cswPOSuppress = prefs.poSuppressSwitch);
     this.skipSwitch = new ToggleSwitch(body, null, null, "SkipSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.skipSwitch.set(this.p.cswSkip = prefs.skipSwitch);
     this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
-            D205ControlConsole.offSwitchClass, D205ControlConsole.onSwitchClass);
+            D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
 
     this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob",

@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/emulator D205Util.js
+* retro-205/webUI D205Util.js
 ************************************************************************
 * Copyright (c) 2014, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -44,31 +44,22 @@ D205Util.$$ = function $$(e) {
 /**************************************/
 D205Util.hasClass = function hasClass(e, name) {
     /* returns true if element "e" has class "name" in its class list */
-    var classes = e.className;
 
-    if (!e) {
-        return false;
-    } else if (classes == name) {
-        return true;
-    } else {
-        return (classes.search("\\b" + name + "\\b") >= 0);
-    }
+    return e.classList.contains(name);
 };
 
 /**************************************/
 D205Util.addClass = function addClass(e, name) {
     /* Adds a class "name" to the element "e"s class list */
 
-    if (!D205Util.hasClass(e, name)) {
-        e.className += (" " + name);
-    }
+    e.classList.add(name);
 };
 
 /**************************************/
 D205Util.removeClass = function removeClass(e, name) {
     /* Removes the class "name" from the element "e"s class list */
 
-    e.className = e.className.replace(new RegExp("\\b" + name + "\\b\\s*", "g"), "");
+    e.classList.remove(name);
 };
 
 /**************************************/

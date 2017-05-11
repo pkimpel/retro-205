@@ -1,5 +1,5 @@
 /***********************************************************************
-* retro-205/D205.js
+* retro-205/webUI D205.js
 ************************************************************************
 * Copyright (c) 2015, Paul Kimpel.
 * Licensed under the MIT License, see
@@ -109,10 +109,11 @@ window.addEventListener("load", function() {
         if (!window.FileReader) {missing += ", FileReader"}
         if (!window.FileList) {missing += ", FileList"}
         if (!window.JSON) {missing += ", JSON"}
-        if (!window.localStorage) {missing += ", window.localStorage"}
+        if (!window.localStorage) {missing += ", LocalStorage"}
+        if (!window.indexedDB) {missing += ", IndexedDB"}
         if (!window.postMessage) {missing += ", window.postMessage"}
         if (!(window.performance && "now" in performance)) {missing += ", performance.now"}
-        if (!window.Promise) {missing += ", window.Promise"}
+        if (!window.Promise) {missing += ", Promise"}
 
         if (missing.length == 0) {
             return true;
