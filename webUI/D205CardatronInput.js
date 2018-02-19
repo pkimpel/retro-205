@@ -48,10 +48,13 @@ function D205CardatronInput(mnemonic, unitIndex, config) {
             new Uint8Array(this.bufferDrum, tks*7, tks)];       // format band 7 (dummy)
 
     // Initialize format band 6 for all-numeric transfer
-    // (note that ArrayBuffer storage is initialized to zero, so [160..315]=0)
+    // (note that ArrayBuffer storage is initialized to zero, so band[160..233] == 0)
     for (x=0; x<160; x+=2) {
         this.formatBand[6][x] = 1;
         this.formatBand[6][x+1] = 3;
+    }
+    for (x=234; x<this.info.length; ++x) {
+        this.formatBand[6][x] = 3;
     }
 
     this.doc = null;
@@ -73,7 +76,7 @@ function D205CardatronInput(mnemonic, unitIndex, config) {
 
 D205CardatronInput.prototype.eolRex = /([^\n\r\f]*)((:?\r[\n\f]?)|\n|\f)?/g;
 D205CardatronInput.prototype.cardsPerMinute = 240;      // IBM Type 087/089 collator
-D205CardatronInput.prototype.eodBias = -900000000000;   // signals end-of-data to Processor
+D205CardatronInput.prototype.eodBias = -0x900000000000; // signals end-of-data to Processor
 
 D205CardatronInput.trackSize = 315;     // digits
 D205CardatronInput.digitTime = 60/21600/D205CardatronInput.trackSize;
@@ -260,7 +263,6 @@ D205CardatronInput.prototype.CIStopBtn_onClick = function CIStopBtn_onClick(ev) 
     if (this.ready) {
         this.setReaderReady(false);
         this.startMachineLamp.set(0);
-        this.setFormatSelectLamps(0);
     }
 };
 
@@ -344,7 +346,7 @@ D205CardatronInput.prototype.format_onChange = function format_onChange(ev) {
         this.config.putNode("Cardatron.units", prefs, this.unitIndex);
         break;
     case "FormatSelect":
-        x = this.formatColumnList.selectedIndex;
+        x = this.formatSelectList.selectedIndex;
         prefs.formatSelect = this.formatSelect = x;
         this.config.putNode("Cardatron.units", prefs, this.unitIndex);
         break;
@@ -634,7 +636,7 @@ D205CardatronInput.prototype.inputWord = function inputWord(wordReceiver) {
     /* Reads the next word of digits from the info band of the buffer drum,
     translating the digits to Datatron Processor code and sending the word to the
     Processor via the wordReceiver callback function. If at end of band, returns any
-    partially-accumulated word minus 900000000000 to signal end of I/O. Note that
+    partially-accumulated word minus 0x900000000000 to signal end of I/O. Note that
     sign digits must be translated from zone digits specially. Also note that a
     completed word is not returned until the next digit is obtained from the info band */
     var band;                           // local copy of format band
@@ -642,6 +644,7 @@ D205CardatronInput.prototype.inputWord = function inputWord(wordReceiver) {
     var drumAddr = 0;                   // buffer drum address
     var eod;                            // finished with current digit
     var eow = false;                    // finished with word
+    var info = this.info;               // local reference to info band
     var ix = this.infoIndex;            // current info/format band index
     var latency;                        // drum latency for first digit of a word
     var lastNumeric = this.lastNumericDigit;
@@ -658,7 +661,7 @@ D205CardatronInput.prototype.inputWord = function inputWord(wordReceiver) {
         eod = false;
 
         do {
-            if (ix >= this.info.length) {
+            if (ix >= info.length) {
                 // At end of info band -- finish the I/O
                 this.inputStop();
                 d = 0;
@@ -673,7 +676,7 @@ D205CardatronInput.prototype.inputWord = function inputWord(wordReceiver) {
                     eod = true;
                     break;
                 case 1:                 // translate zone/numeric digit
-                    d = this.info[ix];
+                    d = info[ix];
                     if (nu) {
                         // Numeric digit: straight translation except for 3-8 and 4-8 punches
                         nu = false;             // next is a zone digit
@@ -706,7 +709,7 @@ D205CardatronInput.prototype.inputWord = function inputWord(wordReceiver) {
                 default:                // (3) delete the digit
                     if (nu) {
                         nu = false;             // next is a zone digit
-                        lastNumeric = this.info[ix];
+                        lastNumeric = info[ix];
                     } else {
                         nu = true;              // next is a numeric digit
                     }
@@ -802,7 +805,7 @@ D205CardatronInput.prototype.inputFormatInitiate = function inputFormatInitiate(
     second numeric digit from the instruction word, with odd values indicating
     reload-lockout should be imposed at the end of the read and the remaining
     three bits indicating the format band to be loaded. requestNextWord is the
-    callback function that will trigger the Processor to send the next digit.
+    callback function that will trigger the Processor to send the next word.
     signalFinished is the callback function that will signal the Processor to
     terminate the I/O */
 
@@ -812,9 +815,6 @@ D205CardatronInput.prototype.inputFormatInitiate = function inputFormatInitiate(
         this.kDigit = kDigit;
         this.selectedFormat = ((kDigit >>> 1) & 0x07) + 1;
         this.infoIndex = 0;             // start at the beginning of the format band
-        this.digitCount = 0;
-        this.togNumeric = true;
-        this.lastNumericDigit = 0;
         this.setFormatSelectLamps(this.selectedFormat);
         setCallback(this.mnemonic, this,
                 D205CardatronInput.trackSize/D205CardatronInput.digitsPerMilli*2.5,
@@ -836,7 +836,7 @@ D205CardatronInput.prototype.inputFormatWord = function inputFormatWord(
         d = word % 0x10;
         word = (word-d)/0x10;
         if (ix < D205CardatronInput.trackSize) {
-            band[ix++] = d;
+            band[ix++] = d % 4;
         } else {
             break;                      // out of for loop
         }
@@ -846,13 +846,7 @@ D205CardatronInput.prototype.inputFormatWord = function inputFormatWord(
     if (ix < D205CardatronInput.trackSize) {
         requestNextWord(this.boundInputFormatWord);
     } else {
-        this.setFormatSelectLamps(0);
-        if (this.kDigit % 2 == 0) {     // reset reload-lockout
-            if (this.reloadLockout) {
-                this.setReloadLockout(false);
-                this.initiateCardRead();
-            }
-        }
+        this.inputStop();
         signalFinished();
     }
 };

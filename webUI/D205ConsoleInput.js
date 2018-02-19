@@ -128,6 +128,18 @@ D205ConsoleInput.prototype.fileSelector_onChange = function fileSelector_onChang
 };
 
 /**************************************/
+D205ConsoleInput.prototype.setReaderEmpty = function setReaderEmpty() {
+    /* Sets the reader to a not-ready status and empties the buffer */
+
+    this.ready = false;
+    this.tapeSupplyBar.value = 0;
+    this.buffer = "";                   // discard the input buffer
+    this.bufLength = 0;
+    this.bufIndex = 0;
+    this.$$("PRFileSelector").value = null; // reset the control so the same file can be reloaded
+};
+
+/**************************************/
 D205ConsoleInput.prototype.beforeUnload = function beforeUnload(ev) {
     var msg = "Closing this window will make the device unusable.\n" +
               "Suggest you stay on the page and minimize this window instead";
@@ -178,18 +190,6 @@ D205ConsoleInput.prototype.sendTapeDigit = function sendTapeDigit(digit, receive
         this.tapeView.value = text.substring(length-119) + char;
     }
     this.tapeView.setSelectionRange(length-1, length);
-};
-
-/**************************************/
-D205ConsoleInput.prototype.setReaderEmpty = function setReaderEmpty() {
-    /* Sets the reader to a not-ready status and empties the buffer */
-
-    this.ready = false;
-    this.tapeSupplyBar.value = 0;
-    this.buffer = "";                   // discard the input buffer
-    this.bufLength = 0;
-    this.bufIndex = 0;
-    this.$$("PRFileSelector").value = null; // reset the control so the same file can be reloaded
 };
 
 /**************************************/

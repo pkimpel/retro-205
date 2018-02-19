@@ -38,7 +38,7 @@
 *
 ************************************************************************
 * 2015-06-23  P.Kimpel
-*   Original version, from B5500MagTapeDrive.js.
+*   Original version, from retro-b5500 B5500MagTapeDrive.js.
 ***********************************************************************/
 "use strict";
 
@@ -181,7 +181,7 @@ D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, successor
     /* Delays the I/O during tape motion, during which it animates the reel image
     icon. At the completion of the "delay" time in milliseconds, "successor" is
     called with no parameters. */
-    var delayLeft = delay;              // milliseconds left to delay
+    var delayLeft = Math.abs(delay);    // milliseconds left to delay
     var direction = (inches < 0 ? -1 : 1);
     var inchesLeft = inches;            // inches left to move tape
     var lastStamp = performance.now();  // last timestamp for spinDelay
@@ -212,7 +212,7 @@ D205MagTapeDrive.prototype.moveTape = function moveTape(inches, delay, successor
         } else {
             this.timer = setCallback(this.mnemonic, this, delayLeft, spinFinish);
         }
-        motion = inches*interval/delay;
+        motion = inchesLeft*interval/delayLeft;
         if (inchesLeft*direction <= 0) { // inchesLeft crossed zero
             motion = inchesLeft = 0;
         } else if (motion*direction <= inchesLeft*direction) {
@@ -519,7 +519,6 @@ D205MagTapeDrive.prototype.unloadTape = function unloadTape() {
         var imgLength;                  // active words in tape image
         var imgTop = mt.imgTopBlockNr;  // tape image last block number
         var lx;                         // lane index
-        var table;                      // even/odd parity translate table
         var tape;                       // <pre> element to receive tape data
         var w;                          // current image word
         var wx;                         // word index within block
@@ -632,8 +631,7 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
         clearCallback(this.timer);
         this.timer = 0;
     }
-    if (this.tapeState != this.tapeUnloaded &&
-            this.tapeState != this.tapeRewinding && !this.atBOT) {
+    if (this.tapeState != this.tapeUnloaded && this.tapeState != this.tapeRewinding) {
         this.busy = true;
         this.tapeState = this.tapeRewinding;
         this.setTapeReady(false);

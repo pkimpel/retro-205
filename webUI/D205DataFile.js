@@ -654,8 +654,10 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
         this.window.focus();
         this.buildBins();
         this.selectLane(this.maxLanes-1, function() {
-            this.selectLane(Math.round(this.maxLanes/2), function selectSuccessor() {
-                this.setTapeReady(this.remote);
+            this.selectLane(0, function() {
+                this.selectLane(Math.round(this.maxLanes/2), function selectSuccessor() {
+                    this.setTapeReady(this.remote);
+                });
             });
         });
     });

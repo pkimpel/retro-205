@@ -1,7 +1,7 @@
 /***********************************************************************
 * retro-205/webUI D205SetCallback.js
 ************************************************************************
-* Copyright (c) 2014, Paul Kimpel.
+* Copyright (c) 2014,2017, Paul Kimpel.
 * Licensed under the MIT License, see
 *       http://www.opensource.org/licenses/mit-license.php
 ************************************************************************
@@ -84,6 +84,7 @@
 
 (function (global) {
     /* Define a closure for the setCallback() mechanism */
+    var alpha = 0.25;                   // decay factor for delay deviation adjustment
     var delayDev = {NUL: 0};            // hash of delay time deviations by category
     var minTimeout = 4;                 // minimum setTimeout() threshold, milliseconds
     var lastTokenNr = 0;                // last setCallback token return value
@@ -173,11 +174,7 @@
                 if (delay < 0) {
                     adj = 0;            // don't make delay any more negative
                 } else {
-                    if (delay > delayBias) {
-                        adj = -delayBias;
-                    } else {
-                        adj = -delay;
-                    }
+                    adj = -Math.min(delay, delayBias, minTimeout)*alpha;
                 }
             } else { // delayBias < 0
                 // We are delaying too little and should try to delay more.

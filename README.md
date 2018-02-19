@@ -17,6 +17,7 @@ The contents of this project are licensed under the [MIT License](http://www.ope
 | Tom Sawyer's 205 & 220 blog | http://datatron.blogspot.com/ |
 | Tom Sawyer's 205 web site | http://tjsawyer.com/b205home.php |
 | Documents at bitsavers | http://bitsavers.org/pdf/burroughs/electrodata/205/ |
+| Algol-58 comiler listing | http://archive.computerhistory.org/resources/text/Knuth_Don_X4100/PDF_index/k-2-pdf/k-2-u2435-B205-ALGOL-listing.pdf |
 
 
 This project was originally hosted on Google Code at https://code.google.com/p/retro-205 and moved to GitHub in April 2015.

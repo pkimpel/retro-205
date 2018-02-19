@@ -8,7 +8,7 @@
 * ElectroData/Burroughs Datatron 205 Cardatron Control object.
 ************************************************************************
 * 2015-02-01  P.Kimpel
-*   Original version, from D205ConsoleConsole.js.
+*   Original version, from D205ControlConsole.js.
 ***********************************************************************/
 "use strict";
 
@@ -176,11 +176,11 @@ D205CardatronControl.prototype.inputInitiate = function inputInitiate(unitNr, kD
 
     this.outputUnitLamp.set(0);
     this.setRelayDesignateLamps(0);
+    this.setUnitDesignateLamps(unitNr);
     if (!this.inputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
         wordSender(-1);                 // just terminate the I/O
     } else {
-        this.setUnitDesignateLamps(unitNr);
         this.inputUnit[unitNr].inputInitiate(kDigit, wordSender);
     }
 };
@@ -213,6 +213,7 @@ D205CardatronControl.prototype.inputStop = function inputStop(unitNr) {
 D205CardatronControl.prototype.inputReadyInterrogate = function inputReadyInterrogate(unitNr) {
     /* Interrogates the ready status of a Cardatron input device */
 
+    this.setUnitDesignateLamps(unitNr);
     if (!this.inputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
         return false;
@@ -228,11 +229,11 @@ D205CardatronControl.prototype.inputFormatInitiate = function inputFormatInitiat
 
     this.outputUnitLamp.set(0);
     this.setRelayDesignateLamps(0);
+    this.setUnitDesignateLamps(unitNr);
     if (!this.inputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
         signalFinished();               // just terminate the I/O
     } else {
-        this.setUnitDesignateLamps(unitNr);
         this.inputUnit[unitNr].inputFormatInitiate(kDigit, requestNextWord, signalFinished);
     }
 };
@@ -244,11 +245,11 @@ D205CardatronControl.prototype.outputInitiate = function outputInitiate(
 
     this.outputUnitLamp.set(1);
     this.setRelayDesignateLamps(tDigit);
+    this.setUnitDesignateLamps(unitNr);
     if (!this.outputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
         signalFinished();               // just terminate the I/O
     } else {
-        this.setUnitDesignateLamps(unitNr);
         this.outputUnit[unitNr].outputInitiate(kDigit, tDigit, requestNextWord, signalFinished);
     }
 };
@@ -257,6 +258,7 @@ D205CardatronControl.prototype.outputInitiate = function outputInitiate(
 D205CardatronControl.prototype.outputReadyInterrogate = function outputReadyInterrogate(unitNr) {
     /* Interrogates the ready status of a Cardatron output device */
 
+    this.setUnitDesignateLamps(unitNr);
     if (!this.outputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
         return false;
@@ -272,11 +274,11 @@ D205CardatronControl.prototype.outputFormatInitiate = function outputFormatIniti
 
     this.outputUnitLamp.set(1);
     this.setRelayDesignateLamps(0);
+    this.setUnitDesignateLamps(unitNr);
     if (!this.outputUnit[unitNr]) {
         // ?? what happens if the unitNr is invalid? Halt?
         signalFinished();               // just terminate the I/O
     } else {
-        this.setUnitDesignateLamps(unitNr);
         this.outputUnit[unitNr].outputFormatInitiate(kDigit, requestNextWord, signalFinished);
     }
 };

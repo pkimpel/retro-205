@@ -107,7 +107,7 @@ D205MagTapeControl.prototype.findDesignate = function findDesignate(u) {
     var unit;
     var x;
 
-    for (x=this.tapeUnit.length-1; x>=0; --x) {
+    for (x=this.tapeUnit.length-1; x>0; --x) {
         unit = this.tapeUnit[x];
         if (unit && unit.ready) {
             if (unit.unitDesignate == u) {
@@ -115,6 +115,7 @@ D205MagTapeControl.prototype.findDesignate = function findDesignate(u) {
                     index = x;
                 } else {
                     index = -2;
+                    break;              // out of for loop
                 }
             }
         }
@@ -230,6 +231,7 @@ D205MagTapeControl.prototype.readTerminate = function readTerminate() {
     this.forwardLamp.set(0);
     this.controlBusy = false;
     this.currentUnit.readTerminate();
+    this.currentUnit = null;
 };
 
 /**************************************/
@@ -319,6 +321,7 @@ D205MagTapeControl.prototype.writeTerminate = function writeTerminate(abortWrite
     this.recordLamp.set(0);
     this.controlBusy = false;
     this.memoryTerminateCallback();
+    this.currentUnit = null;
 };
 
 /**************************************/

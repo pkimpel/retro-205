@@ -102,7 +102,7 @@ function D205Processor(config, devices) {
     this.boundConsoleOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputSignDigit);
     this.boundConsoleOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputNumberDigit);
     this.boundConsoleOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputFinished);
-    this.boundConsoleInputDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleInputDigit);
+    this.boundConsoleRequestDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleRequestDigit);
     this.boundConsoleReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveDigit);
     this.boundConsoleReceiveSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveSingleDigit);
 
@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.00a";
+D205Processor.version = "1.00b";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -964,7 +964,7 @@ D205Processor.prototype.integerMultiply = function integerMultiply(roundOff) {
         this.R = this.D = 0;
     }
 
-    this.procTime += 13 + count*2;
+    this.procTime += count*2 + 13;
     this.SPECIAL = 0x09;                // for display only
     this.togSIGN = sign;                // for display only
     this.A = sign*0x10000000000 + am;
@@ -1038,7 +1038,7 @@ D205Processor.prototype.integerDivide = function integerDivide() {
     if (this.stopOverflow) {
         this.procTime += 24;
     } else {
-        this.procTime += 52 + count*2;
+        this.procTime += count*2 + 52;
     }
 };
 
@@ -1069,33 +1069,48 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
 
     // If the exponents are unequal, scale the smaller and normalize the larger
     // until they are in alignment, or one mantissa becomes zero.
-    if (ae > de) {
-        // Scale D until its exponent matches or the mantissa goes to zero.
-        while (ae > de && dm > 0) {
+
+    // Scale D until its exponent matches or the mantissa goes to zero.
+    while (ae > de) {
+        if (dm <= 0) {
+            de = ae;                // stop scaling
+        } else {
             d = dm % 0x10;
-            dm = (dm - d)/0x10;         // shift right
-            de = this.bcdAdd(1, de, 0, 0);      // ++de
-        }
-        // Normalize A
-        while (ae > de && am < 0x10000000) {
-            am *= 0x10;                 // shift left
-            ae = this.bcdAdd(1, ae, 1, 1);      // --ae
-            this.procTime += 2;
-        }
-    } else if (ae < de) {
-        // Scale A until its exponent matches or the mantissa goes to zero.
-        while (ae < de && am > 0) {
-            d = am % 0x10;
-            am = (am - d)/0x10;         // shift right
-            ae = this.bcdAdd(1, ae, 0, 0);      // ++ae
-        }
-        // Normalize D
-        while (ae < de && dm < 0x10000000) {
-            dm *= 0x10;                 // shift left
-            de = this.bcdAdd(1, de, 1, 1);      // --de
+            dm = (dm - d)/0x10;     // shift right
+            de = this.bcdAdd(1, de, 0, 0);  // ++de
             this.procTime += 2;
         }
     }
+
+    /********** Do not believe the 205 normalized prior to addition **********
+    // Normalize A
+    while (ae > de && am < 0x10000000) {
+        am *= 0x10;                 // shift left
+        ae = this.bcdAdd(1, ae, 1, 1);      // --ae
+        this.procTime += 2;
+    }
+    *************************************************************************/
+
+    // Scale A until its exponent matches or the mantissa goes to zero.
+    while (ae < de) {
+        if (am <= 0) {
+            ae = de;                // stop scaling
+        } else {
+            d = am % 0x10;
+            am = (am - d)/0x10;     // shift right
+            ae = this.bcdAdd(1, ae, 0, 0);  // ++ae
+            this.procTime += 2;
+        }
+    }
+
+    /********** Do not believe the 205 normalized prior to addition **********
+    // Normalize D
+    while (ae < de && dm < 0x10000000) {
+        dm *= 0x10;                 // shift left
+        de = this.bcdAdd(1, de, 1, 1);      // --de
+        this.procTime += 2;
+    }
+    *************************************************************************/
 
     compl = (aSign^dSign);
     am = this.bcdAdd(am, dm, compl, compl);
@@ -1248,7 +1263,7 @@ D205Processor.prototype.floatingMultiply = function floatingMultiply() {
                 this.R = rm;
             }
 
-            this.procTime += 16 + count*2;
+            this.procTime += count*2 + 16;
         }
     }
 
@@ -1363,13 +1378,13 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
                 } // for x
 
                 // Rotate the quotient from R into A for 8 digits or until it's normalized
-                for (x=0; x<8 || am%0x100000000 < 0x10000000; ++x) {
+                for (x=0; x<8 || am < 0x10000000; ++x) {
                     ++this.SPECIAL;         // for display only
                     rd = (am - am%0x1000000000)/0x1000000000;
                     rm = rm*0x10 + rd;
                     rd = (rm - rm%0x10000000000)/0x10000000000;
                     rm %= 0x10000000000;
-                    am = (am%0x1000000000)*0x10 + rd;
+                    am = (am%0x10000000)*0x10 + rd;
                     ++count;
                 }
 
@@ -1384,7 +1399,7 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
             if (this.stopOverflow) {
                 this.procTime += 27;
             } else {
-                this.procTime += 55 + count*2;
+                this.procTime += count*2 + 55;
             }
         }
     }
@@ -1786,8 +1801,8 @@ D205Processor.prototype.consoleOutputFinished = function consoleOutputFinished()
 };
 
 /**************************************/
-D205Processor.prototype.consoleInputDigit = function consoleInputDigit() {
-    // Solicits the next input digit from the Control Console */
+D205Processor.prototype.consoleRequestDigit = function consoleRequestDigit() {
+    /* Solicits the next input digit from the Control Console */
 
     this.togTF = 0;                     // for display only, reset finish pulse
     this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
@@ -1809,7 +1824,7 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
         this.togTC1 = 1-this.togTC1;    // for display only
         this.togTC2 = 1-this.togTC2;    // for display only
         this.D = (this.D % 0x10000000000)*0x10 + digit;
-        this.consoleInputDigit();
+        this.consoleRequestDigit();
     } else {
         this.togTF = 1;
         this.togTC1 = this.togTC2 = 0;  // for display only
@@ -1887,7 +1902,7 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
             word = this.A % 0x10000000000;
             sign = (((this.A - word)/0x10000000000) & 0x0E) | (sign & 0x01);
             this.A = sign*0x10000000000 + word;
-            this.writeMemory(this.boundConsoleInputDigit, false);
+            this.writeMemory(this.boundConsoleRequestDigit, false);
         }
     }
 };
@@ -1991,7 +2006,7 @@ D205Processor.prototype.cardatronReceiveWord = function cardatronReceiveWord(wor
         this.togSTART = 0;
         this.togTF = 0;                 // for display only
         this.togTWA = 0;                // for display only
-        this.D = word-900000000000;     // remove the finished signal; for display only, not stored
+        this.D = word-0x900000000000;   // remove the finished signal; for display only, not stored
         this.executeComplete();
     } else {
         // Full word accumulated -- process it and initialize for the next word
@@ -2422,7 +2437,7 @@ D205Processor.prototype.fetch = function fetch() {
         if (this.tog3IO) {
             this.cardatronInputWord(); // we're still executing a Cardatron input command
         } else {
-            this.consoleInputDigit();   // we're still executing a Console input command
+            this.consoleRequestDigit();   // we're still executing a Console input command
         }
     } else {
         this.setTimingToggle(0);        // next cycle will be Execute by default
@@ -2662,7 +2677,7 @@ D205Processor.prototype.execute = function execute() {
         case 0x00:      //---------------- PTR  Paper-tape/keyboard read
             this.D = 0;
             this.togSTART = 1;
-            this.consoleInputDigit();
+            this.consoleRequestDigit();
             break;
 
         case 0x01:      //---------------- CIRA Circulate A
@@ -3025,10 +3040,12 @@ D205Processor.prototype.execute = function execute() {
                 this.togMT3P = 1;
                 this.togMT1BV4 = d & 0x01;              // select initial loop buffer
                 this.togMT1BV5 = 1-this.togMT1BV4;
-                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                // Mark time during I/O, add 36 word-times for controller setup
+                this.procTime += 36 - performance.now()*D205Processor.wordsPerMilli;
                 if (this.magTape.read(this.selectedUnit, d, this.boundMagTapeReceiveBlock)) {
                     this.setOverflow(1);                // control or tape unit busy/not-ready
                     this.togMT3P = this.togMT1BV4 = this.togMT1BV5 = 0;
+                    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time
                     this.executeComplete();
                 }
             }
@@ -3040,9 +3057,12 @@ D205Processor.prototype.execute = function execute() {
             if (this.magTape) {
                 this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
                 d = (this.CEXTRA >>> 8) & 0xFF;         // lane number
+                // Mark time during I/O, add 36 word-times for controller setup
+                this.procTime += 36 - performance.now()*D205Processor.wordsPerMilli;
                 if (this.magTape.search(this.selectedUnit, d, this.CADDR)) {
                     this.setOverflow(1);                // control or tape unit busy/not-ready
                 }
+                this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time
             }
             this.executeComplete();
             break;
@@ -3102,10 +3122,12 @@ D205Processor.prototype.execute = function execute() {
                 this.togMT3P = 1;
                 this.togMT1BV4 = d & 0x01;              // select initial loop buffer
                 this.togMT1BV5 = 1-this.togMT1BV4;
-                this.procTime -= performance.now()*D205Processor.wordsPerMilli; // mark time during I/O
+                // Mark time during I/O, add 36 word-times for controller setup
+                this.procTime += 36 - performance.now()*D205Processor.wordsPerMilli;
                 if (this.magTape.write(this.selectedUnit, d, this.boundMagTapeInitiateSend)) {
                     this.setOverflow(1);                // control or tape unit busy/not-ready
                     this.togMT3P = this.togMT1BV4 = this.togMT1BV5 = 0;
+                    this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time
                     this.executeComplete();
                 }
             }
@@ -3116,9 +3138,12 @@ D205Processor.prototype.execute = function execute() {
         case 0x52:      //---------------- MTRW Magnetic Tape Rewind
             if (this.magTape) {
                 this.selectedUnit = (this.CEXTRA >>> 4) & 0x0F;
+                // Mark time during I/O, add 36 word-times for controller setup
+                this.procTime += 36 - performance.now()*D205Processor.wordsPerMilli;
                 if (this.magTape.rewind(this.selectedUnit)) {
                     this.setOverflow(1);                // control or tape unit busy/not-ready
                 }
+                this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time
             }
             this.executeComplete();
             break;
@@ -3179,12 +3204,12 @@ D205Processor.prototype.execute = function execute() {
 /**************************************/
 D205Processor.prototype.start = function start() {
     /* Initiates the processor according to the current Timing Toggle state */
-    var drumTime = performance.now()*D205Processor.wordsPerMilli;
+    var realTime = performance.now()*D205Processor.wordsPerMilli;
 
     if (this.togCST && this.poweredOn) {
-        this.procStart = drumTime;
-        this.procTime = drumTime;
-        this.memoryStopTime = drumTime;
+        this.procStart = realTime;
+        this.procTime = realTime;
+        this.memoryStopTime = realTime;
 
         this.stopIdle = 0;
         this.stopControl = 0;
@@ -3287,6 +3312,14 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
     this.MM[  26] = 0x0000089429;       // HALT 9429
     this.MM[  27] = 0x4845535356;       // LIT  "HELLO"
     this.MM[  28] = 0x6656595344;       // LIT  "WORLD"
+
+    // Clear memory the straightforward (and pretty slow) way
+    this.MM[  50] = 0x00000023999;      // STC  3999    clear A
+    this.MM[  51] = 0x00000720050;      // SB     50    set B to 3999
+    this.MM[  52] = 0x00000300053;      // CUB    52
+    this.MM[  53] = 0x10000020000;      // STC  0+B     zero MM[B]
+    this.MM[  54] = 0x00000227053;      // DB   7053    decrement B and branch if >= 0
+    this.MM[  55] = 0x09999089999;      // STOP 9999    halt
 
     // Tom Sawyer's "Square Roots 100" (Babylonian or Newton's method):
     this.MM[ 100] = 0x640139;           // CAD   139

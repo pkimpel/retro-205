@@ -67,7 +67,7 @@ function D205CardatronOutput(mnemonic, unitIndex, config) {
     this.supply = null;                 // the "paper" or "cards" we print/punch on
     this.endOfSupply = null;            // dummy element used to control scrolling
     this.supplyMeter = null;            // <meter> element showing amount of paper/card supply remaining
-    w = (this.isPrinter ? 780 : 608);
+    w = (this.isPrinter ? 790 : 608);
     this.window = window.open("../webUI/D205CardatronOutput.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
             ",left=" + (screen.availWidth - w) +
@@ -98,8 +98,8 @@ D205CardatronOutput.prototype.outputXlate = [
         [0x2D,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x20,0x24,0x2A],     // zone digit  2
         [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit  3
         [0x30,0x2F,0x53,0x54,0x55,0x56,0x57,0x58,0x59,0x5A,0x20,0x2C,0x25],     // zone digit  4
-        [0x40,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit  5
-        [0x2D,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit  6
+        [0x26,0x41,0x42,0x43,0x44,0x45,0x46,0x47,0x48,0x49,0x20,0x2E,0xA4],     // zone digit  5
+        [0x2D,0x4A,0x4B,0x4C,0x4D,0x4E,0x4F,0x50,0x51,0x52,0x20,0x24,0x2A],     // zone digit  6
         [0x20,0x20,0x39,0x2E,0xA4,0xA4,0x2E,0xA4,0x20,0x20,0x20,0x2E,0xA4],     // zone digit  7
         [0x20,0x4A,0x49,0x24,0x2A,0x2A,0x24,0x2A,0x20,0x20,0x20,0x24,0x2A],     // zone digit  8
         [0x20,0x20,0x52,0x27,0x25,0x25,0x2C,0x25,0x20,0x20,0x20,0x27,0x25],     // zone digit  9
@@ -107,9 +107,9 @@ D205CardatronOutput.prototype.outputXlate = [
         [0x20,0x26,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20],     // zone digit 11
         [0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20,0x20]];    // zone digit 12
 
-// Translate buffer zone digits to internal zone decades.
-// Each row is indexed by the zone digit from the buffer drum info band;
-// each column is indexed by the PREVIOUS numeric digit from the info band.
+// Translate internal zone decades to buffer zone digits.
+// Each row is indexed by the zone digit from the internal character code;
+// each column is indexed by the PREVIOUS numeric digit from the character code.
 // See U.S. Patent 3,072,328, January 8, 1963, L.L. Bewley et al, Figure 12;
 // and ElectroData Technical Newsletter #5 of February 14, 1958.
 D205CardatronOutput.prototype.zoneXlate = [         // numeric digit:0 1 2 3 4 5 6 7 8 9
@@ -435,7 +435,7 @@ D205CardatronOutput.prototype.initiateWrite = function initiateWrite() {
         case 1:                         // Relay 1 (eject page after printing)
         case 9:                         // same as 1
             this.printLine(line, this.pendingSpaceBefore);
-            this.pendingSpaceBefore = 0;
+            this.pendingSpaceBefore = -99;
             break;
         case 2:                         // Relay 2 (single space before and after printing)
             this.printLine(line, this.pendingSpaceBefore+1);
@@ -845,7 +845,7 @@ D205CardatronOutput.prototype.outputWord = function outputWord(
                         if (x > 9) {
                             // For a zone digit in the sign position, store a 5 (+) or 6 (-)
                             // so that the sign will be printed/punched as a zone 11/12.
-                            info[ix] = (d & 0x01) + 5;
+                            info[ix] = d%2 + 5;
                         } else if (d > 3) {
                             info[ix] = this.zoneXlate[d][lastNumeric];
                         } else {
@@ -965,8 +965,6 @@ D205CardatronOutput.prototype.outputFormatInitiate = function outputFormatInitia
         this.kDigit = kDigit;
         this.selectedFormat = ((kDigit >>> 1) & 0x07) + 1;
         this.infoIndex = 0;             // start at the beginning of the format band
-        this.togNumeric = true;
-        this.lastNumericDigit = 0;
         this.setFormatSelectLamps(this.selectedFormat);
         setCallback(this.mnemonic, this,
                 D205CardatronOutput.trackSize/D205CardatronOutput.digitsPerMilli*2.5,
@@ -988,7 +986,7 @@ D205CardatronOutput.prototype.outputFormatWord = function outputFormatWord(
         d = word % 0x10;
         word = (word-d)/0x10;
         if (ix < D205CardatronOutput.trackSize) {
-            band[ix++] = d;
+            band[ix++] = d % 4;
         } else {
             break;                      // out of for loop
         }
