@@ -24,25 +24,44 @@ function D205SupervisoryPanel(p, systemShutdown) {
     this.p = p;                         // D205Processor object
     this.systemShutdown = systemShutdown; // system shut-down callback
 
-    this.boundLamp_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.lamp_Click);
-    this.boundPowerBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.powerBtn_Click);
-    this.boundClear_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.clear_Click);
-    this.boundFlipSwitch = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.flipSwitch);
-    this.boundStartBtn_Click = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.startBtn_Click);
-    this.boundUpdatePanel = D205Util.bindMethod(this, D205SupervisoryPanel.prototype.updatePanel);
+    this.boundLamp_Click = D205SupervisoryPanel.prototype.lamp_Click.bind(this);
+    this.boundMeatballMemdump = D205SupervisoryPanel.prototype.meatballMemdump.bind(this);
+    this.boundPowerBtn_Click = D205SupervisoryPanel.prototype.powerBtn_Click.bind(this);
+    this.boundClear_Click = D205SupervisoryPanel.prototype.clear_Click.bind(this);
+    this.boundFlipSwitch = D205SupervisoryPanel.prototype.flipSwitch.bind(this);
+    this.boundStartBtn_Click = D205SupervisoryPanel.prototype.startBtn_Click.bind(this);
+    this.boundUpdatePanel = D205SupervisoryPanel.prototype.updatePanel.bind(this);
 
     this.doc = null;
-    this.window = window.open("../webUI/D205SupervisoryPanel.html", mnemonic,
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205SupervisoryPanel.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
-            ",top=0,left=" + (screen.availWidth - w));
-    this.window.addEventListener("load",
-        D205Util.bindMethod(this, D205SupervisoryPanel.prototype.consoleOnLoad));
+            ",top=0,left=" + (screen.availWidth - w),
+        this, D205SupervisoryPanel.prototype.consoleOnLoad);
 }
 
 /**************************************/
 D205SupervisoryPanel.displayRefreshPeriod = 50;   // milliseconds
 D205SupervisoryPanel.offSwitchImage = "./resources/ToggleDown.png";
 D205SupervisoryPanel.onSwitchImage = "./resources/ToggleUp.png";
+
+D205SupervisoryPanel.codeXlate = [      // translate internal 205 code to ANSI
+        " ", "_", " ", ".", "\u00A4", "_",  "_",  "_", "_", "_", "!", "!", "!", "!", "!", "!",  // 00-0F
+        "&", "_", "_", "$", "*",      "^",  "~",  "_", "_", "_", "!", "!", "!", "!", "!", "!",  // 10-1F
+        "-", "/", "_", ",", "%",      "_",  "|",  "_", "_", "_", "!", "!", "!", "!", "!", "!",  // 20-2F
+        "_", "_", "_", "#", "@",      "\\", "_",  "_", "_", "_", "!", "!", "!", "!", "!", "!",  // 30-3F
+        "_", "A", "B", "C", "D",      "E",  "F",  "G", "H", "I", "!", "!", "!", "!", "!", "!",  // 40-4F
+        "_", "J", "K", "L", "M",      "N",  "O",  "P", "Q", "R", "!", "!", "!", "!", "!", "!",  // 50-5F
+        "_", "_", "S", "T", "U",      "V",  "W",  "X", "Y", "Z", "!", "!", "!", "!", "!", "!",  // 60-6F
+        "_", "_", "_", "_", "_",      "_",  "_",  "_", "_", "_", "!", "!", "!", "!", "!", "!",  // 70-7F
+        "0", "1", "2", "3", "4",      "5",  "6",  "7", "8", "9", "!", "!", "!", "!", "!", "!",  // 80-8F
+        "_", "_", "_", "_", "_",      "_",  "_",  "_", "_", "_", "!", "!", "!", "!", "!", "!",  // 90-9F
+        "!", "!", "!", "!", "!",      "!",  "!",  "!", "!", "!", "!", "!", "!", "!", "!", "!",  // A0-AF
+        "!", "!", "!", "!", "!",      "!",  "!",  "!", "!", "!", "!", "!", "!", "!", "!", "!",  // B0-BF
+        "!", "!", "!", "!", "!",      "!",  "!",  "!", "!", "!", "!", "!", "!", "!", "!", "!",  // C0-CF
+        "!", "!", "!", "!", "!",      "!",  "!",  "!", "!", "!", "!", "!", "!", "!", "!", "!",  // D0-DF
+        "!", "!", "!", "!", "!",      "!",  "!",  "!", "!", "!", "!", "!", "!", "!", "!", "!",  // E0-EF
+        "!", "!", "!", "!", "!",      "!",  "!",  "!", "!", "!", "!", "!", "!", "!", "!", "!"]; // F0-FF
 
 /**************************************/
 D205SupervisoryPanel.prototype.$$ = function $$(e) {
@@ -85,6 +104,218 @@ D205SupervisoryPanel.prototype.beforeUnload = function beforeUnload(ev) {
     ev.preventDefault();
     ev.returnValue = msg;
     return msg;
+};
+
+/**************************************/
+D205SupervisoryPanel.prototype.meatballMemdump = function meatballMemdump() {
+    /* Opens a temporary window and formats the current processor and memory
+    state to it */
+    var doc = null;                     // dump window.document
+    var p = this.p;                     // local copy of Processor object
+    var paper = null;                   // <pre> element to receive dump lines
+    var trimRightRex = /[\s\uFEFF\xA0]+$/;
+    var win = null;                     // dump window
+    var xlate = D205SupervisoryPanel.codeXlate; // local copy
+
+    function formatWord(w) {
+        /* Formats a 205 numeric word as "S DDDDDDDDDD" and returns it */
+        var s = padBCD(w, 11);
+
+        return s.substring(0, 1) + " " + s.substring(1);
+    }
+
+    function padBCD(value, digits) {
+        /* Formats "value" as a BCD number of "digits" length, left-padding with
+        zeroes as necessary */
+        var text = value.toString(16);
+
+        if (value < 0) {
+            return text;
+        } else {
+            return padLeft(text, digits, "0");
+        }
+    }
+
+    function padLeft(text, minLength, c) {
+        /* Pads "text" on the left to a total length of "minLength" with "c" */
+        var s = text.toString();
+        var len = s.length;
+        var pad = c || " ";
+
+        while (len++ < minLength) {
+            s = pad + s;
+        }
+        return s;
+    }
+
+    function trimRight(text) {
+        /* Returns the string with all terminating whitespace removed from "text" */
+
+        return text.replace(trimRightRex, '');
+    }
+
+    function wordToANSI(value) {
+        /* Converts the "value" as a 205 word to a five-character string and returns it */
+        var c;                              // current character
+        var s = "";                         // working string value
+        var w = value;                      // working word value
+        var x;                              // character counter
+
+        for (x=0; x<5; ++x) {
+            c = w % 256;
+            w = (w-c)/256;
+            s = xlate[c] + s;
+        }
+
+        return s;
+    }
+
+    function writer(text) {
+        /* Outputs one line of text to the dump window */
+
+        paper.appendChild(doc.createTextNode(trimRight(text) + "\n"));
+    }
+
+    function dumpProcessorState() {
+        /* Dumps the register state for the Processor */
+        var s = "";
+        var x = 0;
+
+        writer("");
+        writer("Processor:  A: " + formatWord(p.A) + "   R: " + formatWord(p.R));
+        writer("");
+        s = padBCD(p.C, 10);
+        s = s.substring(0, 2) + " " + s.substring(2, 6) + " " + s.substring(6);
+        writer("            D: " + formatWord(p.D) + "   B: " + padBCD(p.B, 4) + "   C: " + s);
+        writer("");
+        writer("        ADDER: " + padBCD(p.ADDER, 1) + "  CT: " + padBCD(p.CT, 2) +
+               "      SPECIAL: " + padBCD(p.SPECIAL, 1) + "   SHIFT: " + padBCD(p.SHIFT, 2));
+
+        writer("");
+        s = "Supervisory Panel:";
+        if (p.sswAudibleAlarm) {s += " Audible-Alarm"}
+        s += (p.sswLockNormal ? " Lock" : " Normal");
+        s += (p.sswStepContinuous ? " Continuous" : " Step");
+        writer(s);
+
+        s = "Control Console:  ";
+        s += " Output="
+        switch (p.cswOutput) {
+            case 1: s += "Page"; break;
+            case 2: s += "Tape"; break;
+            default:s += "Off"; break;
+        }
+
+        if (p.cswPOSuppress)         {s += " P.O.Suppress"}
+        if (p.cswSkip)               {s += " Skip"}
+        s += " Breakpoint=";
+        switch (p.cswBreakpoint) {
+            case 1: s += "4"; break;
+            case 2: s += "2"; break;
+            case 3: s += "1"; break;
+            default:s += "Off";
+        }
+
+        if (p.cswAudibleAlarm)       {s += " Audible-Alarm"}
+        s += " Input=";
+        switch (p.cswInput) {
+            case 1: s += "Optical"; break;
+            case 2: s += "Keyboard"; break;
+            default:s += "Mechanical"; break;
+        }
+
+        writer(s);
+        writer("Mag Tape Suppress-B: " + (p.tswSuppressB ? "On" : "Off"));
+    }
+
+    function dumpMemory(mod, base, start, top) {
+        /* Routine to dump main memory or one of the loops */
+        var addr = 0;
+        var dupCount = 0;
+        var lastLine = "";
+        var line = "";
+        var x = 0;                      // image data index
+
+        function dumpDupes() {
+            /* Outputs the duplicate-line message, if any */
+
+            if (dupCount > 0) {
+                writer("....  ..... DUP FOR " + dupCount + " LINE" + (dupCount>1 ? "S" : "") +
+                       " THRU " + padLeft(base+addr-1, 4, "0") + " .....");
+                dupCount = 0;
+            }
+        }
+
+        writer("");
+        addr = start;
+        while (addr <= top) {
+            // Format the next five words
+            line = "";
+            for (x=0; x<5; ++x) {
+                line += "  " + formatWord(mod[addr+x]);
+            } // for x
+
+            // Check for duplicate lines; write a non-duplicate
+            if (line == lastLine) {
+                ++dupCount;
+            } else {
+                dumpDupes();
+                lastLine = line;
+                line = padLeft(base+addr, 4, "0") + line + "  ";
+                for (x=0; x<5; ++x) {
+                    line += wordToANSI(mod[addr+x]);
+                } // for x
+
+                writer(line);
+            }
+
+            addr += 5;
+        } // for addr
+
+        dumpDupes();
+    }
+
+    function memdumpDriver() {
+        /* Driver for formatting the memory and Processor state dump */
+
+        while (paper.firstChild) {               // delete any existing <pre> content
+            paper.removeChild(paper.firstChild);
+        }
+
+        writer("retro-205 Processor State and Memory Dump : " + new Date().toString());
+
+        dumpProcessorState();
+
+        // Dump all of memory
+        writer("");
+        writer("Memory: ");
+        dumpMemory(p.MM, 0, 0, 3999);
+        dumpMemory(p.L4, 4000, 0, 19);
+        dumpMemory(p.L5, 5000, 0, 19);
+        dumpMemory(p.L6, 6000, 0, 19);
+        dumpMemory(p.L7, 7000, 0, 19);
+        writer("");
+        writer("End dump");
+    }
+
+    function memdumpSetup(ev) {
+        /* Loads a status message into the "paper" rendering area, then calls
+        dumpDriver after a short wait to allow the message to appear */
+
+        doc = ev.target;
+        win = doc.defaultView
+        doc.title = "retro-205 Console: Meatball Memdump";
+        win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
+        paper = doc.getElementById("Paper");
+        writer("Rendering the dump... please wait...");
+        setTimeout(memdumpDriver, 50);
+        win.focus();
+    }
+
+    // Outer block of meatBallMemdump
+    D205Util.openPopup(window, "./D205FramePaper.html", "",
+            "location=no,scrollbars=yes,resizable,width=800,height=600",
+            this, memdumpSetup);
 };
 
 /**************************************/
@@ -482,7 +713,7 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
 };
 
 /**************************************/
-D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
+D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     /* Initializes the Supervisory Panel window and user interface */
     var adderDiv;
     var body;
@@ -494,7 +725,8 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     var prefs = this.config.getNode("SupervisoryPanel");
     var x;
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     body = this.$$("PanelSurface");
     adderDiv = this.$$("AdderDiv");
     controlDiv = this.$$("ControlDiv");
@@ -710,10 +942,12 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad() {
     this.$$("ResetControlBtn").addEventListener("click", this.boundClear_Click);
     this.$$("ExecuteBtn").addEventListener("click", this.boundClear_Click);
     this.$$("FetchBtn").addEventListener("click", this.boundClear_Click);
-    this.$$("PowerOnBtn").addEventListener("click", this.boundPowerBtn_Click);
-    this.$$("PowerOffBtn").addEventListener("click", this.boundPowerBtn_Click);
+    //this.$$("PowerOnBtn").addEventListener("click", this.boundPowerBtn_Click);
+    this.$$("PowerOffBtn").addEventListener("dblclick", this.boundPowerBtn_Click);
 
     this.window.addEventListener("beforeunload", D205SupervisoryPanel.prototype.beforeUnload);
+
+    this.$$("SinglePulseBtn").addEventListener("click", this.boundMeatballMemdump, false);
 
     this.$$("PulseSourceSwitch").addEventListener("click", this.boundFlipSwitch);
     this.$$("WordContSwitch").addEventListener("click", this.boundFlipSwitch);

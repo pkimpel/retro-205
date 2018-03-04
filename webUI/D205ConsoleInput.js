@@ -32,13 +32,13 @@ function D205ConsoleInput(mnemonic, p) {
     } else {
         this.readTapeDigit = this.actualReadTapeDigit;
         this.doc = null;
+        this.window = null;
         this.tapeSupplyBar = null;
         this.tapeView = null;
-        this.window = window.open("../webUI/D205PaperTapeReader.html", mnemonic,
-                "location=no,scrollbars=no,resizable,width=370,height=100,left=300,top=430");
-        this.window.addEventListener("load",
-                D205Util.bindMethod(this, D205ConsoleInput.prototype.readerOnload), false);
-        }
+        D205Util.openPopup(window, "../webUI/D205PaperTapeReader.html", mnemonic,
+                "location=no,scrollbars=no,resizable,width=370,height=100,left=300,top=430",
+                this, D205ConsoleInput.prototype.readerOnLoad);
+    }
 }
 
 /**************************************/
@@ -150,11 +150,12 @@ D205ConsoleInput.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205ConsoleInput.prototype.readerOnload = function readerOnload() {
+D205ConsoleInput.prototype.readerOnLoad = function readerOnLoad(ev) {
     /* Initializes the reader window and user interface */
     var de;
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     de = this.doc.documentElement;
     this.doc.title = "retro-205 - Paper Tape Reader ";
 
@@ -164,9 +165,9 @@ D205ConsoleInput.prototype.readerOnload = function readerOnload() {
     this.window.addEventListener("beforeunload",
             D205ConsoleInput.prototype.beforeUnload, false);
     this.$$("PRFileSelector").addEventListener("change",
-            D205Util.bindMethod(this, D205ConsoleInput.prototype.fileSelector_onChange));
+            D205ConsoleInput.prototype.fileSelector_onChange.bind(this));
     this.tapeSupplyBar.addEventListener("click",
-            D205Util.bindMethod(this, D205ConsoleInput.prototype.PRTapeSupplyBar_onclick));
+            D205ConsoleInput.prototype.PRTapeSupplyBar_onclick.bind(this));
 
     this.window.resizeBy(de.scrollWidth - this.window.innerWidth + 4, // kludge for right-padding/margin
                          de.scrollHeight - this.window.innerHeight);

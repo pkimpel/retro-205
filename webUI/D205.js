@@ -15,6 +15,7 @@
 window.addEventListener("load", function() {
     var config = new D205SystemConfig();// system configuration object
     var devices = {};                   // hash of I/O devices for the Processor
+    var diagWindow = null;              // handle for the diagnostic monitor panel
     var processor;                      // the Processor object
     var statusMsgTimer = 0;             // status message timer control cookie
 
@@ -29,6 +30,10 @@ window.addEventListener("load", function() {
                 devices[e].shutDown();
                 devices[e] = null;
             }
+        }
+
+        if (diagWindow && !diagWindow.closed) {
+            diagWindow.close();
         }
 
         processor = null;
@@ -89,12 +94,16 @@ window.addEventListener("load", function() {
 
     /**************************************/
     function openDiagPanel(ev) {
-        /* Opens the emulator's diagnostic panel in a new sub-window */
-        var win;
+        /* Opens the emulator's diagnostic monitor panel in a new sub-window */
+        var global = window;
 
-        win = window.open("D205DiagMonitor.html", "DiagPanel",
-                "location=no,scrollbars=no,resizable,width=300,height=500,top=0,left=0");
-        win.global = window;            // give it access to our globals.
+        D205Util.openPopup(window, "D205DiagMonitor.html", "DiagPanel",
+                "resizable,width=300,height=500,left=0,top=" + screen.availHeight-500,
+                this, function(ev) {
+            diagWindow = ev.target.defaultView;
+            diagWindow.global = global; // give it access to our globals.
+            diagWindow.focus();
+        });
     }
 
     /**************************************/
@@ -130,12 +139,12 @@ window.addEventListener("load", function() {
     document.getElementById("StartUpBtn").disabled = true;
     document.getElementById("EmulatorVersion").textContent = D205Processor.version;
     if (checkBrowser()) {
-        document.getElementById("Retro205Logo").addEventListener("dblclick", openDiagPanel);
+        document.getElementById("Retro205Logo").addEventListener("dblclick", openDiagPanel, false);
         document.getElementById("StartUpBtn").disabled = false;
-        document.getElementById("StartUpBtn").addEventListener("click", systemStartup);
+        document.getElementById("StartUpBtn").addEventListener("click", systemStartup, false);
         document.getElementById("StartUpBtn").focus();
         document.getElementById("ConfigureBtn").disabled = false;
-        document.getElementById("ConfigureBtn").addEventListener("click", configureSystem);
+        document.getElementById("ConfigureBtn").addEventListener("click", configureSystem, false);
 
         window.applicationCache.addEventListener("checking", function(ev) {
             document.getElementById("StatusMsg").textContent = "Checking for emulator update...";

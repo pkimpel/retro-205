@@ -65,10 +65,10 @@ function D205MagTapeDrive(mnemonic, unitIndex, config) {
     this.reelIcon = null;               // handle for the reel spinner
 
     this.doc = null;
-    this.window = window.open("../webUI/D205MagTapeDrive.html", mnemonic,
-            "location=no,scrollbars=no,resizable,width=480,height=184,left=280,top=" + y);
-    this.window.addEventListener("load",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.tapeDriveOnload), false);
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205MagTapeDrive.html", mnemonic,
+            "location=no,scrollbars=no,resizable,width=480,height=184,left=280,top=" + y,
+            this, D205MagTapeDrive.prototype.tapeDriveOnLoad);
 }
 
 // this.tapeState enumerations
@@ -319,9 +319,7 @@ D205MagTapeDrive.prototype.loadTape = function loadTape() {
     var fileSelect = null;              // file picker element
     var mt = this;                      // this D205MagTapeDrive instance
     var tapeBlocks = 0;                 // selected tape length in blocks
-    var win = this.window.open("D205MagTapeLoadPanel.html", this.mnemonic + "Load",
-            "location=no,scrollbars=no,resizable,width=508,height=48,left=" +
-            (this.window.screenX+16) +",top=" + (this.window.screenY+16));
+    var win = null;                     // loader window
 
     function fileSelector_onChange(ev) {
         /* Handle the <input type=file> onchange event when a file is selected */
@@ -465,16 +463,20 @@ D205MagTapeDrive.prototype.loadTape = function loadTape() {
         }
     }
 
-    function tapeLoadOnload (ev) {
+    function tapeLoadOnload(ev) {
         /* Driver for the tape loader window */
         var de;
 
-        doc = win.document;
+        doc = ev.target;
+        win = doc.defaultView;
         doc.title = "retro-205 " + mt.mnemonic + " Tape Loader";
+        this.loadWindow = win;
         de = doc.documentElement;
         $$$ = function $$$(id) {
             return doc.getElementById(id);
         };
+
+        win.addEventListener("unload", tapeLoadUnload, false);
 
         fileSelect = $$$("MTLoadFileSelector");
         fileSelect.addEventListener("change", fileSelector_onChange, false);
@@ -491,25 +493,29 @@ D205MagTapeDrive.prototype.loadTape = function loadTape() {
                      de.scrollHeight - win.innerHeight);
     }
 
+    function tapeLoadUnload(ev) {
+        win.removeEventListener("unload", tapeLoadUnload, false);
+        mt.loadWindow = null;
+    }
+
     // Outer block of loadTape
     if (this.loadWindow && !this.loadWindow.closed) {
         this.loadWindow.close();
     }
-    this.loadWindow = win;
-    win.addEventListener("load", tapeLoadOnload, false);
-    win.addEventListener("unload", function tapeLoadUnload(ev) {
-        this.loadWindow = null;
-    }, false);
+
+    D205Util.openPopup(this.window, "D205MagTapeLoadPanel.html", this.mnemonic + "Load",
+            "location=no,scrollbars=no,resizable,width=508,height=48,left=" +
+                (this.window.screenX+16) +",top=" + (this.window.screenY+16),
+            this, tapeLoadOnload);
 };
 
 /**************************************/
 D205MagTapeDrive.prototype.unloadTape = function unloadTape() {
     /* Reformats the tape image data as ASCII text and displays it in a new
     window so the user can save or copy/paste it elsewhere */
-    var doc = null;                     // loader window.document
+    var doc = null;                     // unloader window.document
     var mt = this;                      // tape drive object
-    var win = this.window.open("./D205FramePaper.html", this.mnemonic + "-Unload",
-            "location=no,scrollbars=yes,resizable,width=800,height=600");
+    var win = null;                     // unloader window
 
     function unloadDriver() {
         /* Converts the tape image to ASCII once the window has displayed the
@@ -570,19 +576,24 @@ D205MagTapeDrive.prototype.unloadTape = function unloadTape() {
         mt.setTapeUnloaded();
     }
 
-    function unloadSetup() {
+    function unloadSetup(ev) {
         /* Loads a status message into the "paper" rendering area, then calls
         unloadDriver after a short wait to allow the message to appear */
 
+        doc = ev.target;
+        win = doc.defaultView;
+        doc.title = "retro-205 " + mt.mnemonic + " Unload Tape";
+        win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
         win.document.getElementById("Paper").appendChild(
                 win.document.createTextNode("Rendering tape image... please wait..."));
         setTimeout(unloadDriver, 50);
+        win.focus();
     }
 
     // Outer block of unloadTape
-    win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
-    win.focus();
-    win.addEventListener("load", unloadSetup, false);
+    D205Util.openPopup(this.window, "./D205FramePaper.html", "",
+            "location=no,scrollbars=yes,resizable,width=800,height=600",
+            this, unloadSetup);
 };
 
 /**************************************/
@@ -731,12 +742,13 @@ D205MagTapeDrive.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
+D205MagTapeDrive.prototype.tapeDriveOnLoad = function tapeDriveOnLoad(ev) {
     /* Initializes the reader window and user interface */
     var body;
     var prefs = this.config.getNode("MagTape.units", this.unitIndex);
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     this.doc.title = "retro-205 Tape Drive " + this.mnemonic;
 
     body = this.$$("MTDiv");
@@ -774,19 +786,19 @@ D205MagTapeDrive.prototype.tapeDriveOnload = function tapeDriveOnload() {
     this.window.addEventListener("beforeunload",
             D205MagTapeDrive.prototype.beforeUnload, false);
     this.$$("UnloadBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.UnloadBtn_onclick), false);
+            D205MagTapeDrive.prototype.UnloadBtn_onclick.bind(this), false);
     this.$$("LoadBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.LoadBtn_onclick), false);
+            D205MagTapeDrive.prototype.LoadBtn_onclick.bind(this), false);
     this.$$("RemoteSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.RemoteSwitch_onclick), false);
+            D205MagTapeDrive.prototype.RemoteSwitch_onclick.bind(this), false);
     this.$$("RewindReadySwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.RewindReadySwitch_onclick), false);
+            D205MagTapeDrive.prototype.RewindReadySwitch_onclick.bind(this), false);
     this.$$("NotWriteSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.NotWriteSwitch_onclick), false);
+            D205MagTapeDrive.prototype.NotWriteSwitch_onclick.bind(this), false);
     this.$$("RewindBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.RewindBtn_onclick), false);
+            D205MagTapeDrive.prototype.RewindBtn_onclick.bind(this), false);
     this.unitDesignateList.addEventListener("change",
-            D205Util.bindMethod(this, D205MagTapeDrive.prototype.UnitDesignate_onchange), false);
+            D205MagTapeDrive.prototype.UnitDesignate_onchange.bind(this), false);
 };
 
 /**************************************/

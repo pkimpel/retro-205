@@ -26,18 +26,18 @@ function D205MagTapeControl(p) {
     // Do not call this.clear() here -- call this.clearUnit() from onLoad instead
 
     this.doc = null;
-    this.window = window.open("../webUI/D205MagTapeControl.html", this.mnemonic,
-            "location=no,scrollbars=no,resizable,width=408,height=212,top=0,left=" + left);
-    this.window.addEventListener("load",
-        D205Util.bindMethod(this, D205MagTapeControl.prototype.magTapeOnLoad));
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205MagTapeControl.html", this.mnemonic,
+            "location=no,scrollbars=no,resizable,width=408,height=212,top=0,left=" + left,
+            this, D205MagTapeControl.prototype.magTapeOnLoad);
 
-    this.boundReadReceiveBlock = D205Util.bindMethod(this, D205MagTapeControl.prototype.readReceiveBlock);
-    this.boundWriteTerminate = D205Util.bindMethod(this, D205MagTapeControl.prototype.writeTerminate);
-    this.boundWriteSendBlock = D205Util.bindMethod(this, D205MagTapeControl.prototype.writeSendBlock);
-    this.boundWriteInitiate = D205Util.bindMethod(this, D205MagTapeControl.prototype.writeInitiate);
-    this.boundSearchComplete = D205Util.bindMethod(this, D205MagTapeControl.prototype.searchComplete);
-    this.boundDirectionLampSet = D205Util.bindMethod(this, D205MagTapeControl.prototype.directionLampSet);
-    this.boundTestDisabled = D205Util.bindMethod(this, D205MagTapeControl.prototype.testDisabled);
+    this.boundReadReceiveBlock = D205MagTapeControl.prototype.readReceiveBlock.bind(this);
+    this.boundWriteTerminate = D205MagTapeControl.prototype.writeTerminate.bind(this);
+    this.boundWriteSendBlock = D205MagTapeControl.prototype.writeSendBlock.bind(this);
+    this.boundWriteInitiate = D205MagTapeControl.prototype.writeInitiate.bind(this);
+    this.boundSearchComplete = D205MagTapeControl.prototype.searchComplete.bind(this);
+    this.boundDirectionLampSet = D205MagTapeControl.prototype.directionLampSet.bind(this);
+    this.boundTestDisabled = D205MagTapeControl.prototype.testDisabled.bind(this);
 
     this.currentUnit = null;            // stashed tape unit object
     this.memoryBlockCallback = null;    // stashed block-sending/receiving call-back function
@@ -174,14 +174,15 @@ D205MagTapeControl.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad() {
+D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad(ev) {
     /* Initializes the MagTape Control window and user interface */
     var body;
     var box;
     var e;
     var x;
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     body = this.$$("PanelSurface");
 
     // BZ Register
@@ -214,11 +215,11 @@ D205MagTapeControl.prototype.magTapeOnLoad = function magTapeOnLoad() {
 
     this.window.addEventListener("beforeunload", D205MagTapeControl.prototype.beforeUnload);
     this.$$("ClearBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeControl.prototype.ClearBtn_onClick));
+            D205MagTapeControl.prototype.ClearBtn_onClick.bind(this));
     this.$$("DisableBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeControl.prototype.DisableBtn_onClick));
+            D205MagTapeControl.prototype.DisableBtn_onClick.bind(this));
     this.$$("SuppressBSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205MagTapeControl.prototype.SuppressB_onClick));
+            D205MagTapeControl.prototype.SuppressB_onClick.bind(this));
 
     this.clearUnit();
 };

@@ -67,10 +67,10 @@ function D205DataFile(mnemonic, unitIndex, config) {
     this.clear();
 
     this.doc = null;
-    this.window = window.open("../webUI/D205DataFile.html", mnemonic,
-            "location=no,scrollbars=no,resizable,width=400,height=284,left=280,top=" + y);
-    this.window.addEventListener("load",
-            D205Util.bindMethod(this, D205DataFile.prototype.tapeDriveOnload), false);
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205DataFile.html", mnemonic,
+            "location=no,scrollbars=no,resizable,width=400,height=284,left=280,top=" + y,
+            this, D205DataFile.prototype.tapeDriveOnLoad);
 }
 
 // this.tapeState enumerations
@@ -508,7 +508,7 @@ D205DataFile.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205DataFile.prototype.genericDBError = function genericDBError(ev) {
+D205DataFile.prototype.genericIDBError = function genericIDBError(ev) {
     // Formats a generic alert message when an otherwise-unhandled data base error occurs */
 
     alert("DataFile storage \"" + ev.target.result.name +
@@ -575,7 +575,7 @@ D205DataFile.prototype.openDatabase = function openDatabase(successor) {
     };
 
     req.onsuccess = function idbOpenOnsuccess(ev) {
-        var idbError = D205Util.bindMethod(that, that.genericIDBError);
+        var idbError = that.genericIDBError.bind(that);
 
         // Save the DB object reference globally for later use
         that.db = ev.target.result;
@@ -617,12 +617,13 @@ D205DataFile.prototype.buildBins = function buildBins() {
 };
 
 /**************************************/
-D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
+D205DataFile.prototype.tapeDriveOnLoad = function tapeDriveOnLoad(ev) {
     /* Initializes the reader window and user interface */
     var body;
     var prefs = this.config.getNode("MagTape.units", this.unitIndex);
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     this.doc.title = "retro-205 DataFile " + this.mnemonic;
 
     body = this.$$("MTDiv");
@@ -665,15 +666,15 @@ D205DataFile.prototype.tapeDriveOnload = function tapeDriveOnload() {
     this.window.addEventListener("beforeunload",
             D205DataFile.prototype.beforeUnload, false);
     this.$$("RewindBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205DataFile.prototype.RewindBtn_onclick), false);
+            D205DataFile.prototype.RewindBtn_onclick.bind(this), false);
     this.$$("RewindStopBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205DataFile.prototype.RewindStopBtn_onclick), false);
+            D205DataFile.prototype.RewindStopBtn_onclick.bind(this), false);
     this.$$("RemoteSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205DataFile.prototype.RemoteSwitch_onclick), false);
+            D205DataFile.prototype.RemoteSwitch_onclick.bind(this), false);
     this.$$("NotWriteSwitch").addEventListener("click",
-            D205Util.bindMethod(this, D205DataFile.prototype.NotWriteSwitch_onclick), false);
+            D205DataFile.prototype.NotWriteSwitch_onclick.bind(this), false);
     this.unitDesignateList.addEventListener("change",
-            D205Util.bindMethod(this, D205DataFile.prototype.UnitDesignate_onchange), false);
+            D205DataFile.prototype.UnitDesignate_onchange.bind(this), false);
 };
 
 /**************************************/

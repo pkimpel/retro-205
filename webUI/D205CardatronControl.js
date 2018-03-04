@@ -27,10 +27,10 @@ function D205CardatronControl(p) {
     // Do not call this.clear() here -- call this.clearUnit() from onLoad instead
 
     this.doc = null;
-    this.window = window.open("../webUI/D205CardatronControl.html", this.mnemonic,
-            "location=no,scrollbars=no,resizable,width=140,height=140,top=0,left=" + left);
-    this.window.addEventListener("load",
-        D205Util.bindMethod(this, D205CardatronControl.prototype.cardatronOnLoad));
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205CardatronControl.html", this.mnemonic,
+            "location=no,scrollbars=no,resizable,width=140,height=140,top=0,left=" + left,
+            this, D205CardatronControl.prototype.cardatronOnLoad);
 
     // Set up the I/O devices from the system configuration
     this.inputUnit = [
@@ -131,14 +131,15 @@ D205CardatronControl.prototype.beforeUnload = function beforeUnload(ev) {
 };
 
 /**************************************/
-D205CardatronControl.prototype.cardatronOnLoad = function cardatronOnLoad() {
+D205CardatronControl.prototype.cardatronOnLoad = function cardatronOnLoad(ev) {
     /* Initializes the Cardatron Control window and user interface */
     var body;
     var box;
     var e;
     var x;
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     body = this.$$("PanelSurface");
 
     this.outputUnitLamp = new NeonLamp(body, null, null, "OutputUnitLamp");
@@ -161,11 +162,11 @@ D205CardatronControl.prototype.cardatronOnLoad = function cardatronOnLoad() {
 
     // Events
 
-    this.window.addEventListener("beforeunload", D205CardatronControl.prototype.beforeUnload);
+    this.window.addEventListener("beforeunload", D205CardatronControl.prototype.beforeUnload, false);
     this.$$("InputSetupBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205CardatronControl.prototype.InputSetupBtn_onClick));
+            D205CardatronControl.prototype.InputSetupBtn_onClick.bind(this), false);
     this.$$("ClearBtn").addEventListener("click",
-            D205Util.bindMethod(this, D205CardatronControl.prototype.ClearBtn_onClick));
+            D205CardatronControl.prototype.ClearBtn_onClick.bind(this), false);
 
     this.clearUnit();
 };

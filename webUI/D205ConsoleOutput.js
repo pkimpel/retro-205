@@ -25,32 +25,32 @@ function D205ConsoleOutput(mnemonic, p) {
     this.outTimer = 0;                  // output setCallback() token
     this.punchPeriod = 1000/60;         // Punch speed, ms/c (60 cps)
 
-    this.boundButton_Click = D205Util.bindMethod(this, D205ConsoleOutput.prototype.button_Click);
-    this.boundFlipSwitch = D205Util.bindMethod(this, D205ConsoleOutput.prototype.flipSwitch);
+    this.boundButton_Click = D205ConsoleOutput.prototype.button_Click.bind(this);
+    this.boundFlipSwitch = D205ConsoleOutput.prototype.flipSwitch.bind(this);
 
     this.clear();
 
     // Create the Flexowriter window and onload event
     if (this.hasFlexowriter) {
         this.flexDoc = null;
+        this.flexWin = null;
         this.flexPaper = null;
         this.flexEOP = null;
         this.flexCol = 0;
-        this.flexWin = window.open("../webUI/D205Flexowriter.html", "Flexowriter",
-                "location=no,scrollbars=no,resizable,width=668,height=370,left=0,top=0");
-        this.flexWin.addEventListener("load", D205Util.bindMethod(this,
-                D205ConsoleOutput.prototype.flexOnload));
+        D205Util.openPopup(window, "../webUI/D205Flexowriter.html", "Flexowriter",
+                "location=no,scrollbars=no,resizable,width=668,height=370,left=0,top=0",
+                this, D205ConsoleOutput.prototype.flexOnload);
     }
 
     // Create the Paper Tape Punch window and onload event
     if (this.hasPaperTapePunch) {
         this.punchDoc = null;
+        this.punchWin = null;
         this.punchTape = null;
         this.punchEOP = null;
-        this.punchWin = window.open("../webUI/D205PaperTapePunch.html", "PaperTapePunch",
-                "location=no,scrollbars=no,resizable,width=290,height=100,left=0,top=430");
-        this.punchWin.addEventListener("load", D205Util.bindMethod(this,
-                D205ConsoleOutput.prototype.punchOnload));
+        D205Util.openPopup(window, "../webUI/D205PaperTapePunch.html", "PaperTapePunch",
+                "location=no,scrollbars=no,resizable,width=290,height=100,left=0,top=430",
+                this, D205ConsoleOutput.prototype.punchOnload);
     }
 }
 
@@ -198,15 +198,14 @@ D205ConsoleOutput.prototype.flexCopyPaper = function flexCopyPaper(ev) {
     or saved by the user */
     var text = this.flexPaper.textContent;
     var title = "D205 " + this.mnemonic + " Text Snapshot";
-    var win = window.open("./D205FramePaper.html", "Flexowriter-Snapshot",
-            "scrollbars,resizable,width=500,height=500");
+    D205Util.openPopup(window, "./D205FramePaper.html", "",
+            "scrollbars,resizable,width=500,height=500",
+            this, function(ev) {
+        var doc = ev.target;
+        var win = doc.defaultView;
 
-    win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
-    win.addEventListener("load", function() {
-        var doc;
-
-        doc = win.document;
         doc.title = title;
+        win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
         doc.getElementById("Paper").textContent = text;
     });
 
@@ -273,12 +272,13 @@ D205ConsoleOutput.prototype.flipSwitch = function flipSwitch(ev) {
 };
 
 /**************************************/
-D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
+D205ConsoleOutput.prototype.flexOnload = function flexOnload(ev) {
     /* Initializes the Flexowriter window and user interface */
     var body;
     var prefs = this.config.getNode("Flexowriter");
 
-    this.flexDoc = this.flexWin.document;
+    this.flexDoc = ev.target;
+    this.flexWin = this.flexDoc.defaultView;
     this.flexDoc.title = "retro-205 - Flexowriter";
     this.flexPaper = this.flex$$("Paper");
     this.flexEOP = this.flex$$("EndOfPaper");
@@ -314,9 +314,9 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload() {
     this.flexWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);
     this.flexWin.addEventListener("resize",
-            D205Util.bindMethod(this, D205ConsoleOutput.prototype.flexResizeWindow));
+            D205ConsoleOutput.prototype.flexResizeWindow.bind(this));
     this.flexPaper.addEventListener("dblclick",
-            D205Util.bindMethod(this, D205ConsoleOutput.prototype.flexCopyPaper));
+            D205ConsoleOutput.prototype.flexCopyPaper.bind(this));
 
     this.flex$$("ResetBtn").addEventListener("click", this.boundButton_Click);
 
@@ -393,15 +393,16 @@ D205ConsoleOutput.prototype.punchCopyTape = function punchCopyTape(ev) {
     or saved by the user */
     var text = this.punchTape.textContent;
     var title = "D205 " + this.mnemonic + " Text Snapshot";
-    var win = window.open("./D205FramePaper.html", "PaperTapePunch-Snapshot",
-            "scrollbars,resizable,width=500,height=500");
+    var win = null;
 
-    win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
-    win.addEventListener("load", function() {
-        var doc;
+    D205Util.openPopup(window, "./D205FramePaper.html", "",
+            "scrollbars,resizable,width=500,height=500",
+            this, function(ev) {
+        var doc = ev.target;
+        var win = doc.defaultView;
 
-        doc = win.document;
         doc.title = title;
+        win.moveTo((screen.availWidth-win.outerWidth)/2, (screen.availHeight-win.outerHeight)/2);
         doc.getElementById("Paper").textContent = text;
     });
 
@@ -411,10 +412,11 @@ D205ConsoleOutput.prototype.punchCopyTape = function punchCopyTape(ev) {
 };
 
 /**************************************/
-D205ConsoleOutput.prototype.punchOnload = function punchOnload() {
+D205ConsoleOutput.prototype.punchOnload = function punchOnload(ev) {
     /* Initializes the Paper Tape Punch window and user interface */
 
-    this.punchDoc = this.punchWin.document;
+    this.punchDoc = ev.target;
+    this.punchWin = this.punchDoc.defaultView;
     this.punchDoc.title = "retro-205 - Paper Tape Punch";
     this.punchTape = this.punch$$("Paper");
     this.punchEOP = this.punch$$("EndOfPaper");
@@ -423,9 +425,9 @@ D205ConsoleOutput.prototype.punchOnload = function punchOnload() {
     this.punchWin.addEventListener("beforeunload",
             D205ConsoleOutput.prototype.beforeUnload);
     this.punchWin.addEventListener("resize",
-            D205Util.bindMethod(this, D205ConsoleOutput.prototype.punchResizeWindow));
+            D205ConsoleOutput.prototype.punchResizeWindow.bind(this));
     this.punchTape.addEventListener("dblclick",
-            D205Util.bindMethod(this, D205ConsoleOutput.prototype.punchCopyTape));
+            D205ConsoleOutput.prototype.punchCopyTape.bind(this));
 
     //this.punchWin.moveTo(screen.availWidth-this.punchWin.outerWidth,
     //                   screen.availHeight-this.punchWin.outerHeight);

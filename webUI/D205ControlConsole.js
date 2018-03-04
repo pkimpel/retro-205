@@ -24,10 +24,10 @@ function D205ControlConsole(p) {
     this.intervalToken = 0;             // setInterval() token
     this.p = p;                         // D205Processor object
 
-    this.boundKeypress = D205Util.bindMethod(this, D205ControlConsole.prototype.keypress);
-    this.boundButton_Click = D205Util.bindMethod(this, D205ControlConsole.prototype.button_Click);
-    this.boundFlipSwitch = D205Util.bindMethod(this, D205ControlConsole.prototype.flipSwitch);
-    this.boundUpdatePanel = D205Util.bindMethod(this, D205ControlConsole.prototype.updatePanel);
+    this.boundKeypress = D205ControlConsole.prototype.keypress.bind(this);
+    this.boundButton_Click = D205ControlConsole.prototype.button_Click.bind(this);
+    this.boundFlipSwitch = D205ControlConsole.prototype.flipSwitch.bind(this);
+    this.boundUpdatePanel = D205ControlConsole.prototype.updatePanel.bind(this);
 
     this.clear();
 
@@ -36,11 +36,11 @@ function D205ControlConsole(p) {
     this.consoleIn = new D205ConsoleInput("ConsoleIn", p);
 
     this.doc = null;
-    this.window = window.open("../webUI/D205ControlConsole.html", mnemonic,
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205ControlConsole.html", mnemonic,
             "location=no,scrollbars,resizable,width=" + w + ",height=" + h +
-            ",left=0,top=" + (screen.availHeight - h));
-    this.window.addEventListener("load",
-        D205Util.bindMethod(this, D205ControlConsole.prototype.consoleOnLoad));
+                ",left=0,top=" + (screen.availHeight - h),
+        this, D205ControlConsole.prototype.consoleOnLoad);
 }
 
 /**************************************/
@@ -279,7 +279,7 @@ D205ControlConsole.prototype.keypress = function keypress(ev) {
 
 
 /**************************************/
-D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
+D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     /* Initializes the Control Console window and user interface */
     var body;
     var box;
@@ -287,7 +287,8 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad() {
     var prefs = this.config.getNode("ControlConsole");
     var x;
 
-    this.doc = this.window.document;
+    this.doc = ev.target;
+    this.window = this.doc.defaultView;
     body = this.$$("PanelSurface");
 
     // A Register

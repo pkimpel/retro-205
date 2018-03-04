@@ -454,22 +454,24 @@ D205SystemConfig.prototype.openConfigUI = function openConfigUI() {
     system configuration */
 
     function configUI_Load(ev) {
+        this.doc = ev.target;
+        this.window = this.doc.defaultView;
+        this.window.moveTo(screen.availWidth-this.window.outerWidth-40,
+                (screen.availHeight-this.window.outerHeight)/2);
+        this.window.focus();
+        this.alertWin = this.window;
         this.$$("SaveBtn").addEventListener("click",
-                D205Util.bindMethod(this, this.saveConfigDialog));
+                this.saveConfigDialog.bind(this), false);
         this.$$("CancelBtn").addEventListener("click",
-                D205Util.bindMethod(this, function(ev) {this.window.close()}));
+                function(ev) {this.window.close()}.bind(this), false);
         this.window.addEventListener("unload",
-                D205Util.bindMethod(this, this.closeConfigUI), false);
+                this.closeConfigUI.bind(this), false);
         this.loadConfigDialog();
     }
 
     this.doc = null;
-    this.window = window.open("../webUI/D205SystemConfig.html", this.configStorageName,
-            "location=no,scrollbars,resizable,width=640,height=800");
-    this.window.moveTo(screen.availWidth-this.window.outerWidth-40,
-            (screen.availHeight-this.window.outerHeight)/2);
-    this.window.focus();
-    this.alertWin = this.window;
-    this.window.addEventListener("load",
-            D205Util.bindMethod(this, configUI_Load), false);
+    this.window = null;
+    D205Util.openPopup(window, "../webUI/D205SystemConfig.html", this.configStorageName,
+            "location=no,scrollbars,resizable,width=640,height=800",
+            this, configUI_Load);
 };

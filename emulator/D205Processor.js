@@ -96,26 +96,26 @@ function D205Processor(config, devices) {
     this.tswSuppressB = 0;              // Suppress B-register modification on input
 
     // Context-bound routines
-    this.boundExecuteComplete = D205Processor.bindMethod(this, D205Processor.prototype.executeComplete);
-    this.boundUpdateLampGlow = D205Processor.bindMethod(this, D205Processor.prototype.updateLampGlow);
+    this.boundExecuteComplete = D205Processor.prototype.executeComplete.bind(this);
+    this.boundUpdateLampGlow = D205Processor.prototype.updateLampGlow.bind(this);
 
-    this.boundConsoleOutputSignDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputSignDigit);
-    this.boundConsoleOutputNumberDigit= D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputNumberDigit);
-    this.boundConsoleOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.consoleOutputFinished);
-    this.boundConsoleRequestDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleRequestDigit);
-    this.boundConsoleReceiveDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveDigit);
-    this.boundConsoleReceiveSingleDigit = D205Processor.bindMethod(this, D205Processor.prototype.consoleReceiveSingleDigit);
+    this.boundConsoleOutputSignDigit = D205Processor.prototype.consoleOutputSignDigit.bind(this);
+    this.boundConsoleOutputNumberDigit= D205Processor.prototype.consoleOutputNumberDigit.bind(this);
+    this.boundConsoleOutputFinished = D205Processor.prototype.consoleOutputFinished.bind(this);
+    this.boundConsoleRequestDigit = D205Processor.prototype.consoleRequestDigit.bind(this);
+    this.boundConsoleReceiveDigit = D205Processor.prototype.consoleReceiveDigit.bind(this);
+    this.boundConsoleReceiveSingleDigit = D205Processor.prototype.consoleReceiveSingleDigit.bind(this);
 
-    this.boundCardatronOutputWordReady = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWordReady);
-    this.boundCardatronOutputWord= D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputWord);
-    this.boundCardatronOutputFinished = D205Processor.bindMethod(this, D205Processor.prototype.cardatronOutputFinished);
-    this.boundCardatronInputWord = D205Processor.bindMethod(this, D205Processor.prototype.cardatronInputWord);
-    this.boundCardatronReceiveWord = D205Processor.bindMethod(this, D205Processor.prototype.cardatronReceiveWord);
+    this.boundCardatronOutputWordReady = D205Processor.prototype.cardatronOutputWordReady.bind(this);
+    this.boundCardatronOutputWord= D205Processor.prototype.cardatronOutputWord.bind(this);
+    this.boundCardatronOutputFinished = D205Processor.prototype.cardatronOutputFinished.bind(this);
+    this.boundCardatronInputWord = D205Processor.prototype.cardatronInputWord.bind(this);
+    this.boundCardatronReceiveWord = D205Processor.prototype.cardatronReceiveWord.bind(this);
 
-    this.boundMagTapeReceiveBlock = D205Processor.bindMethod(this, D205Processor.prototype.magTapeReceiveBlock);
-    this.boundMagTapeInitiateSend = D205Processor.bindMethod(this, D205Processor.prototype.magTapeInitiateSend);
-    this.boundMagTapeSendBlock = D205Processor.bindMethod(this, D205Processor.prototype.magTapeSendBlock);
-    this.boundMagTapeTerminateSend = D205Processor.bindMethod(this, D205Processor.prototype.magTapeTerminateSend);
+    this.boundMagTapeReceiveBlock = D205Processor.prototype.magTapeReceiveBlock.bind(this);
+    this.boundMagTapeInitiateSend = D205Processor.prototype.magTapeInitiateSend.bind(this);
+    this.boundMagTapeSendBlock = D205Processor.prototype.magTapeSendBlock.bind(this);
+    this.boundMagTapeTerminateSend = D205Processor.prototype.magTapeTerminateSend.bind(this);
 
     // Processor throttling control
     this.scheduler = 0;                 // Current setCallback token
@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.00b";
+D205Processor.version = "1.01";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -218,15 +218,6 @@ D205Processor.mask2 = [ // (2**n)-1 for n from 0 to 52
 /***********************************************************************
 *   Utility Functions                                                  *
 ***********************************************************************/
-
-/**************************************/
-D205Processor.bindMethod = function bindMethod(context, f) {
-    /* Returns a new function that binds the function "f" to the object "context".
-    Note that this is a static constructor property function, NOT an instance
-    method of the CC object */
-
-    return function bindMethodAnon() {return f.apply(context, arguments)};
-};
 
 /**************************************/
 D205Processor.bcdBinary = function bcdBinary(v) {
