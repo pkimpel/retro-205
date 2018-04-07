@@ -49,7 +49,7 @@
 *           operand address prior to execution.
 *
 * Processor timing is maintained internally in units of "word-times": 1/200-th
-* revolution of the memory drum, or about 84 µs at 3570rpm.
+* revolution of the memory drum, or about 84 Âµs at 3570rpm.
 *
 ************************************************************************
 * 2014-11-29  P.Kimpel
