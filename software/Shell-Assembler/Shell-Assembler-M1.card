@@ -1184,7 +1184,7 @@
 1                  DB         -0003
 1                  CNZ        &0004
 1                  UA     0001
-1                  CIRA   0000
+1                  CIRA   0009                                                  was originally CIRA 0000
 1                  CUB   &Y
 1                  SU    &D
 1                  CNZ        &0001

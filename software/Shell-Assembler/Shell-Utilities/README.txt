@@ -36,6 +36,7 @@ Winter-PI-Shell.card
     of Pi. This has been converted from a one-line C program by Dik T.
     Winter of CWI in Amsterdam, as reported in:
     https://cs.uwaterloo.ca/~alopez-o/math-faq/mathtext/node12.html.
+    See also https://crypto.stanford.edu/pbc/notes/pi/code.html.
     The program outputs four digits at a time to the Flexowriter. Each
     four-digit group takes almost six minutes to generate, so a full run
     should take almost 20 hours.
@@ -50,5 +51,3 @@ Winter-PI-Shell.lst
 
 Paul Kimpel
 February 2017
-
-
