@@ -1,6 +1,7 @@
 Index of folder retro-205/software/EASY-MEASY:
 Source, object, and listing files for Donald Knuth's EASY and MEASY
-assemblers for the Burroughs 205, as prepared for the retro-205 emulator.
+assemblers for the Burroughs 205, as prepared for the retro-205
+emulator.
 
 Unless otherwise specified, all files are in standard Windows text
 format, with carriage-return/line-feed delimiters.
@@ -30,7 +31,8 @@ EASY.card
 
 EASY-Load.card
     Card deck to load and execute EASY. This deck is in the standard
-    format band 6 layout for the 205 Cardatron. It was extracted from the object code on the right side of the lines in EASY.card, but
+    format band 6 layout for the 205 Cardatron. It was extracted from
+    the object code on the right side of the lines in EASY.card, but
     adjusted afterwards as follows:
         1. A short clear-memory program was prepended to the deck.
            See Demos/Fast-Drum-Zero.card.
@@ -62,7 +64,8 @@ EASY-Annotated-Listing.pdf
     EASY-Annotated-Listing.doc output in Adobe Acrobat PDF format.
 
 MEASY.card
-    Source deck for the MEASY assembler, transcribed by Paul Kimpel from:
+    Source deck for the MEASY assembler, transcribed by Paul Kimpel
+    from:
     http://archive.computerhistory.org/resources/text/Knuth_Don_X4100/
     PDF_index/k-2-pdf/k-2-u2435-MEASY-doc.pdf
     and validated against:
@@ -147,6 +150,16 @@ MEASY-Listing.lst
     presently done by a utility script, Tools/MEASY-
     ListingZeroSuppress.wsf.
 
+Winter-PI-EASY.card
+    Source in EASY/MEASY assembler format for a port of Dik Winter's C
+    program to compute the first 800 digits of Pi and print them on the
+    Flexowriter. See software/Shell-Assembler/Shell-Utilities/README.txt
+    for details.
+
+Winter-PI-EASY-Load.card
+    Assembled output from EASY of Winter-PI-EASY.card. Load from a
+    Cardatron reader with the format band select for column 2.
+
 
 Paul Kimpel
-October 2015
+March 2018
