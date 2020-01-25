@@ -1,0 +1,52 @@
+2  FLOATING-POINT DIAGNOSTICS 0 SYSTEM ERROR SUBROUTINE II
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             FLOATING-POINT DIAGNOSTICS
+1                  REM             SYSTEM ERROR SUBROUTINE II
+1             4    PTR    3900     READ ROUTINE INTO MEMORY
+1                  ORG    3900
+1                  SR     0000     SPECIAL FUNCTION CALLS
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  CAD    3940     STORE KEY
+1                  ST     3950       NUMBERS IN TABLE
+1                  PTW    8510     PRINT OUT ERROR KEY NUMBER
+1                  SR     0010     DISPLAY ERROR KEY NUMBER IN R-REG
+1                  CAD    3941     DISPLAY ERROR INFORMATION (A)A = CORRECT #
+1              0007OSGD   3942     (D)A = INCORRECT #
+1                  CC     3911
+1                  CAD    3905     ADVANCE KEY # STORE ADDRESS
+1                  AD     3943
+1                  STC    3905
+1                  SR     0000
+1                  CAD    3980     TEST FOR CARDATRON INPUT AFTER ERROR
+1                  EX     3937     (A)A = 0 (CARDATRON)
+1                  SU     3939
+1                  NOR    3923
+1                  CAD    3982     TESTS FOR PAPER TAPE OR CARD INPUT
+1                  CNZ    3925     EXIT IF CARD INPUT
+1                  STC    3935     STORE PAPER TAPE INPUT ORDER
+1                  CU     3925
+1                  CAD    3980     STORE CARDATRON OUTPUT ORDER
+1                  ST     3935
+1                  CAD    3981     TEST FOR CARDATRON OUTPUT ON ERROR
+1                  EX     3937
+1                  SU     3938
+1                  CNZ    3931
+1                  CAD    3981     STORE CARDATRON OUTPUT ORDER
+1                  ST     3934
+1                  CAD    3944     PLANT ERROR EXPRESSION LOCK-UP COMMAND
+1                  STC    3914     (A)A = CU 3933
+1              0008CU     3935     CARD OUTPUT = SKIP
+1              9990CDW    3940     PUNCH OUT ERROR KEY NUMBER (CARDATRON/CONVERTER)
+1              9980CDR    0000     READ IN NEXT TEST ROUTINE
+1                  CU     0000     (PAPER TAPE/CONVERTER/CARDATRON)
+1                  NUM   1000111111
+1                  NUM   0000543940
+1                  NUM   0000440000
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  NUM   0000000001
+1                  NUM   0000203933
+1                  END

@@ -1,0 +1,688 @@
+2   TRANSCRIBED FROM 3.G01.1A.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             3.G01.1A
+1                  REM             FLOATING POINT COMMAND SURVEY
+1                  REM
+1             4    PTR    0099     READ ROUTINE INTO MEMORY
+1                  ORG    0099
+1                  REM
+1                  REM             FLOATING MULTIPLY
+1                  REM
+1                  BT4    1000
+1                  BT5    1020
+1                  SB     4000     (B)A = 0009
+1                  CAD    4001     (0)(X) = 000
+1                  FM     4002
+1                  CC     0800     ERROR EXIT
+1                  SU     4002
+1                  CNZ    0801     ERROR EXIT 2
+1                  DB     7102
+1                  REM
+1                  SB     4000     (B)A = 0009
+1                  CAD    4002     (X)(0) = 000
+1                  FM     4003
+1                  CC     0802     ERROR EXIT
+1                  SU     4002
+1                  CNZ    0803     ERROR EXIT 4
+1                  DB     7109
+1                  CUB    0116
+1                  REM
+1                  SB     4000     (B)A = 0009
+1                  CAD    4002     (0)(0) = 000
+1                  FM     4002
+1                  CC     0804     ERROR EXIT
+1                  SU     4002
+1                  CNZ    0805     ERROR EXIT 6
+1                  DB     7017
+1                  REM
+1                  SB     4000     (B)A = 0009
+1                  CAD    4004     (X)(Y) = OF
+1                  FM     4005
+1                  CC     7128
+1                  CU     0806     ERROR EXIT 7
+1                  DB     7124
+1                  CUB    0130
+1                  REM
+1                  SB     4000
+1                  CAD    4006     (X)(Y) = 98XX
+1                  FM     4005
+1                  CC     0807     9
+1                  SU     4007
+1                  CNZ    0808
+1                  DB     7131
+1                  REM
+1                  SB     4000
+1                  CAD    4008     (X)(Y) = 99XX
+1                  FM     4005
+1                  CC     0809     11
+1                  SU     4009
+1                  CNZ    0810
+1                  DB     7138
+1                  CUB    0145
+1                  REM
+1                  SB     4000
+1                  CAD    4010     (X)(Y) = OF
+1                  FM     4011
+1                  CC     7150     12
+1                  CU     0811
+1                  DB     7146
+1                  REM
+1                  SB     4000
+1                  CAD    4012     (X)(Y) = OF
+1                  FM     4013     13
+1                  CC     7156
+1                  CU     0812
+1                  DB     7152
+1                  CUB    0158
+1                  REM
+1                  SB     4000
+1                  CAD    4014     (X)(Y) = UF CLEAR
+1                  FM     4015
+1                  CC     0813
+1                  CNZ    0814     15
+1                  SL     0010
+1                  CNZ    0815     16
+1                  DB     7159
+1                  REM
+1                  SR     0000
+1                  REM
+1                  SB     4000
+1                  CAD    4016     (X)(Y) = UF CLEAR
+1                  FM     4015
+1                  CC     0816
+1                  CNZ    0817     18
+1                  DB     7168
+1                  CUB    0174
+1                  REM
+1                  SB     4000
+1                  CAD    4017     (X)(Y) = 00X
+1                  FM     4015
+1                  CC     0818
+1                  OSGD   4015
+1                  CC     0819     20
+1                  SU     4018
+1                  CNZ    0820     21
+1                  DB     7175
+1                  REM
+1                  SB     4000
+1                  CAD    4019     (X)(Y) = UF CLEAR
+1                  FM     5000
+1                  CC     0821
+1                  CNZ    0822     23
+1                  DB     7184
+1                  CUB    0190
+1                  REM
+1                  SB     4000
+1                  CAD    5001     (X)(Y) = 98XX
+1                  FM     4011
+1                  CC     0823
+1                  SU     5002
+1                  CNZ    0824     25
+1                  DB     7191
+1                  REM
+1                  REM             FLOATING DIVISION
+1                  REM
+1                  CUB    0198
+1                  BT4    1040
+1                  BT5    1060
+1                  REM
+1                  SB     4000
+1                  CAD    4001     0/(N) = UF
+1                  FDIV   4002
+1                  CC     0825
+1                  CNZ    0826     27
+1                  SL     0010
+1                  CNZ    0827     28
+1                  DB     7201
+1                  REM
+1                  SB     4000
+1                  CAD    4003     N/(0) = OF
+1                  FDIV   4001
+1                  CC     7213
+1                  CU     0828     29
+1                  DB     7209
+1                  CUB    0215
+1                  REM
+1                  SB     4000
+1                  CAD    4001     0/(0) = OF
+1                  FDIV   4001
+1                  CC     7220
+1                  CU     0829
+1                  DB     7216
+1                  REM
+1                  SB     4000
+1                  CAD    4004     X/Y = 99XX
+1                  FDIV   4005
+1                  CC     0830
+1                  SU     4006
+1                  CNZ    0831
+1                  DB     7222
+1                  CUB    0230
+1                  REM
+1                  SR     0000
+1                  REM
+1                  SB     4000
+1                  CAD    4007     X/Y = 99XX WITHIN RANGE WITH CORR
+1                  FDIV   4008
+1                  CC     0832
+1                  ST     4010
+1                  SU     4009
+1                  CNZ    0833
+1                  CAD    4010
+1                  EX     4011
+1                  NOR    7240
+1                  SR     0010
+1                  ADSC   0000
+1                  SU     4012
+1                  CNZ    0834
+1                  DB     7231
+1                  CUB    0246
+1                  REM
+1                  SB     4000
+1                  CR     0000
+1                  CAD    4013     X/Y = 00XX
+1                  FDIV   4014
+1                  CC     0835
+1                  OSGD   4013
+1                  CC     0836
+1                  SU     4016
+1                  CNZ    0837
+1                  DB     7247
+1                  REM
+1                  SB     4000
+1                  CAD    4008     X/Y = UF
+1                  FDIV   4014
+1                  CC     0838
+1                  CNZ    0839
+1                  DB     7257
+1                  CUB    0265
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  SB     4000
+1                  CAD    4014     X/Y = OF
+1                  FDIV   4013
+1                  CC     7270
+1                  CU     0840
+1                  DB     7266
+1                  REM
+1                  SB     4000
+1                  CAD    4006     X/Y = OF
+1                  FDIV   4015
+1                  CC     7276
+1                  CU     0841
+1                  DB     7272
+1                  REM
+1                  REM             FLOATING ADDITION
+1                  REM
+1                  CUB    0279
+1                  SR     0000
+1                  BT6    1100
+1                  BT4    1060
+1                  BT5    1080
+1                  REM
+1                  SB     4000
+1                  CAD    4001     (X+0)
+1                  FAD    4002
+1                  CC     0842
+1                  ST     4003
+1                  EX     4004
+1                  SU     4005
+1                  CNZ    0843
+1                  CAD    4003
+1                  EX     4006
+1                  SU     4007
+1                  CNZ    0844
+1                  CUB    0295
+1                  REM
+1                  CAD    4002     (0+X)
+1                  FAD    4001
+1                  CC     0845
+1                  ST     4003
+1                  EX     4004
+1                  SU     4005
+1                  CNZ    0846
+1                  CAD    4003
+1                  EX     4006
+1                  SU     4007
+1                  CNZ    0847
+1                  REM
+1                  CAD    4001
+1                  AD     4008
+1                  STC    4001
+1                  REM
+1                  CAD    4005
+1                  AD     4008
+1                  STC    4005
+1                  DB     0314
+1                  CUB    0317
+1                  CUB    0283
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  SB     4000
+1                  CAD    4002     (0+0)
+1                  FAD    4002
+1                  CC     0848
+1                  ST     4003
+1                  EX     4004
+1                  CNZ    0849
+1                  CAD    4003
+1                  EX     4006
+1                  CNZ    0850
+1                  DB     7318
+1                  CUB    0330
+1                  SR     0000
+1                  REM
+1                  BT5    1080
+1                  BT6    1100
+1                  REM
+1                  SB     6012     (B)A = 008
+1                  CAD    6017     (A+B) WITH (AX-DX) LSS 11)
+1                  FAD    6018
+1                  CC     0851
+1                  ST     6019
+1                  EX     5009
+1                  SU     5010
+1                  CNZ    0852
+1                  CAD    6019
+1                  EX     5011
+1                  SU     5008
+1                  CNZ    0853
+1                  DB     7333
+1                  CUB    0348
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  SB     6012
+1                  CAD    5012     (A+B) WITH (AX-DX=11)
+1                  FAD    5013
+1                  CC     0854
+1                  ST     5014
+1                  EX     5009
+1                  SU     5015
+1                  CNZ    0855
+1                  CAD    5014
+1                  EX     5011
+1                  SU     5000
+1                  CNZ    0856
+1                  DB     7349
+1                  CUB    0365
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  SB     6012
+1                  CAD    6018     (A+B) WITH (DX-AX) LSS 11)
+1                  FAD    6017
+1                  CC     0857
+1                  ST     6019
+1                  EX     5009
+1                  SU     5010
+1                  CNZ    0858
+1                  CAD    6019
+1                  EX     5011
+1                  SU     5008
+1                  CNZ    0859
+1                  DB     7366
+1                  CUB    0380
+1                  REM
+1                  SR     0000
+1                  REM
+1                  SB     6012
+1                  CAD    5013     (A+B) WITH (DX-AX=11)
+1                  FAD    5012
+1                  CC     0860
+1                  ST     5014
+1                  EX     5009
+1                  SU     5015
+1                  CNZ    0861
+1                  CAD    5014
+1                  EX     5011
+1                  SU     5000
+1                  CNZ    0862
+1                  DB     7381
+1                  CUB    0395
+1                  REM
+1                  SR     0000
+1                  REM
+1                  SB     6012
+1             1    CAD    5000     (A+(-B)) = UF
+1             1    FAD    6000
+1                  CC     0863
+1                  CNZ    0864
+1                  DB     7396
+1                  REM
+1                  SB     6012
+1             1    CAD    6000
+1                  EX     6016
+1             1    STC    6000
+1                  DB     7402
+1                  SB     6012
+1             1    CAD    5000     (A-B) = UF
+1             1    FSU    6000
+1                  CC     0865
+1                  CNZ    0866
+1                  DB     7407
+1                  CUB    0415
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  SB     6012
+1                  CAD    6017     (A+B) WITH (AX-DX GTR 11)
+1                  FAD    5013
+1                  CC     0867
+1                  ST     5014
+1                  EX     5009
+1                  SU     5010
+1                  CNZ    0868
+1                  CAD    5014
+1                  EX     5011
+1                  SU     5016
+1                  CNZ    0869
+1                  DB     7416
+1                  CUB    0430
+1                  REM
+1                  SR     0000
+1                  SB     6012
+1             1    CAD    5000     (A+B) = OF (CONST. EXP.)
+1                  AD     6013
+1             1    STC    5000
+1             1    CAD    6000
+1                  AD     6013
+1             1    STC    6000
+1                  DB     7431
+1                  REM
+1                  SB     6012
+1             1    CAD    5000
+1                  FAD    6000
+1                  CC     7443
+1                  CU     0870
+1                  CAD    7440
+1                  AD     6011
+1                  STC    7440
+1                  DB     7439
+1                  CUB    0450
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  SB     6012
+1             1    CSU    6000     (A-(-B)) = OF (CONST. EXP.)
+1                  SR     0000
+1             1    STC    6000
+1                  DB     7451
+1                  SB     6012
+1             1    CAD    5000
+1                  FSU    6000
+1                  CC     7460
+1                  CU     0871
+1                  CAD    7457
+1                  AD     6011
+1                  STC    7457
+1                  DB     7456
+1                  CUB    0465
+1                  REM
+1                  SB     6012
+1             1    CAD    5000     (A-B) = XY) EXP. ADJ. TEST
+1                  SU     6014
+1             1    ST     5000
+1             1    CAD    6000
+1                  AD     6014
+1                  EX     6016
+1             1    STC    6000
+1                  DB     7466
+1                  CUB    0475
+1                  SB     5017
+1             1    CAD    5000
+1             1    FSU    6000
+1                  CC     0872
+1                  SR     0000
+1                  SU     6009
+1                  CNZ    0873
+1                  CAD    6009
+1                  AD     6011
+1                  STC    6009
+1                  DB     7476
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  CAD    0912     CYCLE TALLLY
+1                  SU     0913
+1                  ST     0912
+1                  NOR    0495
+1                  CUB    0099
+1                  PTR    0000
+1                  REM
+1             4    PTR    0800
+1                  REM
+1                  ORG    0800
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  CUR    0900
+1                  REM
+1             4    PTR    0900
+1                  REM
+1                  ORG    0900
+1                  STC    3942
+1                  SL     0004
+1                  CR     0000
+1                  SL     0002     (A)A = +000000 08NN
+1                  EX     0911     (A)A =  000000 00NN KEY NO. ERROR PREP.
+1                  AD     0910
+1                  ST     3940
+1                  REM
+1                  CUR    3900
+1                  CUB    0914
+1                  REM
+1                  SR     0000
+1                  REM
+1                  NUM   0700000001
+1                  NUM   0000001100
+1                  NUM   0000000050
+1                  NUM   0000000001
+1                  REM
+1              0004CAD    0910     CODE INDICATOR
+1                  CUB    0099
+1                  REM
+1             4    PTR    1000
+1                  REM
+1                  ORG    1000
+1                  NUM   00000000094000
+1                  NUM   5012345678
+1                  NUM   0000000000
+1                  NUM  -6012345678
+1                  NUM   5212345678
+1                  NUM   9876543210
+1                  NUM   5112345678
+1                  NUM   9894497782
+1                  NUM   5198765432
+1                  NUM   9975598232
+1                  NUM  -5312345678
+1                  NUM   9798765432
+1                  NUM   5412345678
+1                  NUM   9723456789
+1                  NUM   3498765432
+1                  NUM  -1234567890
+1                  NUM   3798765432
+1                  NUM   3898765432
+1                  NUM  -0034141125
+1                  NUM  -38234567894019
+1                  REM
+1                  NUM  -12123456785000
+1                  NUM   5210000000
+1                  NUM   9898765432
+1                  NUM   0000000001
+1                  NUM   9999999990
+1                  REM
+1             4    PTR    1040
+1                  REM
+1                  ORG    1040
+1                  NUM   0000000009(4000)
+1                  NUM   0000000000
+1                  NUM   6798765432
+1                  NUM   7823456789
+1                  NUM   8154321098
+1                  NUM   3295234567
+1                  NUM   9957039266
+1                  NUM   5887659876
+1                  NUM   1012345678
+1                  NUM   9971004505
+1                  NUM   0000000000
+1                  NUM   0011111111
+1                  NUM   0000000002
+1                  NUM  -1345678901
+1                  NUM   6389023456
+1                  NUM   0012345678
+1                  NUM  -0051311084
+1                  REM
+1             4    PTR    1060
+1                  REM
+1                  ORG    1060
+1                  NUM   0000000012(4000)
+1                  NUM   0056789876    1
+1                  NUM   0000000000    2
+1                  NUM   0000000000    3
+1                  NUM   1100000000    4
+1                  NUM   0000000000    5
+1                  NUM  -0011111111    6
+1                  NUM   0056789876    7
+1                  NUM   0100000000    8
+1                  NUM   0000000000    9
+1                  NUM   0000000000   10
+1                  NUM   0000000000   11
+1                  NUM   0000000000   12
+1                  NUM   0000000000   13
+1                  NUM   0000000000   14
+1                  NUM   0000000000   15
+1                  NUM   0000000000   16
+1                  NUM   0000000000   17
+1                  NUM   0000000000   18
+1                  NUM   0000000000   19
+1                  REM
+1                  NUM   0098765432(5000)
+1                  NUM   0087654321    1
+1                  NUM   0076543210    2
+1                  NUM   0065432100    3
+1                  NUM   0054321234    4
+1                  NUM   0043212345    5
+1                  NUM   0032123456    6
+1                  NUM   0021234567    7
+1                  NUM   0012345678    8
+1                  NUM   1100000000    9
+1                  NUM   5400000000   10
+1                  NUM  -0011111111   11
+1                  NUM   4898765432   12
+1                  NUM   3712345678   13
+1                  NUM   0000000000   14
+1                  NUM   4800000000   15
+1                  NUM   0012345670   16
+1                  NUM   0000000006   17
+1                  NUM   0000000000   18
+1                  NUM   0000000000   19
+1                  REM
+1                  NUM  -0090000000(6000)
+1                  NUM  -0087000000    1
+1                  NUM  -0076500000    2
+1                  NUM  -0065430000    3
+1                  NUM  -0054321000    4
+1                  NUM  -0043212300    5
+1                  NUM  -0032123450    6
+1                  NUM  -0021234567    7
+1                  NUM  -0012345678    8
+1                  NUM   0000000025    9
+1                  NUM   0000000032   10
+1                  NUM   0000000001   11
+1                  NUM   0000000008   12
+1                  NUM   9900000000   13
+1                  NUM   6700000000   14
+1                  NUM  -0000000000   15
+1                  NUM   1111111111   16
+1                  NUM   5412345670   17
+1                  NUM   4787654321   18
+1                  NUM   0000000000   19
+1                  REM
+1             6    CU     0914
+1                  END
