@@ -1,0 +1,439 @@
+2   TRANSCRIBED FROM 3.G03.1A.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             3.G03.1A
+1                  REM             FP NORM AND EXP. CORRECTION TEST
+1                  REM
+1             4    PTR    0100     READ ROUTINE INTO MEMORY
+1                  REM
+1                  ORG    0100
+1              0004CAD    0127     EXHIBIT ERROR KEY
+1                  REM
+1                  BT6    0460
+1                  CAD    6000
+1                  CNZ    7105     TRANSFER CONSTANTS TO LOOPS
+1                  PTR    0000       AND TALLY PASSES THROUGH ROUTINE
+1                  SU     6001
+1                  STC    6000
+1                  BT4    0420
+1                  BT5    0440
+1                  CUB    0110
+1                  SB     6002
+1             1    CAD    4010     PERFORM FAD TEST AT LOW END OF EXPONENT
+1             1    FAD    4015       RANGE, STARTING WITH ZERO EXPONENT
+1                  SU     4009
+1                  CNZ    0340
+1                  DB     7111
+1                  SB     6003
+1             1    CAD    4010
+1                  AD     6004
+1             1    STC    4010     INCREASE EXPONENTS BY ONE AND REPEAT
+1                  DB     7117       LOW END TEST. AFTER TENTH REPEAT, 90
+1                  CAD    4009       ON TO MIDDLE EXPONENT RANGE
+1                  AD     6004
+1                  ST     4009
+1                  SU     6005
+1                  CNZ    7110
+1                  CUB    0129
+1                  NUM   0700000003
+1                  NUM   0000000000
+1                  SB     6007
+1             1    CAD    4009     INCREASE EXPONENT BY 34, TO MIDDLE
+1                  AD     6006       EXPONENT RANGE
+1             1    STC    4009
+1                  DB     7130
+1                  CUB    0135
+1                  SB     6002
+1             1    CAD    4010
+1             1    FAD    4015     PERFORM FAD TEXT AT MIDDLE OF
+1                  SU     4009       EXPONENT RANGE
+1                  CNZ    0355
+1                  DB     7136
+1                  SB     6003
+1             1    CAD    4010
+1                  AD     6004
+1             1    STC    4010     INCREASE EXPONENTS BY ONE AND REPEAT FAD
+1                  DB     7142       TEST AT MIDDLE OF EXPONENT RANGE. AFTER
+1                  CAD    4009       TENTH REPEAT, 90 ON TO HIGH END OF
+1                  AD     6004       EXPONENT RANGE
+1                  ST     4009
+1                  SU     6008
+1                  CNZ    7135
+1                  CUB    0155
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  SB     6007
+1             1    CAD    4009     INCREASE EXPONENTS BY 34 FOR FAD TEST AT
+1                  AD     6006       HIGH END OF EXPONENT RANGE
+1             1    STC    4009
+1                  DB     7156
+1                  CUB    0161
+1                  SB     6002
+1             1    CAD    4010
+1             1    FAD    4015
+1                  SU     4009
+1                  CNZ    0357
+1                  DB     7162
+1                  SB     6003
+1             1    CAD    4010     INCREASE EXPONENTS BY ONE AND REPEAT FAD
+1                  AD     6004       TEST AT HIGH END OF EXPONENT RANGE. AFTER
+1             1    STC    4010       TENTH REPEAT, GO ON TO FAD TEST WITH
+1                  DB     7168       EXPONENTS EQUAL TO 99.
+1                  CAD    4009
+1                  AD     6004
+1                  CCB    0180
+1                  STC    4009
+1                  CU     7161
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  SB     6002
+1             1    CAD    4010
+1             1    FAD    4015
+1                  CC     7185     PERFORM FAD TEST WITH ALL EXPONENTS EQUAL
+1                  CU     0359       TO 99. EACH CASE SHOULD PRODUCE OVERFLOW
+1                  SU     6004
+1                  CNZ    0361
+1                  DB     7181
+1                  CUB    0190
+1                  NUM   0000000000
+1                  SB     4000
+1                  CAD    4009     PERFORM FSU TEST WITH ALL EXPONENTS EQUAL
+1             1    FSU    4001       TO ZERO. EACH CASE SHOULD PRODUCE UNDERFLOW
+1                  CNZ    0365       (CLEARED A-REGISTER)
+1                  DB     7191
+1                  SB     6010
+1             1    CAD    4001     INCREASE EXPONENTS BY SEVEN
+1                  AD     6011
+1             1    STC    4001
+1                  DB     7196
+1                  SB     4000
+1                  CAD    4008
+1             1    FSU    4001     PERFORM FSU TEST WITH EXPONENTS EQUAL TO
+1             1    SU     5001       SEVEN. COMPARE WITH PRESTORED ANSWERS
+1                  CNZ    0380
+1                  DB     7201
+1                  CUB    0210
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  SB     6010
+1             1    CAD    4001
+1                  AD     6014
+1             1    STC    4001     INCREASE EXPONENTS BY 43 TO BRING TO
+1                  DB     7211       MIDDLE OF EXPONENT RANGE. INCREASE PRESTORED
+1                  SB     4000       ANSWER EXPONENTS BY SAME AMOUNT
+1             1    CAD    5001
+1                  AD     6014
+1             1    STC    5001
+1                  DB     7216
+1                  SB     4000
+1                  CAD    4008
+1             1    FSU    4001
+1             1    SU     5001
+1                  CNZ    0382
+1                  DB     7221     PERFORM FSU TEST AT MIDDLE OF EXPONENT
+1                  CUB    0230       RANGE. COMPARE WITH ADJUSTED PRESTORED
+1                  NUM   0000000000  ANSWERS.
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  SB     6010
+1             1    CAD    4001
+1                  AD     6015
+1             1    STC    4001     INCREASE EXPONENTS BY 49 IN PREPARATION
+1                  DB     7231       FOR FSU TEST AT HIGH END OF EXPONENT
+1                  SB     4000       RANGE. INCREASE ANSWER EXPONENTS LIKEWISE
+1             1    CAD    5001
+1                  AD     6015
+1             1    STC    5001
+1                  DB     7236
+1                  SB     4000
+1                  CAD    4008
+1             1    FSU    4001     PERFORM FSU TEST AT HIGH END OF EXPONENT
+1             1    SU     5001       RANGE
+1                  CNZ    0384
+1                  DB     7241
+1                  BT4    0480
+1                  CUB    0250     LOAD CONSTANTS FOR FM AND FDIV. BEGIN FM
+1                  NUM   0000000000  TEST
+1                  NUM   0000000000
+1                  SB     6007
+1             1    CAD    4000     PERFORM FM TEST AT LOW END OF EXPONENT
+1             1    FM     4000       RANGE. EACH CASE SHOULD PRODUCE OVERFLOW.
+1                  CNZ    0386
+1                  DB     7251
+1                  SB     6007
+1             1    CAD    4000
+1                  AD     6016     INCREASE EXPONENTS BY 45 FOR FM TEST AT
+1             1    STC    4000       MIDDLE OF EXPONENT RANGE.
+1                  DB     7256
+1                  SB     6007
+1             1    CAD    4000
+1             1    FM     4000     PERFORM FM TEST AT MIDDLE OF EXPONENT
+1             1    SU     5009       RANGE. COMPARE WITH PRESTORED ANSWERS
+1                  CNZ    0396
+1                  DB     7261
+1                  CUB    0270
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  SB     6007
+1             1    CAD    4000     INCREASE EXPONENTS BY 40 FOR FM TEST
+1                  AD     6017       AT HIGH END OF EXPONENT RANGE
+1             1    STC    4000
+1                  DB     7271
+1                  SB     6007
+1             1    CAD    4000     PERFORM FM TEST AT HIGH END OF EXPONENT
+1             1    FM     4000       RANGE. EACH CASE SHOLD PRODUCE OVERFLOW
+1                  CC     7280
+1                  CU     0398
+1                  DB     7276
+1                  BT4    0480
+1                  BT5    0440
+1                  SB     6007     MODIFY MANTISSAS USED IN FM TEST, SO
+1             1    CAD    4000       THAT NO EXPONENT CORRECTION IS REQUIRED
+1                  AD     6018       DURING FM OPERATION.
+1             1    STC    4000
+1                  DB     7284
+1                  CUB    0290
+1                  NUM   0000000000
+1                  SB     6007
+1             1    CAD    5009     MODIFY PRESTORED ANSWERS FOR COMPARISON
+1                  AD     6019       CHECK
+1             1    STC    5009
+1                  DB     7291
+1                  CAD    7299     PREPARE EXIT FROM FM TEST TO FDIV TEST
+1                  STC    0282
+1                  CUB    0250     RETURN TO FM TEST
+1                  NUM   0000000000
+1                  NUM   0000300300
+1                  CAD    7319     RESTORE CONTENTS OF CELL 0282 FOR NEXT
+1                  STC    0282       PASS THRU ROUTINE
+1                  BT5    0500     LOAD CONSTANTS FOR FDIV TEST
+1                  SB     6007
+1             1    CAD    5000
+1             1    FDIV   5000     PERFORM FDIV TEST
+1                  SU     5011
+1                  CNZ    0400
+1                  DB     7304
+1                  SB     6007
+1             1    CAD    5000     INCREASE EXPONENTS BY 43 AND RETURN TO
+1                  AD     6014       FDIV TEST ABOVE. AFTER SECOND PASS,
+1                  CCB    0320       ADVANCE TO NEXT PART OF FDIV TEST BELOW
+1             1    STC    5000
+1                  DB     7310
+1                  CU     7303
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000350440
+1                  SB     6010
+1             1    CAD    5012
+1             1    FDIV   4012     PERFORM FDIV TEST ON FIXED NUMBER PAIRS.
+1                  SU     4011       CHECK AGAINST PRESTORED ANSWERS
+1                  CNZ    0410
+1                  CR     0000
+1                  DB     7321
+1                  CUB    0102     RETURN FOR NEXT PASS THRU ROUTINE
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000SPARES
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  CAD    0350
+1                  STC    3940
+1             1    CAD    4010
+1                  STC    3941
+1             1    CAD    4015
+1                  STC    3942
+1                  CUR    3900     PREPARE ERROR ROUTINE FOR ERRORS OCCURRING
+1                  CUB    0190       DURING FAD TEST
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0700800103
+1                  NUM   0700800203
+1                  NUM   0700800303
+1                  NUM   0700800403
+1                  NUM   0700800503
+1                  CAD    0351
+1                  CU     0341
+1                  CAD    0352
+1                  CU     0341
+1                  CAD    0353
+1                  CU     0341
+1                  CAD    0354
+1                  CU     0341
+1                  NUM   0000000000SPARES
+1                  NUM   0000000000
+1                  CAD    0376
+1                  STC    3940
+1                  CAD    4008
+1                  STC    3941
+1             1    CAD    4000
+1                  STC    3942     PREPARE ERROR ROUTINE FOR ERRORS
+1                  CUR    3900       OCCURRING DURNG FSU TEST
+1                  CUB    0246
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0700810103
+1                  NUM   0700810203
+1                  NUM   0700810303
+1                  NUM   0700810403
+1                  REM
+1                  CAD    0377
+1                  CU     0366
+1                  CAD    0378
+1                  CU     0366
+1                  CAD    0379
+1                  CU     0366
+1                  CAD    0393
+1                  STC    3940
+1             1    CAD    4000
+1                  ST     3941
+1                  STC    3942
+1                  CUR    3900     PREPARE ERROR ROUTINE FOR ERRORS
+1                  CU     0418       OCCURRING DURING FM TEST
+1                  NUM   0700820103
+1                  NUM   0700820203
+1                  NUM   0700820303
+1                  CAD    0394
+1                  CU     0387
+1                  CAD    0395
+1                  CU     0387
+1                  CAD    0407
+1                  STC    3940
+1             1    CAD    5000
+1                  ST     3941
+1                  STC    3942
+1                  CUR    3900
+1                  CUB    0326
+1                  NUM   0700830103PREPARE ERROR ROUTINE FOR ERROR
+1                  NUM   0700830203  OCCURRING DURING FDIV TEST
+1                  NUM   0000000000
+1                  CAD    0408
+1                  STC    3940
+1             1    CAD    5012
+1                  ST     3941
+1             1    CAD    4012
+1                  STC    3942
+1                  CUR    3900
+1                  CUB    0326
+1                  BT4    0480
+1                  CUB    0302
+1                  REM
+1             4    PTR    0420
+1                  ORG    0420
+1                  NUM   0000000006CONSTANTS
+1                  NUM   0040000000
+1                  NUM   0045000000
+1                  NUM   0045600000
+1                  NUM   0045670000
+1                  NUM   0045678000
+1                  NUM   0045678900
+1                  NUM   0045678910
+1                  NUM   0045678912
+1                  NUM   0110000000
+1                  NUM   0010000000
+1                  NUM   0020000000
+1                  NUM   0030000000
+1                  NUM   0040000000
+1                  NUM   0050000000
+1                  NUM   0090000000
+1                  NUM   0080000000
+1                  NUM   0070000000
+1                  NUM   0060000000
+1                  NUM   0050000000
+1                  REM
+1                  NUM   0000000000CONSTANTS
+1                  NUM   0656789120
+1                  NUM   0567891200
+1                  NUM   0478912000
+1                  NUM   0389120000
+1                  NUM   0291200000
+1                  NUM   0112000000
+1                  NUM   0020000000
+1                  NUM   0000000000
+1                  NUM   3910000000
+1                  NUM   4110000000
+1                  NUM   4310000000
+1                  NUM   4510000000
+1                  NUM   4710000000
+1                  NUM   4910000000
+1                  NUM   5110000000
+1                  NUM   5310000000
+1                  NUM   5510000000
+1                  NUM   5710000000
+1                  NUM   5910000000
+1                  NUM   0000000020
+1                  NUM   0000000001
+1                  NUM   0000000004
+1                  NUM   0000000009
+1                  NUM   0100000000
+1                  NUM   1110000000
+1                  NUM   3400000000
+1                  NUM   0000000010
+1                  NUM   5610000000
+1                  NUM   9910000000
+1                  NUM   0000000007
+1                  NUM   0700000000
+1                  NUM   1100000000
+1                  NUM   0000000008
+1                  NUM   4300000000
+1                  NUM   4900000000
+1                  NUM   4500000000
+1                  NUM   4000000000
+1                  NUM   0080000000
+1                  NUM   0171000000
+1                  REM
+1                  NUM   0010000000CONSTANTS
+1                  NUM   0110000000
+1                  NUM   0210000000
+1                  NUM   0310000000
+1                  NUM   0410000000
+1                  NUM   0510000000
+1                  NUM   0610000000
+1                  NUM   0710000000
+1                  NUM   0810000000
+1                  NUM   0910000000
+1                  NUM   1010000000
+1                  NUM   0111111111
+1                  NUM   8790000000
+1                  NUM   8690000000
+1                  NUM   8590000000
+1                  NUM   8490000000
+1                  NUM   8390000000
+1                  NUM   8290000000
+1                  NUM   8190000000
+1                  NUM   8090000000
+1                  NUM   0010000000
+1                  NUM   0120000000
+1                  NUM   0230000000
+1                  NUM   0340000000
+1                  NUM   0450000000
+1                  NUM   0560000000
+1                  NUM   0670000000
+1                  NUM   0780000000
+1                  NUM   0890000000
+1                  NUM   0910000000
+1                  NUM   1020000000
+1                  NUM   5110000000
+1                  NUM   3810000000
+1                  NUM   3710000000
+1                  NUM   3610000000
+1                  NUM   3510000000
+1                  NUM   3410000000
+1                  NUM   3310000000
+1                  NUM   3210000000
+1                  NUM   3110000000
+1                  REM
+1             6    CUB    0100
+1                  END

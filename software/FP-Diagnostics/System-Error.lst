@@ -1,72 +1,60 @@
-000      SCNTLREM      TOPERAND   REMARKS - SYSTE      M   ERROR SUUT      00 00 00
- 
-      0037                                        CDW      3940       PUNCH OUT ERROR KEY NUMBER (CA
-             NO UNIT DESIGNATION
- 
-      0038                                        CDR      0000       READ IN NEXT TEST ROUTINE
-             NO UNIT DESIGNATION
+200       TRANSCRIBED FROM SYSTEM-ERROR.SHELL                              00 00 00
                                                -
- 
- 
- 
- 
-      0001   0000  4 0000 00 3900          4      PTR      3900       READ ROUTINE INTO MEMORY
-      0002                                        ORG      3900
-      0003   3900  0 0000 13 0000                 SR       0000       SPECIAL FUNCTION CALLS
-      0004   3901  0 0000 13 0000                 SR       0000
-      0005   3902  0 0000 13 0000                 SR       0000
-      0006   3903  0 0000 13 0000                 SR       0000
-      0007   3904  0 0000 64 3940                 CAD      3940       STORE KEY
-      0008   3905  0 0000 12 3950                 ST       3950         NUMBERS IN TABLE
-      0009   3906  0 0000 03 8510                 PTW      8510       PRINT OUT ERROR KEY NUMBER
-      0010   3907  0 0000 13 0010                 SR       0010       DISPLAY ERROR KEY NUMBER IN R-
-      0011   3908  0 0000 64 3941                 CAD      3941       DISPLAY ERROR INFORMATION (A)A
-      0012   3909  0 0000 73 3942                 OSGD     3942       (D)A = INCORRECT =
-      0013   3910  0 0000 28 3911                 CC       3911
-      0014   3911  0 0000 64 3905                 CAD      3905       ADVANCE KEY = STORE ADDRESS
-      0015   3912  0 0000 74 3943                 AD       3943
-      0016   3913  0 0000 02 3905                 STC      3905
-      0017   3914  0 0000 13 0000                 SR       0000
-      0018   3915  0 0000 64 3980                 CAD      3980       TEST FOR CARDATRON INPUT AFTER
-      0019   3916  0 0000 63 3937                 EX       3937       (A)A = 0 (CARDATRON)
-      0020   3917  0 0000 75 3939                 SU       3939
-      0021   3918  0 0000 15 3923                 NOR      3923
-      0022   3919  0 0000 64 3982                 CAD      3982       TESTS FOR PAPER TAPE OR CARD I
-      0023   3920  0 0000 04 3925                 CNZ      3925       EXIT IF CARD INPUT
-      0024   3921  0 0000 02 3935                 STC      3935       STORE PAPER TAPE INPUT ORDER
-      0025   3922  0 0000 20 3925                 CU       3925
-      0026   3923  0 0000 64 3980                 CAD      3980       STORE CARDATRON OUTPUT ORDER
-      0027   3924  0 0000 12 3935                 ST       3935
-      0028   3925  0 0000 64 3981                 CAD      3981       TEST FOR CARDATRON OUTPUT ON E
-      0029   3926  0 0000 63 3937                 EX       3937
-      0030   3927  0 0000 75 3938                 SU       3938
-      0031   3928  0 0000 04 3931                 CNZ      3931
-      0032   3929  0 0000 64 3981                 CAD      3981       STORE CARDATRON OUTPUT ORDER
-      0033   3930  0 0000 12 3934                 ST       3934
-      0034   3931  0 0000 64 3944                 CAD      3944       PLANT ERROR EXPRESSION LOCK-UP
-      0035   3932  0 0000 02 3914                 STC      3914       (A)A = CU 3933
-      0036   3933  0 0000 20 3935                 CU       3935       CARD OUTPUT = SKIP
-X     0037   3934  0 0000 54 3940                 CDW      3940       PUNCH OUT ERROR KEY NUMBER (CA
-X     0038   3935  0 0000 44 0000                 CDR      0000       READ IN NEXT TEST ROUTINE
-      0039   3936  0 0000 20 0000                 CU       0000       (PAPER TAPE/CONVERTER/CARDATRO
-      0040   3937  0 1000 11 1111                 NUM     1000111111
-      0041   3938  0 0000 54 3940                 NUM     0000543940
-      0042   3939  0 0000 44 0000                 NUM     0000440000
-      0043   3940  0 0000 13 0000                 SR       0000
-      0044   3941  0 0000 13 0000                 SR       0000
-      0045   3942  0 0000 13 0000                 SR       0000
-      0046   3943  0 0000 00 0001                 NUM     0000000001
-      0047   3944  0 0000 20 3933                 NUM     0000203933
-      0048                                        END
+
+
+
+
+      0001                          LOC    S CNTL       T OPERAND     REMARKS
+      0002                                                            TM4113, FLOATING-POINT DIAGNOS
+      0003                                                            SYSTEM ERROR SUBROUTINE II
+      0004
+      0005   0000  4 0000 00 3900          4      PTR      3900       READ ROUTINE INTO MEMORY
+      0006                                        ORG      3900
+      0007   3900  0 0000 13 0000                 SR       0000       SPECIAL FUNCTION CALLS
+      0008   3901  0 0000 13 0000                 SR       0000
+      0009   3902  0 0000 13 0000                 SR       0000
+      0010   3903  0 0000 13 0000                 SR       0000
+      0011   3904  0 0000 64 3940                 CAD      3940       STORE KEY
+      0012   3905  0 0000 12 3950                 ST       3950         NUMBERS IN TABLE
+      0013   3906  0 0000 03 8510                 PTW      8510       PRINT OUT ERROR KEY NUMBER
+      0014   3907  0 0000 13 0010                 SR       0010       DISPLAY ERROR KEY NUMBER IN R-
+      0015   3908  0 0000 64 3941                 CAD      3941       DISPLAY ERROR INFORMATION (A)A
+      0016   3909  0 0007 73 3942            0007 OSGD     3942       (D)A = INCORRECT =
+      0017   3910  0 0000 28 3911                 CC       3911
+      0018   3911  0 0000 64 3905                 CAD      3905       ADVANCE KEY = STORE ADDRESS
+      0019   3912  0 0000 74 3943                 AD       3943
+      0020   3913  0 0000 02 3905                 STC      3905
+      0021   3914  0 0000 13 0000                 SR       0000
+      0022   3915  0 0000 64 3980                 CAD      3980       TEST FOR CARDATRON INPUT AFTER
+      0023   3916  0 0000 63 3937                 EX       3937       (A)A = 0 (CARDATRON)
+      0024   3917  0 0000 75 3939                 SU       3939
+      0025   3918  0 0000 15 3923                 NOR      3923
+      0026   3919  0 0000 64 3982                 CAD      3982       TESTS FOR PAPER TAPE OR CARD I
+      0027   3920  0 0000 04 3925                 CNZ      3925       EXIT IF CARD INPUT
+      0028   3921  0 0000 02 3935                 STC      3935       STORE PAPER TAPE INPUT ORDER
+      0029   3922  0 0000 20 3925                 CU       3925
+      0030   3923  0 0000 64 3980                 CAD      3980       STORE CARDATRON OUTPUT ORDER
+      0031   3924  0 0000 12 3935                 ST       3935
+      0032   3925  0 0000 64 3981                 CAD      3981       TEST FOR CARDATRON OUTPUT ON E
+      0033   3926  0 0000 63 3937                 EX       3937
+      0034   3927  0 0000 75 3938                 SU       3938
+      0035   3928  0 0000 04 3931                 CNZ      3931
+      0036   3929  0 0000 64 3981                 CAD      3981       STORE CARDATRON OUTPUT ORDER
+      0037   3930  0 0000 12 3934                 ST       3934
+      0038   3931  0 0000 64 3944                 CAD      3944       PLANT ERROR EXPRESSION LOCK-UP
+      0039   3932  0 0000 02 3914                 STC      3914       (A)A = CU 3933
+      0040   3933  0 0008 20 3935            0008 CU       3935       CARD OUTPUT = SKIP
+      0041   3934  0 9990 54 3940            9990 CDW      3940       PUNCH OUT ERROR KEY NUMBER (CA
+      0042   3935  0 9980 44 0000            9980 CDR      0000       READ IN NEXT TEST ROUTINE
+      0043   3936  0 0000 20 0000                 CU       0000       (PAPER TAPE/CONVERTER/CARDATRO
+      0044
+      0045   3937  0 1000 11 1111                 NUM     1000111111
+      0046   3938  0 0000 54 3940                 NUM     0000543940
+      0047   3939  0 0000 44 0000                 NUM     0000440000
+      0048   3940  0 0000 13 0000                 SR       0000
+      0049   3941  0 0000 13 0000                 SR       0000
+      0050   3942  0 0000 13 0000                 SR       0000
+      0051   3943  0 0000 00 0001                 NUM     0000000001
+      0052   3944  0 0000 20 3933                 NUM     0000203933
+      0053                                        END
                                                -
- 
- 
- 
- 
- 
-                                               -
- 
- 
- 
- 
- 

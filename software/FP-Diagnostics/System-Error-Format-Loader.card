@@ -1,0 +1,87 @@
+2   TRANSCRIBED FROM SYSTEM-ERROR-FORMAT-LOADER.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             SYSTEM AND INTERPRETIVE ERROR
+1                  REM             FORMAT LOADER
+1                  REM
+1                  ORG    0000
+1                  NUM   0000000000OUTPUT FORMAT
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             60810CDR    0006
+1                  REM
+1                  ORG    0006
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             60810CDR    0012
+1                  REM
+1                  ORG    0012
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             60810CDR    0018
+1                  REM
+1                  ORG    0018
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             60810CDR    0024
+1                  REM
+1                  ORG    0024
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM  22220000000
+1                  NUM   0031122222
+1                  NUM   0000000000
+1             60810CDR    0030
+1                  REM
+1                  ORG    0030
+1                  CR     0000     CLEAR
+1                  CAD    0000       A & R
+1                  STOP   0032     ENTER F AND U INTO R2 & R3
+1                  SL     0010
+1                  EX     0053
+1                  AD     0049
+1             60810CDR    0036
+1                  REM
+1                  ORG    0036
+1                  ST     0038
+1                  EX     0053
+1              0010CDWI   0042     UNIT NOT READY
+1                  SR     0010       OR NOT ON
+1                  CU     0032       THE SYSTEM
+1                  SR     0000
+1             60810CDR    0042
+1                  REM
+1                  ORG    0042
+1                  AD     0050     (A)A = 0 0FU0 58 0000
+1                  ST     0047
+1              0100EX     0053
+1                  AD     0052
+1                  ST     3981
+1              0010CDWF   0000
+1             60810CDR    0048             (ADDED TO TRANSCRIPTION)                  NOT IN ORIGINAL DOCUMENT
+1                  REM
+1                  ORG    0048
+1                  STOP   0048
+1                  CDWI   0042
+1                  CDWF   0000
+1                  NUM   0000000000
+1                  CDW    3940
+1                  NUM   0110000000
+1             6    CU     0030
+1                  END

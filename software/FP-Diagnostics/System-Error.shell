@@ -1,7 +1,7 @@
       ####   LLLL  S CCCC II AAAA   LOC    S CNTL REM   T OPERAND     REMARKS
-                                                  REM                 TM4113, FLOATING-POINT DIAGNOSTICS
-                                                  REM                 SYSTEM ERROR SUBROUTINE II
-                                                  REM
+                                                                      TM4113, FLOATING-POINT DIAGNOSTICS
+                                                                      SYSTEM ERROR SUBROUTINE II
+
              0000  4 0000 00 3900          4      PTR      3900       READ ROUTINE INTO MEMORY
                                                   ORG      3900
              3900  0 0000 13 0000                 SR       0000       SPECIAL FUNCTION CALLS
@@ -41,7 +41,7 @@
              3934  0 9990 54 3940            9990 CDW      3940       PUNCH OUT ERROR KEY NUMBER (CARDATRON/CONVERTER)
              3935  0 9980 44 0000            9980 CDR      0000       READ IN NEXT TEST ROUTINE
              3936  0 0000 20 0000                 CU       0000       (PAPER TAPE/CONVERTER/CARDATRON)
-                                                  REM
+
              3937  0 1000 11 1111                 NUM     1000111111
              3938  0 0000 54 3940                 NUM     0000543940
              3939  0 0000 44 0000                 NUM     0000440000

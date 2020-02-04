@@ -67,13 +67,18 @@ Shell-LoadTapeBuilder.wsf
 
 Shell-Xscript-Reformatter.wsf
     Extracts source and object code from the Shell Assembler
-    transcriptions. It reads the transcription files for the first and
+    transcriptions. Similar to Shell-Xscript-To-Card.wsf below, but
+    customized to convert the transcription files for the Shell
+    Assembler itself. It reads the transcription files for the first and
     second movements, then outputs:
         1. An assembler card deck for the first movement's source.
         2. An assembler card deck for the second movement's source.
         3. A tape image containing the loadable object code for the
         assembler. Note that the assembler object code is placed on lane
         1 of the tape starting at block 120.
+
+Shell-Xscript-To-Card.wsf
+    Extracts source code from transcriptions of Shell Assembler output listings. It reads the transcription text file and outputs an assembler card deck for the source code. Optionally, it extracts the object code from the listing and outputs a separate file with the code in loadable paper-tape format.
 
 Simple-Disassembler.wsf
     Reads a text file containing one 205 decimal word per line, format
@@ -85,5 +90,5 @@ Simple-Disassembler.wsf
 
 
 Paul Kimpel
-January 2016
+January 2020
 

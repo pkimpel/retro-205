@@ -1,0 +1,245 @@
+2   TRANSCRIBED FROM 3.G06.1A.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             3.G06.1A
+1                  REM             FP ADD-SUBTRACT TEST
+1                  REM
+1             4    PTR    0100     READ ROUTINE INTO MEMORY
+1                  REM
+1                  ORG    0100
+1                  BT6    0300     LOAD L6 WITH CONSTANTS
+1                  REM
+1                  CAD    6000     EXHIBIT KEY NUMBER
+1                  REM
+1                  SB     6001
+1                  CAD    6002
+1                  M      6002
+1                  SL     0005
+1                  NOR    7106
+1                  ST     6002
+1                  SR     0002
+1                  AD     6003     GENERATE 100 -RANDOM- NUMBERS
+1             1    ST     0500     STORES IN 0500-0599
+1                  CAD    6003
+1                  SU     6004
+1                  STC    6003
+1                  DB     7103
+1                  CUB    0116
+1                  REM
+1                  CAD    6017     RESTORE BLOCKING COMMANDS
+1                  STC    0135
+1                  CAD    6018
+1                  STC    0136
+1                  REM
+1                  SB     6001
+1                  CAD    6005
+1                  M      6005
+1                  SL     0005
+1                  NOR    7124     GENERATE 100 -RANDOM- NUMBERS
+1                  ST     6005     STORE IN 400-499
+1                  SR     0002
+1                  AD     6006     ALL EXPONENTS SAME
+1             1    ST     0400
+1                  DB     7121
+1                  REM
+1                  CAD    6006
+1                  AD     6004
+1                  CCB    0170     INCREASE EXPONENT BY ON FOR NEXT
+1                  ST     6006     GROUP OF 100 RANDOM NUMBERS.
+1                  CUB    0135
+1                  REM
+1              4000BT4    0500     LOAD RANDOM NUMBERS
+1                  BT5    0400     IN L4 AND L5
+1                  REM
+1                  CAD    7135
+1                  AD     6007
+1                  CCB    0116     INCREASE THE ABOVE BLOCKING ADDRSSES
+1                  STC    0135     FOR NEXT GROUP OF 20 RANDOM NUMBERS
+1                  CAD    7136
+1                  AD     6007
+1                  STC    0136
+1                  REM
+1                  SB     6016     SET B FOR FLOATING ADD TEST
+1                  CUB    0150
+1                  REM
+1                  NUM   0000000000SPARES
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  REM
+1             1    CAD    4000
+1             1    FAD    5000     COMPUTE X+Y AND STORE TEMPORARILY
+1                  CC     7161     EXIT IF OFT = 1
+1                  STC    7167
+1             1    CAD    5000
+1             1    FAD    4000     COMPUTE Y+X
+1                  CC     0210
+1                  REM
+1                  SU     7167
+1                  CNZ    0220     (Y+X) = (X+Y) = 0
+1                  DB     7150
+1                  CUB    0178
+1                  REM
+1                  STC    7168
+1             1    CAD    5000
+1             1    FAD    4000     IF OVERFLOW OCCURRED ON X+Y, DOES IT
+1                  CC     7159       OCCUR ON Y+X?
+1                  CU     0229
+1                  REM
+1                  NUM   0000000000STORE INTERMEDIATE SUMS
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  REM
+1                  CAD    0176
+1                  CNZ    7173
+1                  PTR    0000     TALLY NUMBERS OF COMPLETE PASSES THRU
+1                  SU     0177       ROUTINE
+1                  STC    0176
+1                  CUB    0100
+1                  REM
+1                  NUM   0000000001CONSTANTS
+1                  NUM   0000000001
+1                  REM
+1                  SB     6016
+1             1    CAD    4000
+1             1    FSU    5000
+1                  CC     0235
+1                  CNZ    7184
+1                  CUB    0195
+1                  STC    6015
+1                  REM
+1             1    CAD    5000
+1             1    FSU    4000
+1                  CC     0247     COMPUTE Y-X
+1                  CNZ    7190
+1                  CUB    0202
+1                  REM
+1                  EX     6008
+1                  SUA    6015
+1                  CNZ    0261     /Y-X/ - /X-Y/ = 0
+1                  DB     7179
+1                  CUB    0135
+1                  REM
+1             1    CAD    5000
+1             1    FSU    4000
+1                  CC     0253     UNDERFLOW TEST X-Y
+1                  SR     0000
+1                  CNZ    0271
+1                  DB     7209
+1                  CUB    0135
+1                  REM
+1             1    CAD    4000
+1             1    FSU    5000
+1                  CC     0235
+1                  SR     0000     UNDERFLOW TEST Y-X
+1                  CNZ    0271
+1                  DB     7209
+1                  CUB    0135
+1                  CUB    0179
+1                  STC    3942
+1                  CAD    7167
+1                  STC    3941
+1                  CAD    0219
+1                  STC    3940     X + X SETS OFT
+1                  CUR    3900
+1                  DB     0218
+1                  CUB    0178     BUT X + Y DOES NOT
+1                  CUB    0150
+1                  NUM   0700000106
+1                  REM
+1                  CAD    7167
+1                  STC    3941
+1             1    CAD    5000
+1             1    FAD    4000
+1                  CC     0225     X+Y NEQ Y+X
+1                  STC    3942
+1                  CAD    0228
+1                  CU     0214
+1                  NUM   0700000206
+1                  REM
+1                  STC    3942
+1                  CAD    7168
+1                  STC    3941     X + Y SETS OFT
+1                  CAD    0234     Y + X DOES NOT SET OFT
+1                  CU     0214
+1                  NUM   0700000306
+1                  REM
+1                  STC    3941
+1             1    CAD    5000
+1             1    FSU    4000
+1                  CC     0239
+1                  STC    3942
+1                  CAD    0246
+1                  STC    3940
+1                  CUR    3900
+1                  DB     0245
+1                  CUB    0135
+1                  CUB    0179
+1                  REM
+1                  NUM   0700000406
+1                  REM
+1                  STC    3942
+1                  CAD    6015
+1                  STC    3941     Y - X SETS OFT
+1                  CU     0240
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  REM
+1                  STC    3942
+1             1    CAD    4000
+1             1    FSU    5000     Y - X SETS OFT
+1                  CC     0257
+1                  STC    3941
+1                  CU     0240
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  CADA   6015     PREPARE ERROR ROUTINE
+1                  STC    3941
+1             1    CAD    5000
+1             1    FSU    4000
+1                  CC     0266     /Y-X/ NEQ /X-Y/
+1                  EX     6008
+1                  STC    3942
+1                  CAD    0270
+1                  CU     0241
+1                  NUM   0700000506
+1                  REM
+1             1    CAD    5000
+1             1    FSU    4000
+1                  CC     0274
+1                  STC    3942
+1             1    CAD    4000     EXPONENT IS NOT ST TO ZERO
+1             1    FSU    5000       WHEN MANTISSA IS ZERO
+1                  CC     0278
+1                  STC    3941
+1                  CAD    0281
+1                  CU     0241
+1                  NUM   0700000606
+1                  REM
+1             4    PTR    0300
+1                  REM
+1                  ORG    0300
+1                  NUM   0700000006CONSTANTS
+1                  NUM   0000000099
+1                  NUM   9614307852
+1                  NUM   9900000000
+1                  NUM   0100000000
+1                  NUM   9876543210
+1                  NUM   0000000000
+1                  NUM   1000000020
+1                  NUM   1111111111
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000019
+1                  NUM   4000340500
+1                  NUM   0000350400
+1                  NUM   0000000000
+1                  REM
+1             6    CUB    0170
+1                  END

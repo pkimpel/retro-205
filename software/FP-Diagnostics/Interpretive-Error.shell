@@ -1,7 +1,7 @@
       ####   LLLL  S CCCC II AAAA   LOC    S CNTL REM   T OPERAND     REMARKS
-                                                  REM     TM4113, FLOATING-POINT DIAGNOSTICS
-                                                  REM     INTERPRETIVE ERROR SUBROUTINE II
-                                                  REM
+                                                                      TM4113, FLOATING-POINT DIAGNOSTICS
+                                                                      INTERPRETIVE ERROR SUBROUTINE II
+
              0000  4 0000 00 3906          4      PTR      3906       READ ROUTINE INTO MEMORY
                                                   ORG      3906
              3906  0 0000 08 3906                 STOP     3906       SET SKIP SWITCH TO SKIP IF CARD OUTPUT DESIRED
@@ -10,7 +10,7 @@
              3909  0 0000 12 3929                 ST       3929         TO BE EXPRESSED.
              3910  0 0000 15 3926                 NOR      3926
              3911  0 0000 64 3981                 CAD      3981       TEST FOR CARDATRON OUTPUT
-             3912  0 0000 63 2930                 EX       3930
+             3912  0 0000 63 3930                 EX       3930
              3913  0 0000 75 3931                 SU       3931
              3914  0 0000 04 3918                 CNZ      3918
              3915  0 0000 65 3981                 CSU      3981       STORE CARDATRON WRITE COMMAND
@@ -26,8 +26,8 @@
              3925  0 0000 75 3929                 SU       3929
              3926  0 0000 04 3919                 CNZ      3919
              3927  0 0000 08 3927                 STOP     3927
-                                                  REM
-             3928  0 0000 12 3950                 NUM     0000003950  CONSTANTS
+
+             3928  0 0000 12 3950                 NUM     0000123950  CONSTANTS
              3929  0 0000 00 0000                 NUM     0000000000
              3930  0 0000 11 1111                 NUM     0000111111
              3931  0 0000 54 3940                 NUM     0000543940

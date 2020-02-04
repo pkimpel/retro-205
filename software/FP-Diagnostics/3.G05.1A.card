@@ -1,0 +1,217 @@
+2   TRANSCRIBED FROM 3.G05.1A.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             3.G05.1A
+1                  REM             FP DIVIDE COMBINATION TESTS
+1                  REM                 1/Y(X) = X/Y
+1                  REM
+1             4    PTR    0100     READ ROUTINE INTO MEMORY
+1                  REM
+1                  ORG    0100
+1              0004CAD    0280     PREPARE F.P.TEST NO.S WITH RANDOM MANT. (X)
+1                  BT4    0280
+1                  REM
+1                  SB     4001     (B)A = 0099
+1                  CAD    4002
+1                  M      4002
+1                  SL     0005
+1                  NOR    7106
+1                  ST     4002
+1                  SR     0002
+1                  AD     4003
+1             1    ST     0300
+1                  CAD    4003
+1                  SU     4004
+1                  STC    4003
+1                  DB     7103
+1                  CUB    0116
+1                  REM
+1                  SB     4001     (B)A = 0099
+1                  CAD    4005     PREPARE F.P.TEST NO.S (OPERAND NO.2)
+1                  M      4005     WITH RANDOM MANT.
+1                  SL     0005
+1                  NOR    7120
+1                  ST     4005
+1                  SR     0002
+1                  AD     4006
+1             1    ST     0400
+1                  DB     7017
+1                  REM
+1                  CAD    4006
+1                  AD     4004
+1                  CCB    0205     EXP.ADJ. OPERAND NO.2
+1                  STC    4006
+1                  CUB    0131
+1                  REM
+1              4000BT5    0300     MOVE OPERANDS TO LOOPS
+1              4000BT6    0400
+1                  SB     4013     (B)A = 0001
+1             1    CAD    0131
+1                  AD     4007
+1                  CCB    0200     RESTORATION EXIT
+1             1    STC    0131
+1                  DB     7134
+1                  SB     4008     (B)A = 0019
+1                  CUB    0141
+1                  CAD    4014     (A)A = +5110000000
+1             1    FDIV   6000     (A)A = 1/Y
+1                  CC     7158     OVERFLOW EXIT
+1                  ST     4015
+1             1    FM     5000     (A)A = 1/Y (X)
+1                  CCB    0171     OVERFLOW EXIT
+1                  ST     4016
+1                  CNZ    7150
+1                  CUB    0188     UNDERFLOW EXIT
+1                  REM
+1             1    CAD    5000     (A)A=X    FLOTTING PT. TEST
+1             1    FDIV   6000     (A)A = X/Y
+1                  CCB    0161     OVERFLOW EXIT
+1                  CNZ    7155
+1                  CUB    0179     UNDERFLOW EXIT X/Y
+1                  SU     4016     1/Y (X) = X/Y
+1                  SR     0002     TRUNCATION CORRECTION
+1                  CNZ    0211     ERROR EXIT (WITHIN RANGE)
+1                  DB     7141
+1                  CUB    0131
+1                  REM
+1                  SR     0000     OVERFLOW TEST
+1                  ST     0260
+1                  CAD    4014     A(A) = 51.10000000
+1             1    FDIV   6000     A(A) = 1/Y
+1                  CC     7165
+1             1    FM     5000     A(A) = 1/Y (X)
+1                  CC     0196     OVERFLOW RETURN
+1                  SR     0008
+1                  SU     4001     (A)A = (A)B - (99*10**-10) -- 1/Y (X)
+1                  CNZ    0225     ERROR EXIT (NO.99)
+1                  CU     0196     -99- EXP. RETURN
+1                  REM
+1                  ST     0261
+1             1    CAD    5000     (A)A = (X)
+1             1    FDIV   6000     (A)A = X/Y
+1                  CC     0196     OVERFLOW RETURN
+1                  SR     0008
+1                  SU     4001     (A)A = (A)B - (99*10**-10) -- X/Y
+1                  CNZ    0232     ERROR EXIT (NO. 99 EXP.)
+1                  CU     0196     RETURN
+1                  ST     0262
+1                  CAD    4014     (A)A = 51.10000000 UNDERFLOW TEST 1/Y (X)
+1             1    FDIV   6000     (A)A = 1/Y
+1                  CC     7183
+1             1    FM     5000
+1                  CCB    0239     ERROR EXIT (OF)
+1                  SR     0008
+1                  CNZ    0239     ERROR EXIT (N 00 EXP.)
+1                  CU     0196     00 EXP. RETURN
+1                  ST     0263
+1             1    CAD    5000     (A)A = X          UNDERFLOW TEST X/Y
+1             1    FDIV   6000     (A)A = X/Y
+1                  CCB    0246     ERROR EXIT (OF)
+1                  SR     0008
+1                  CNZ    0246     ERROR EXIT (N 00 EXP.)
+1                  CU     0196     00 EXP. RETURN
+1                  SR     0000
+1                  REM
+1                  DB     0198     OVERFLOW AND UNDERFLOW TEST RETURN
+1                  CUB    0131     RETURN FOR NEXT BLOCK
+1                  CUB    0141
+1                  SR     0000
+1                  REM
+1                  CAD    4011     (A)A = +4000 35 0300
+1                  ST     0131     RESTORATION OF OPERAND BLOCKING COMMANDS
+1                  CAD    4012     (A)A = +4000 36 0400
+1                  ST     0132
+1                  CUB    0116
+1                  REM
+1                  CAD    0299     CYCLE TALLY
+1                  SU     4013     (A)A = (A)B - 10**-10 -- FINAL EXIT
+1                  REM
+1                  ST     0299
+1                  NOR    0210
+1                  CUB    0100
+1                  REM
+1                  PTR    0000
+1                  REM
+1                  SL     0002     ERROR PREP.
+1                  AD     4016
+1                  ST     3942     INCORRECT NO.
+1                  CAD    4016
+1                  ST     3941     CORRECT NO.
+1                  CAD    0270
+1                  ST     3940     KEY NO.
+1                  CUR    3900
+1                  CU     0196
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  ST     3942     OVERFLOW TEST 1/Y (X)
+1                  CAD    0260
+1                  ST     3941
+1                  CAD    0271     KEY NO.
+1                  ST     3940
+1                  CUR    3900
+1                  CU     0196
+1                  REM
+1                  ST     3942     OVERFLOW TEST X/Y
+1                  CAD    0261
+1                  ST     3941
+1                  CAD    0272     KEY NO.
+1                  ST     3940
+1                  CUR    3900
+1                  CU     0196
+1                  REM
+1                  ST     3942     UNDERFLOW TEST 1/Y (X)
+1                  CAD    0262
+1                  ST     3941
+1                  CAD    0273     KEY NO.
+1                  ST     3940
+1                  CUR    3900
+1                  CU     0196
+1                  ST     3942     UNDERFLOW TEST X/Y
+1                  CAD    0263
+1                  ST     3941
+1                  CAD    0274     KEY NO.
+1                  ST     3940
+1                  CUR    3900
+1                  CU     0196
+1                  REM
+1             4    PTR    0270
+1                  REM
+1                  ORG    0270
+1                  NUM   0700000005
+1                  NUM   0700000105
+1                  NUM   0700000205
+1                  NUM   0700000305
+1                  NUM   0700000405
+1                  NUM   0700000505
+1                  NUM   0700000605
+1                  REM
+1             4    PTR    0280
+1                  REM
+1                  ORG    0280
+1                  NUM   0700000005
+1                  NUM   0000000099
+1                  NUM   9876543219
+1                  NUM   9900000000
+1                  NUM   0100000000
+1                  NUM   9123456789
+1                  NUM   0000000000
+1                  NUM   1000000020
+1                  NUM   0000000019
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   4000350300
+1                  NUM   4000360400
+1                  NUM   0000000001
+1                  NUM   5110000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000001
+1                  NUM   0000000000
+1                  NUM   0000000001
+1                  REM
+1             6    CUB    0100
+1                  END

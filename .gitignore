@@ -16,4 +16,8 @@ web.config
 $RECYCLE.BIN/
 
 # Mac crap
-.DS_Store
+.DS_Store	   
+
+# Project-specific files
+
+/software/Demos/Fast-Drum-Zero-Continuous.card

@@ -1,7 +1,8 @@
-2  FLOATING-POINT DIAGNOSTICS 0 SYSTEM ERROR SUBROUTINE II
+2   TRANSCRIBED FROM SYSTEM-ERROR.SHELL
 1        LOC  SCNTLREM  TOPERAND   REMARKS
-1                  REM             FLOATING-POINT DIAGNOSTICS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
 1                  REM             SYSTEM ERROR SUBROUTINE II
+1                  REM
 1             4    PTR    3900     READ ROUTINE INTO MEMORY
 1                  ORG    3900
 1                  SR     0000     SPECIAL FUNCTION CALLS
@@ -41,6 +42,7 @@
 1              9990CDW    3940     PUNCH OUT ERROR KEY NUMBER (CARDATRON/CONVERTER)
 1              9980CDR    0000     READ IN NEXT TEST ROUTINE
 1                  CU     0000     (PAPER TAPE/CONVERTER/CARDATRON)
+1                  REM
 1                  NUM   1000111111
 1                  NUM   0000543940
 1                  NUM   0000440000

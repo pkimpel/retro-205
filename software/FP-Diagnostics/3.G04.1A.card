@@ -1,0 +1,183 @@
+2   TRANSCRIBED FROM 3.G04.1A.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             3.G04.1A
+1                  REM             FP MULTIPLY COMBINATION TESTS
+1                  REM
+1             4    PTR    0100     READ ROUTINE INTO MEMORY
+1                  REM
+1                  ORG    0100
+1              0004CAD    0260     KEY NO.
+1                  BT4    0260     DEFINE TEST AND LOOP CONSTANTS
+1                  REM
+1                  SB     4001     (B)A = 0099
+1                  CAD    4002
+1                  M      4002     RANDOM MANT. NO.1
+1                  SL     0005
+1                  NOR    7106     (A)A = +XY-X
+1                  ST     4002
+1                  SR     0002     (A)A = 00XY---X
+1                  AD     4003     PREPARE OPERANDS NO.1
+1             1    ST     0300
+1                  CAD    4003
+1                  SU     4004     (A)A = (A)B + 10**-2 EXP.ADJ.
+1                  ST     4003       (00 - 99)
+1                  DB     7103
+1                  CUB    0116
+1                  REM
+1                  SB     4001     (B)A = 0099
+1                  CAD    4005
+1                  M      4005
+1                  SL     0005     RANDOM MANT. NO.2
+1                  NOR    7120     (A)A = +XY---X
+1                  ST     4005
+1                  SR     0002     (A)A = +00XY---X
+1                  AD     4006
+1             1    ST     0400     PREPARE OPERANDS NO.2
+1                  DB     7017
+1                  REM
+1                  CAD    4006
+1                  AD     4004     (A)A = (A)B + 10**-2 EXP.ADJ.
+1                  CCB    0212     EXIT
+1                  STC    4006
+1                  CUB    0131
+1                  REM
+1              4000BT5    0300     MOVE OPERANDS TO LOOPS
+1              4000BT6    0400
+1                  SB     0189     (B)A = 0001
+1             1    CAD    0131
+1                  AD     4007     (A)A = (A)B + (+.1000000020
+1                  CCB    0163     RESTORATION EXIT
+1             1    STC    0131
+1                  DB     7134
+1                  CUB    0140
+1                  REM
+1                  SB     4008     (B)A = 0019
+1             1    CAD    5000
+1             1    FM     6000     (A)A = (X)(Y)
+1                  CC     7153
+1                  STC    4009
+1                  REM
+1             1    CAD    6000     FLOATING POINT MULTIPLY TEST
+1             1    FM     5000     (A)A = (Y)(X)
+1                  CC     0206
+1                  ST     4010
+1                  REM
+1                  SU     4009     (A)A = (X)(Y) = (Y)(X) = 0?
+1                  CNZ    0170     ERROR EXIT
+1                  DB     7141
+1                  CUB    0131     EXIT (COMB. 20 WD. GRP.)
+1                  REM
+1             1    CAD    6000     OVERFLOW TESTING
+1             1    FM     5000     (A)A = (Y)(X)
+1                  CC     7151
+1                  CU     0206     ERROR EXIT
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  REM
+1                  CAD    4011     (A)A = 04000 35 0300
+1                  ST     0131     RESTORATION OF OPERAND BLOCKING COMMANDS
+1                  CAD    4012     (A)A = 04000 36 0400
+1                  ST     0132
+1                  CUB    0116
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  CUB    0171
+1                  CAD    4009     PREPARATION (X)(Y) RESULTS
+1                  EX     4013     STORE EXP.
+1                  ST     4015
+1                  REM
+1                  CAD    4009
+1                  EX     4014     STORE MANT.
+1                  ST     4016
+1                  REM
+1                  CAD    4010     PREPARATION (Y)(X) RESULTS
+1                  EX     4013     STORE EXP.
+1                  ST     4017
+1                  REM
+1                  CAD    4010
+1                  EX     4014     STORE MANT.
+1                  ST     4018
+1                  REM
+1                  SU     4016     TEST MANT.
+1                  CNZ    0198
+1                  REM
+1                  CAD    4017     TEST EXP.
+1                  SU     4015
+1                  CNZ    0190
+1                  CUB    0190
+1                  SR     0001
+1                  REM
+1                  CAD    4015
+1                  ST     3941     (X)(Y) EXP.
+1                  REM
+1                  CAD    4017     ERROR PREP. EXP. FAILURE
+1                  ST     3942     (Y)(X) EXP.
+1                  REM
+1                  CAD    0280
+1                  ST     3940     KEY NO.
+1                  CUR    3900
+1                  CU     0163
+1                  REM
+1                  CAD    4016
+1                  ST     3941     (X)(Y) MANT.
+1                  REM
+1                  CAD    4018     ERROR PREP MANT. FAILURE
+1                  ST     3942     (Y)(X) MANT.
+1                  REM
+1                  CAD    0281
+1                  ST     3940     KEY NO.
+1                  CUR    3900
+1                  REM
+1                  CUB    0163
+1                  CAD    0282     ERROR PREP OVERFLOW ERROR
+1                  STC    3940     KEY NO.
+1                  STC    3941
+1                  STC    3942
+1                  CUR    3900
+1                  CU     0163
+1                  REM
+1                  CAD    0279     TALLY-RETURN
+1                  AD     0283
+1                  CC     0217
+1                  ST     0279
+1                  CUB    0100
+1                  REM
+1                  PTR    0000
+1                  CU     0000
+1                  REM
+1             4    PTR    0260
+1                  REM
+1                  ORG    0260
+1                  NUM   0700000004
+1                  NUM   0000000099
+1                  NUM   9876543219
+1                  NUM   9900000000
+1                  NUM   0100000000
+1                  NUM   9123456789
+1                  NUM   0000000000
+1                  NUM   1000000020
+1                  NUM   0000000019
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   4000350300
+1                  NUM   4000360400
+1                  NUM   1100000000
+1                  NUM  10011111111
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   9000000000
+1                  NUM   0700000104
+1                  NUM   0700000204
+1                  NUM   0700000304
+1                  NUM   9000000000
+1                  REM
+1             6    CUB    0100
+1                  END

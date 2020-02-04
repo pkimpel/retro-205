@@ -1,0 +1,235 @@
+2   TRANSCRIBED FROM 3.G02.1A.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             3.G02.1A
+1                  REM             FLOATING POINT VS FIXED POINT TEST
+1                  REM
+1             4    PTR    0100     READ ROUTINE INTO MEMORY
+1                  REM
+1                  ORG    0100
+1              0004CAD    0509
+1                  BT4    0500
+1                  SB     0110     (B)A = 0009
+1                  CAD    4000
+1                  M      4000     GENERATE
+1                  SL     0005       PSEUDO RANDOM
+1                  NOR    7106       MANTISSA
+1                  ST     4000
+1                  REM
+1                  SR     0002     PREPARE OPERAND NO.1 AX
+1             1    ST     5000     (A)A = +00XX---X
+1                  CR     0009     (R)A = 0
+1                  BA     0000     (A)A = (B)A
+1                  REM
+1                  SL     0008     (A)A = +(B)3(B)4 0-0
+1                  REM
+1             1    AD     5000
+1                  AD     4001     (A)A = (A)B+(EXP.BASE)
+1             1    ST     5010
+1                  REM
+1                  DB     7103
+1                  CUB    0118
+1                  SB     0110     (B)A = 0009
+1                  REM
+1                  CAD    4002
+1                  M      4002     GENERATE
+1                  SL     0005       PSEUDO RANDOM
+1                  NOR    7122       MANTISSA
+1                  ST     4002     PREPARE
+1                  SR     0002       OPERAND
+1             1    ST     6000       NO.2 DX
+1                  AD     4001     (A)A = (A)B+(EXP.BASE)
+1             1    ST     6010
+1                  DB     7119
+1                  CUB    0131
+1                  CUB    0132
+1                  SB     0110     (B)A = 0009
+1             1    CAD    5000
+1             1    M      6000
+1                  NOR    7134     (SPC)A = 4 OR 5
+1                  SR     0002
+1                  ST     4003
+1             1    CAD    5010
+1                  EX     4004     (A)A = +(EXP.) 0---0
+1                  SU     4005
+1                  AD     4001
+1                  STC    4006
+1                  SU     4011
+1                  ADSC   0000
+1                  CNZ    7146     EXP. NEEDS CORRECTIONS - FPM TEST
+1                  CUB    0150
+1                  CAD    4006
+1                  SU     4007     (A)A = (A)B-(.01)
+1                  ST     4006
+1                  CUB    0150
+1             1    CAD    5010
+1             1    FM     6010
+1                  CC     0300     ERROR EXIT
+1                  ST     4008
+1                  SU     4003
+1                  SU     4006
+1                  CNZ    0301     ERROR EXIT
+1                  DB     0130
+1                  CUB    0160
+1                  CUB    0161
+1                  SB     0110
+1                  CR     0000
+1             1    CAD    5000
+1             1    DIV    6000
+1                  CC     7169
+1                  NOR    7165
+1                  SR     0002
+1                  ST     4003
+1                  CUB    0183
+1             1    CAD    5000
+1                  SR     0001
+1             1    DIV    6000     MANTISSA
+1                  NOR    7172       CORRECTION
+1                  SR     0002         (OF)
+1                  STC    4003     FPD TEST
+1                  CUB    0176
+1             1    CAD    5010
+1                  EX     4004
+1                  SU     4001
+1                  AD     4005     EXP. CORRECTION (OF)
+1                  AD     4007     (A)A = (A)B + .01
+1                  ST     4006
+1                  CUB    0188
+1             1    CAD    5010
+1                  EX     4004
+1                  SU     4001     EXP. CORRECTION (NO OF)
+1                  AD     4005
+1                  ST     4006
+1                  CR     0000
+1             1    CAD    5010
+1             1    FDIV   6010
+1                  CC     0302     ERROR EXI
+1                  ST     4008
+1                  SU     4003     FPD
+1                  SU     4006       TEST
+1                  CNZ    0303     ERROR EXIT
+1                  DB     0159
+1                  CUB    0198
+1                  REM
+1                  SB     0110     (B)A = 0009
+1                  REM
+1             1    CAD    6000
+1             1    SR     0000
+1             1    AD     5000     - COMMAND? PRODUCE
+1                  NOR    0202                TEST MANTISSA
+1                  SR     0002
+1                  STC    4003
+1                  SR     0000
+1                  REM
+1                  ADSC   0000
+1                  SU     0512     CORRECT
+1                  CNZ    0215       MANTISSA (OF)
+1                  SR     0000     CORRECTION (OF)
+1             1    CAD    5010
+1                  EX     4004
+1                  AD     4007     CORRECT
+1                  ST     4006       EXP. (OF)
+1                  CUB    0220
+1                  REM
+1             1    CAD    5010
+1                  EX     4004     PREPARE TEST
+1                  ST     4006       EXP.
+1                  CUB    0220
+1                  CUB    0199
+1             1    CAD    5010     FPA TEST
+1             1    FAD    6010
+1                  CC     0304     ERROR EXIT
+1                  ST     4008
+1                  SU     4003
+1                  SU     4006
+1                  CNZ    0305
+1                  DB     0219
+1                  REM
+1                  SB     0110
+1                  REM
+1             1    CAD    6000     PREPARE TEST
+1             1    SR     0000       MANTISSA
+1             1    SU     5000
+1                  NOR    7252
+1                  SR     0002
+1                  ST     4003
+1                  CUB    0236
+1                  REM
+1             1    CAD    5010     FPS TEST
+1                  EX     4004     PREPARE
+1                  SR     0008       TEST
+1                  SUSC   0009         EXPONENT
+1                  AD     0513
+1                  ST     4006
+1                  REM
+1             1    CAD    5010
+1             1    FSU    6010
+1                  CNZ    7246
+1                  CU     0252     SUBTRACT
+1                  ST     4008       TEST
+1                  EX     0514
+1                  SUA    4003
+1                  SR     0008
+1                  SU     4006
+1                  CNZ    0306
+1                  DB     0229
+1                  CUB    0254
+1                  REM
+1                  CAD    0515
+1                  SU     0512     -0-
+1                  ST     0515
+1                  NOR    0259
+1                  CUB    0101
+1                  PTR    0000
+1                  CU     0000
+1                  REM
+1             4    PTR    0300
+1                  REM
+1                  ORG    0300
+1                  CUR    0310
+1                  CUR    0310
+1                  CUR    0310
+1                  CUR    0310
+1                  CUR    0310
+1                  CUR    0310
+1                  CUR    0310
+1                  REM
+1                  SR     0000
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  CAD    4008
+1                  ST     3942
+1                  CAD    4003
+1                  AD     4006
+1                  STC    3941     CORRECT NO.
+1                  SL     0004
+1                  EX     0512     ERROR
+1                  SL     0002       PREPARATION
+1                  AD     0509
+1                  ST     3940     KEY NO.
+1                  CUR    3900
+1                  CUB    0100
+1                  REM
+1             4    PTR    0500
+1                  REM
+1                  ORG    0500
+1                  NUM   8796379254(4000) OPERAND NO.1
+1                  NUM   5000000000       EXP.BASE
+1                  NUM   9976853241       OPERAND NO.2
+1                  NUM   0000000000       TEST MANTISSA
+1                  NUM   1100000000       EXP.EXTRACT
+1                  NUM   5000000000
+1                  NUM   0000000000
+1                  NUM   0100000000
+1                  NUM   0000000000
+1                  NUM   0700000002
+1                  NUM   0500000000
+1                  NUM   0000000004
+1                  NUM   0000000001
+1                  NUM   0000000002
+1                  NUM   1111111111
+1                  NUM   0000000007
+1                  REM
+1             6    CUB    0100
+1                  END

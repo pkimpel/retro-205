@@ -1,0 +1,86 @@
+2   TRANSCRIBED FROM DIAGNOSTIC-ERROR-FORMAT-LOADER.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             DIAGNOSTIC ERROR FORMAT LOADER
+1                  REM
+1                  ORG    0000
+1                  NUM  00000000000OUTPUT FORMAT
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1             60810CDR    0006
+1                  REM
+1                  ORG    0006
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1             60810CDR    0012
+1                  REM
+1                  ORG    0012
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1             60810CDR    0018
+1                  REM
+1                  ORG    0018
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1                  NUM  00000000000
+1             60810CDR    0024
+1                  REM
+1                  ORG    0024
+1                  NUM  00000000000
+1                  NUM  22220000000
+1                  NUM  22221122222
+1                  NUM  22221122222
+1                  NUM  00031122222
+1                  NUM  00000000000
+1             60810CDR    0030
+1                  REM
+1                  ORG    0030
+1                  CR     0000     CLEAR
+1                  CAD    0000      A & R
+1                  STOP   0032     ENTER F AND U INTO R2 & R3
+1                  SL     0010
+1                  EX     0048     (A)A = 0 0FU0 00 0000
+1                  AD     0049     (A)A = 0 0FU0 55 0042
+1             60810CDR    0036
+1                  REM
+1                  ORG    0036
+1                  ST     0038
+1                  EX     0048
+1              0010CDWI   0042     UNIT NOT
+1                  SR     0010       READY OR NOT
+1                  CU     0032       ON THE SYSTEM
+1                  SR     0000
+1             60810CDR    0042
+1                  REM
+1                  ORG    0042
+1                  AD     0050     (A)A = 0 0FU0 58 0000
+1                  STC    0044
+1              0010CDWF   0000
+1                  STOP   0045
+1                  CU     0045
+1                  SR     0000
+1             60810CDR    0048
+1                  REM
+1                  ORG    0048
+1                  NUM   0110000000
+1                  CDWI   0042
+1                  CDWF   0000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             6    CU     0030
+1                  END

@@ -1,0 +1,59 @@
+2   TRANSCRIBED FROM DIAGNOSTIC-ERROR.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             SYSTEM ERROR SUBROUTINE II
+1                  REM
+1             4    PTR    3900     READ ROUTINE INTO MEMORY
+1                  ORG    3900
+1                  BF4    3960     RETAIN 4000 LOOPS INFORMATION
+1                  CAD    3949     PREPARE RETURN
+1                  SL     0004
+1                  STC    3922
+1                  CAD    3940     PRINT OUT KEY NUMBER
+1                  PTW    8510
+1                  SR     0010     DISPLAY KEY NO. IN R REGISTER
+1                  CAD    3941     PRINT OUT CORRECT NUMBER
+1                  PTW    8810
+1              0007OSGD   3942     DISPLAY INCORRECT NUMBER
+1                  CC     3911
+1                  CAD    3942     PRINT OUT INCORRECT NUMBER
+1                  PTW    8810
+1                  CU     3921     CARD BYPASS IF SKIP SWITCH=SKIP
+1                  CR     0000
+1                  STOP   3915     ENTER UNIT & BAND IN R-REGISTER IF CARDATRON
+1                  SL     0010     TEST FOR CONVERTER OR CARDATRON OUTPUT
+1                  CNZ    3925     (A)A = 0, CONVERTER
+1                  CDW    3940     ERROR PUNCH-OUT ON CONVERTED OR CARDATRON
+1                  CAD    3947     (A)A = CU 3918 - CONVERTER
+1                  ST     3915       OR CU 3930 - CARDATRON
+1                  BT4    3960
+1                  SR     0000     RETURN TO TEST
+1                  SR     0000
+1                  SR     0000
+1                  EX     3945     K=0 0110 00 0000 PREPARE CDW CMD
+1                  AD     3946     (A)A = 0 0FU0 54 3942
+1                  STC    3918
+1                  CAD    3948     (A)A = CU 3930
+1                  STC    3947
+1                  CAD    3940     INVERT WORDS IN PUNCH OUT AREA
+1                  ST     3944
+1                  CAD    3941
+1                  ST     3943
+1                  CU     3918
+1                  SR     0000
+1                  SR     0000
+1                  REM
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0110000000
+1                  NUM   0000543942CDW
+1                  NUM   0000203918CU
+1                  NUM   0000203930CU
+1                  NUM   0000000020
+1                  END

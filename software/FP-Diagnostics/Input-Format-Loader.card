@@ -1,0 +1,94 @@
+2   TRANSCRIBED FROM INPUT-FORMAT-LOADER.SHELL
+1        LOC  SCNTLREM  TOPERAND   REMARKS
+1                  REM             TM4113, FLOATING-POINT DIAGNOSTICS
+1                  REM             TEST ROUTINE INPUT FORMAT LOADER
+1                  REM
+1                  NUM   0000000000LOCATOR CARD
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             60810CDR    0000
+1                  REM
+1                  ORG    0000
+1                  NUM  33333333333FORMAT
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  31313133333
+1                  NUM  13131313131
+1                  NUM  31313131113
+1             60810CDR    0006
+1                  REM
+1                  ORG    0006
+1                  NUM  13131313131
+1                  NUM  31313131311
+1                  NUM  11131313131
+1                  NUM  31313131313
+1                  NUM  13111313131
+1                  NUM  31313131313
+1             60810CDR    0012
+1                  REM
+1                  ORG    0012
+1                  NUM  13131113131
+1                  NUM  31313131313
+1                  NUM  33330313131
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1             60810CDR    0018
+1                  REM
+1                  ORG    0018
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1             60810CDR    0024
+1                  REM
+1                  ORG    0024
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  NUM  33333333333
+1                  CR     0000
+1             60810CDR    0030
+1                  REM
+1                  ORG    0030
+1                  CAD    0053     CLEAR A
+1                  STOP   0031     ENTER BAND AND UNIT INTO R2 & R3
+1                  SL     0010
+1                  EX     0047
+1                  AD     0050
+1                  ST     0038
+1             60810CDR    0036
+1                  REM
+1                  ORG    0036
+1                  EX     0047
+1                  SR     0010     DISPLAY BAND AND UNIT
+1              0010CDRF   0000     LOAD INPUT FORMAT
+1                  SL     0010
+1                  EX     0048
+1                  AD     0049
+1             60810CDR    0042
+1                  REM
+1                  ORG    0042
+1                  ST     0045
+1                  ST     3980
+1                  STOP   0044
+1              0810CDR    0000
+1                  CU     0044
+1                  NUM   0110000000
+1             60810CDR    0048
+1                  REM
+1                  ORG    0048
+1                  NUM   0010000000
+1              0800CDR    0000
+1                  CDRF   0000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1                  NUM   0000000000
+1             6    CU     0029
+1                  END

@@ -1,0 +1,192 @@
+<?XML version="1.0"?>
+<package>
+<job id="Shell-Xscript-To-Card">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+<![CDATA[
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 Shell-Xscript-To-Card.wsf
+' Copyright (c) 2015, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to extract source code in Shell Assembler punched card format
+' from assembly listing transcriptions. It reads the transcription files
+' and outputs an assembler card deck for the source.
+'
+' Optionally -- if the third parameter to the script is specified --
+' extracts the object code from the transcription and outputs it in a
+' file using loadable paper-tape format.
+'
+' This script should be executed in the current path of the transcription
+' files. Output files will be written to that path as well.
+'
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Path to the assembly transcription (required).
+'   Path for the source code card deck (optional).
+'   Path for the object code paper tape (optional).
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2020-01-12  P.Kimpel
+'   Original version, cloned from Shell-Xscript-To-Card.
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = ".card"
+Const extraChecks = False
+
+Dim args
+Dim asmFile
+Dim asmName
+Dim count
+Dim cardFile
+Dim cardName
+Dim fso
+Dim objFile
+Dim objName
+
+
+'---------------------------------------
+Sub BuildCardFile(byRef lineCount)
+  'Extracts source code from the assembler transcription file.
+  'The assembler source is written as card images to a file, by default with
+  'the same name as the transcription file, but modified with a ".card"
+  'extension.
+  Dim addr
+  Dim card
+  Dim lastAddr
+  Dim lastSign
+  Dim line
+  Dim lineNr
+  Dim sign
+  Dim text
+  Dim word
+
+  lineNr = CLng(0)
+  lastAddr = CInt(-1)
+  lastSign = "0"
+
+  cardFile.WriteLine "2   TRANSCRIBED FROM " & UCase(asmName)
+
+  Do While Not asmFile.AtEndOfStream
+    line = asmFile.ReadLine
+    If Len(line) < 70 Then
+        line = line & Space(70-Len(line))
+    End If
+
+    lineNr = lineNr+1
+
+    '-- If the op code is blank and object code is not present, generate a REM card
+    '-- If the source text is blank and object code IS present, do not generate a card
+    If Len(RTrim(Mid(line, 51, 5))) = 0 And Len(RTrim(Mid(line, 14, 20))) = 0 Then
+      card = "1" & Space(18) & "REM  " & Mid(line, 57, 1) & Mid(line, 59, 10) & Mid(line, 71)
+      cardFile.WriteLine RTrim(card)
+    ElseIf Len(RTrim(Mid(line, 37, 64))) > 0 Or Len(RTrim(Mid(line, 14, 20))) = 0 Then
+      '-- Reformat and write the assembler card image
+      card = "1" & Space(8) & Mid(line, 37, 5) & Mid(line, 44, 1) & Mid(line, 46, 4) & _
+             Mid(line, 51, 5) & Mid(line, 57, 1) & Mid(line, 59, 10)
+      If Len(line) > 70 Then
+        card = card & Mid(line, 71)
+      End If
+
+      cardFile.WriteLine RTrim(card)
+    End If
+
+    '-- If a word of code exists on this line, and we are generating paper tape...
+    If Len(line) >= 33 Then
+      text = Mid(line, 14, 4)
+      If text <> "    " Then
+        If IsNumeric(text) Then
+          If Not objFile Is Nothing Then
+            addr = CInt(text)
+            sign = Mid(line, 20, 1)
+            text = sign & Mid(line, 22, 4) & Mid(line, 27, 2) & Mid(line, 30, 4)
+            If IsNumeric(text) Then
+              word = CDbl(text)
+              If lastAddr+1 <> addr Then
+                If lastSign < "4" Then  '-- output a PTR for the new address
+                  objFile.WriteLine "4000000" & Mid(CStr(addr+10000), 2)
+                End If
+
+                If extraChecks Then
+                  MsgBox "WARNING: Address sequence error, line " & lineNr & _
+                         ", addr=" & addr & ", last=" & lastAddr
+                End If
+              End If
+
+              If extraChecks And sign > "3" Then
+                MsgBox "WARNING: Sign digit > 3, line " & lineNr & ", addr=" & addr
+              End If
+
+              objFile.WriteLine FormatNumber(word, 0, True, False, False) '-- output leading zero
+              lastAddr = addr
+              lastSign = sign
+            End If
+          End If
+        End If
+      End If
+    End If
+  Loop
+
+  lineCount = lineNr
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+objName = ""
+Set objFile = Nothing
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the assembler transcription file."
+  WScript.Quit 9
+Else
+  asmName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    cardName = Trim(args.Item(1))
+    If args.Count > 2 Then
+      objName = Trim(args.Item(2))
+    End If
+  Else
+    cardName = fso.BuildPath(fso.GetParentFolderName(asmName), fso.GetBaseName(asmName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(asmName) Then
+  MsgBox "Assembler transcription file does not exist: " & vbCrLf & asmName
+Else
+  Set asmFile = fso.OpenTextFile(asmName, ForReading, False)
+  Set cardFile = fso.CreateTextFile(cardName, True)
+  If Len(objName) > 0 Then
+    Set objFile = fso.CreateTextFile(objName, True)
+  End If
+
+  BuildCardFile count
+
+  cardFile.Close
+  Set cardFile = Nothing
+  asmFile.Close
+  Set asmFile = Nothing
+
+  If Len(objName) > 0 Then
+    objFile.Close
+    Set objFile = Nothing
+  End If
+
+  MsgBox "Shell assembler card file created (" & count & " lines) " & vbCrLf & cardName
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+]]>
+</script>
+</job>
+</package>

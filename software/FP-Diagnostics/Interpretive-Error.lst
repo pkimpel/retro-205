@@ -1,0 +1,42 @@
+200       TRANSCRIBED FROM INTERPRETIVE-ERROR.SHE      L L                 00 00 00
+
+
+
+
+
+      0001                          LOC    S CNTL       T OPERAND     REMARKS
+      0002                                                            TM4113, FLOATING-POINT DIAGNOSTICS
+      0003                                                            INTERPRETIVE ERROR SUBROUTINE II
+      0004
+      0005   0000  4 0000 00 3906          4      PTR      3906       READ ROUTINE INTO MEMORY
+      0006                                        ORG      3906
+      0007   3906  0 0000 08 3906                 STOP     3906       SET SKIP SWITCH TO SKIP IF CAR
+      0008   3907  0 0000 64 3905                 CAD      3905       DETERMINE NUMBER
+      0009   3908  0 0000 75 3928                 SU       3928         OF ERROR KEYS
+      0010   3909  0 0000 12 3929                 ST       3929         TO BE EXPRESSED.
+      0011   3910  0 0000 15 3926                 NOR      3926
+      0012   3911  0 0000 64 3981                 CAD      3981       TEST FOR CARDATRON OUTPUT
+      0013   3912  0 0000 63 3930                 EX       3930
+      0014   3913  0 0000 75 3931                 SU       3931
+      0015   3914  0 0000 04 3918                 CNZ      3918
+      0016   3915  0 0000 65 3981                 CSU      3981       STORE CARDATRON WRITE COMMAND
+      0017   3916  0 0000 75 3932                 SU       3932
+      0018   3917  0 0000 02 3922                 STC      3922
+      0019   3918  0 0000 72 3923                 SB       3923       (B)A = 0000
+      0020   3919  1 0000 64 3950          1      CAD      3950       PRINT OR PUNCH OUT ERROR KEY N
+      0021   3920  0 0000 03 8510                 PTW      8510         (PAPER TAPE)
+      0022   3921  0 0008 20 3923            0008 CU       3923
+      0023   3922  1 9990 54 3950          1 9990 CDW      3950       PUNCH OUT ERROR KEY NUMBER (CO
+      0024   3923  0 0000 32 0000                 IB       0000       TALLY OF ERROR KEYS PRINTED OR
+      0025   3924  0 0000 11 0000                 BA       0000
+      0026   3925  0 0000 75 3929                 SU       3929
+      0027   3926  0 0000 04 3919                 CNZ      3919
+      0028   3927  0 0000 08 3927                 STOP     3927
+      0029
+      0030   3928  0 0000 12 3950                 NUM     0000123950  CONSTANTS
+      0031   3929  0 0000 00 0000                 NUM     0000000000
+      0032   3930  0 0000 11 1111                 NUM     0000111111
+      0033   3931  0 0000 54 3940                 NUM     0000543940
+      0034   3932  0 0000 00 0010                 NUM     0000000010
+      0035   3933  6 0000 20 3906          6      CU       3906
+      0036                                        END
