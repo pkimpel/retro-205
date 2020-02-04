@@ -339,8 +339,8 @@ ThreeWaySwitch.prototype.set = function set(state) {
 
     if (this.state != state) {          // the state has changed
         switch (state) {
-        case 1:
-            this.state = 1;             // down position
+        case 1:                         // down position
+            this.state = 1;
             this.element.src = this.onImage1;
             break;
         case 2:                         // up position
@@ -701,7 +701,7 @@ PanelRegister.prototype.update = function update(value) {
 };
 
 /**************************************/
-PanelRegister.prototype.updateGlow = function updateGlow(glow) {
+PanelRegister.prototype.updateLampGlow = function updateLampGlow(glow) {
     /* Update the register lamps from the bitwise intensity values in "glow" */
     var bitNr;
 

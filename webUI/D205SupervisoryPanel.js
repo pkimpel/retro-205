@@ -384,15 +384,15 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
 
     eLevel = (p.stopIdle ? p.togTiming : tg.glowTiming);
 
-    this.regA.updateGlow(tg.glowA);
-    this.regB.updateGlow(tg.glowB);
-    this.regC.updateGlow(tg.glowC);
-    this.regD.updateGlow(tg.glowD);
-    this.regR.updateGlow(tg.glowR);
-    this.control.updateGlow(tg.glowCtl);
+    this.regA.updateLampGlow(tg.glowA);
+    this.regB.updateLampGlow(tg.glowB);
+    this.regC.updateLampGlow(tg.glowC);
+    this.regD.updateLampGlow(tg.glowD);
+    this.regR.updateLampGlow(tg.glowR);
+    this.control.updateLampGlow(tg.glowCtl);
 
-    this.regAdder.updateGlow(tg.glowADDER);
-    this.regCarry.updateGlow(tg.glowCT);
+    this.regAdder.updateLampGlow(tg.glowADDER);
+    this.regCarry.updateLampGlow(tg.glowCT);
 
     this.cardatronTWA.set(tg.glowTWA);
     this.cardatron3IO.set(tg.glow3IO);

@@ -33,7 +33,7 @@ D205Util.xlateASCIIToAlgolGlyph = {
         "%": "(",
         "&": "+",
         "<": ")",
-        "\u00A4": ")"};         // the lozenge (¤)
+        "\u00A4": ")"};         // the lozenge (Â¤)
 
 D205Util.xlateAlgolToASCIIRex =         // For translation of Algol-ASCII glyphs to 205-ASCII
         /[^\r\n\xA0 #$%&*,-./0-9<@A-Za-z\xA4]/g;
@@ -41,32 +41,11 @@ D205Util.xlateAlgolToASCIIGlyph = {
         "=": "#",
         "(": "%",
         "+": "&",
-        ")": "\u00A4"};         // the lozenge (¤)
+        ")": "\u00A4"};         // the lozenge (Â¤)
 
 /**************************************/
 D205Util.$$ = function $$(e) {
     return document.getElementById(e);
-};
-
-/**************************************/
-D205Util.hasClass = function hasClass(e, name) {
-    /* returns true if element "e" has class "name" in its class list */
-
-    return e.classList.contains(name);
-};
-
-/**************************************/
-D205Util.addClass = function addClass(e, name) {
-    /* Adds a class "name" to the element "e"s class list */
-
-    e.classList.add(name);
-};
-
-/**************************************/
-D205Util.removeClass = function removeClass(e, name) {
-    /* Removes the class "name" from the element "e"s class list */
-
-    e.classList.remove(name);
 };
 
 /**************************************/

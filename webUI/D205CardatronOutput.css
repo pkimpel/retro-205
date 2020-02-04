@@ -87,8 +87,7 @@
     position:           absolute;
     top:                32px;
     left:               384px;
-    right:              0;
-    width:              calc(100% - 346px);
+    width:              calc(100% - 394px);
     height:             18px;
     border:             1px solid white}
 

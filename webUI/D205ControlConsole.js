@@ -63,6 +63,28 @@ D205ControlConsole.prototype.clear = function clear() {
 };
 
 /**************************************/
+D205ControlConsole.prototype.mapBreakpointKnobPosition = function mapBrreakpointKnobPosition(pos) {
+    /* Maps the new breakpointKnob position value to the old ones used by the rest of
+    the system. These changed with the implementation of auto-reversing knob clicks
+    in release 0.05 */
+
+    switch (pos) {
+    case 1:
+        return 4;       // BP 4
+        break;
+    case 2:
+        return 2;       // BP 2
+        break;
+    case 3:
+        return 1;       // BP 1
+        break;
+    default:
+        return 0;       // Off
+        break;
+    }
+};
+
+/**************************************/
 D205ControlConsole.prototype.mapOutputKnobPosition = function mapOutputKnobPosition(pos) {
     /* Maps the new outputKnob position value to the old ones used by the rest of
     the system. These changed with the implementation of auto-reversing knob clicks
@@ -99,11 +121,11 @@ D205ControlConsole.prototype.updatePanel = function updatePanel() {
     var startState = p.togSTART && !p.tog3IO;
     var tg = p.toggleGlow;
 
-    this.regA.updateGlow(tg.glowA);
-    this.regB.updateGlow(tg.glowB);
-    this.regC.updateGlow(tg.glowC);
-    this.regD.updateGlow(tg.glowD);
-    this.regR.updateGlow(tg.glowR);
+    this.regA.updateLampGlow(tg.glowA);
+    this.regB.updateLampGlow(tg.glowB);
+    this.regC.updateLampGlow(tg.glowC);
+    this.regD.updateLampGlow(tg.glowD);
+    this.regR.updateLampGlow(tg.glowR);
 
     this.idleLamp.set(p.poweredOn && p.stopIdle);
     this.fcsaLamp.set(p.stopForbidden || p.stopSector);
@@ -219,8 +241,8 @@ D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
     case "BreakpointKnob":
         // Breakpoint knob: 0=Off, 1, 2, 4
         this.breakpointKnob.step();
-        this.config.putNode("ControlConsole.breakpointKnob",
-                this.p.cswBreakpoint = this.breakpointKnob.position);
+        this.config.putNode("ControlConsole.breakpointKnob", this.breakpointKnob.position);
+        this.p.cswBreakpoint = this.mapBreakpointKnobPosition(this.breakpointKnob.position);
         break;
     }
 
@@ -384,7 +406,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad(ev) {
 
     this.p.cswOutput = this.mapOutputKnobPosition(this.outputKnob.position);
     this.p.cswInput = this.inputKnob.position;
-    this.p.cswBreakpoint = this.breakpointKnob.position;
+    this.p.cswBreakpoint = this.mapBreakpointKnobPosition(this.breakpointKnob.position);
 
     // Start the panel update in slow mode
     this.intervalToken = this.window.setInterval(this.boundUpdatePanel, D205ControlConsole.slowRefreshPeriod);

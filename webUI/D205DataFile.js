@@ -296,7 +296,7 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
         this.showBlockNr();
         this.tapeHead.style.bottom = this.headLatchedBottom.toFixed(0) + "px";
         this.tapeHeadRod.style.bottom = (this.headLatchedBottom).toFixed(0) + "px";
-        D205Util.addClass(this.$$("TapeBin" + newBinNr), "tapeBinSelected");
+        this.$$("TapeBin" + newBinNr).classList.add("tapeBinSelected");
         this.timer = setCallback(this.mnemonic, this, this.headLatchTime, selectLaneFinish);
     }
 
@@ -339,7 +339,7 @@ D205DataFile.prototype.selectLane = function selectLane(laneNr, successor) {
     function unlatchHead() {
         this.tapeHead.style.bottom = this.headUnlatchedBottom.toFixed(0) + "px";
         this.tapeHeadRod.style.bottom = (this.headUnlatchedBottom).toFixed(0) + "px";
-        D205Util.removeClass(this.$$("TapeBin" + binNr), "tapeBinSelected");
+        this.$$("TapeBin" + binNr).classList.remove("tapeBinSelected");
         this.timer = setCallback(this.mnemonic, this, this.headAccelTime, startTraversal);
     }
 
@@ -378,7 +378,7 @@ D205DataFile.prototype.unitRewind = function unitRewind() {
     function rewindFinish() {
         this.busy = false;
         this.tapeState = this.tapeLocal;
-        D205Util.removeClass(this.$$("MTRewindingLight"), "annunciatorLit");
+        this.$$("MTRewindingLight").classList.remove("annunciatorLit");
         this.setTapeReady(this.remote);
     }
 
@@ -438,7 +438,7 @@ D205DataFile.prototype.unitRewind = function unitRewind() {
         this.tapeState = this.tapeRewinding;
         this.setTapeReady(false);
         this.designatedLamp.set(0);
-        D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
+        this.$$("MTRewindingLight").classList.add("annunciatorLit");
         this.selectLane(0, rewindStart);
     }
 };

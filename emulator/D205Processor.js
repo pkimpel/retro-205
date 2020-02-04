@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.01";
+D205Processor.version = "1.02";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -882,6 +882,8 @@ D205Processor.prototype.integerExtract = function integerExtract() {
 
         // compute the carry toggle register (just for display)
         ct = (((ad & dd) | (ad & ct) | (dd & ct)) << 1) + carry;
+        this.updateAdderGlow(adder, ct);
+
         // rotate the adder into the sign digit
         am += adder*0x10000000000;
     } // for x
@@ -1058,8 +1060,8 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
     de = (dm - dm%0x100000000)/0x100000000;
     dm %= 0x100000000;
 
-    // If the exponents are unequal, scale the smaller and normalize the larger
-    // until they are in alignment, or one mantissa becomes zero.
+    // If the exponents are unequal, scale the smaller until they are in
+    // alignment, or the scaled mantissa becomes zero.
 
     // Scale D until its exponent matches or the mantissa goes to zero.
     while (ae > de) {
@@ -1073,15 +1075,6 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
         }
     }
 
-    /********** Do not believe the 205 normalized prior to addition **********
-    // Normalize A
-    while (ae > de && am < 0x10000000) {
-        am *= 0x10;                 // shift left
-        ae = this.bcdAdd(1, ae, 1, 1);      // --ae
-        this.procTime += 2;
-    }
-    *************************************************************************/
-
     // Scale A until its exponent matches or the mantissa goes to zero.
     while (ae < de) {
         if (am <= 0) {
@@ -1093,15 +1086,6 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
             this.procTime += 2;
         }
     }
-
-    /********** Do not believe the 205 normalized prior to addition **********
-    // Normalize D
-    while (ae < de && dm < 0x10000000) {
-        dm *= 0x10;                 // shift left
-        de = this.bcdAdd(1, de, 1, 1);      // --de
-        this.procTime += 2;
-    }
-    *************************************************************************/
 
     compl = (aSign^dSign);
     am = this.bcdAdd(am, dm, compl, compl);
@@ -1294,37 +1278,13 @@ D205Processor.prototype.floatingDivide = function floatingDivide() {
     dm %= 0x100000000;
 
     // Check for zero operands and commence the division
-    if (am == 0) {
-        this.A = this.R = sign = 0;     // dividend is zero so result is zero
-    } else if (dm == 0) {
+    if (dm == 0) {
         this.A = this.R = sign = 0;     // divide by zero
         this.togDIVALARM = 1;           // for display only
         this.setOverflow(1);
+    } else if (am == 0) {
+        this.A = this.R = sign = 0;     // dividend is zero so result is zero
     } else {
-        // Normalize A & R
-        while (am && am < 0x10000000) {
-            if (ae <= 0) {
-                am = 0;                 // exponent underflow
-            } else {
-                rd = (rm - rm%0x1000000000)/0x1000000000;
-                rm = (rm % 0x1000000000)*0x10;
-                am = am*0x10 + rd;      // shift left
-                ae = this.bcdAdd(1, ae, 1, 1);      // --ae
-                ++count;
-            }
-        }
-
-        // Normalize D
-        while (dm && dm < 0x10000000) {
-            if (de <= 0) {
-                dm = 0;                 // exponent underflow
-            } else {
-                dm *= 0x10;             // shift left
-                de = this.bcdAdd(1, de, 1, 1);      // --de
-                ++count;
-            }
-        }
-
         // Add the exponent bias to the dividend exponent and check for underflow
         ae = this.bcdAdd(ae, 0x50);
         if (ae < de) {
@@ -1811,7 +1771,9 @@ D205Processor.prototype.consoleReceiveDigit = function consoleReceiveDigit(digit
     var word;                           // register word less sign
 
     this.procTime += performance.now()*D205Processor.wordsPerMilli; // restore time after I/O
-    if (digit >= 0) {
+    if (!this.togSTART) {
+        // if !START, we've probably been cleared
+    } else if (digit >= 0) {
         this.togTC1 = 1-this.togTC1;    // for display only
         this.togTC2 = 1-this.togTC2;    // for display only
         this.D = (this.D % 0x10000000000)*0x10 + digit;
@@ -2312,10 +2274,15 @@ D205Processor.prototype.magTapeReceiveBlock = function magTapeReceiveBlock(block
 /**************************************/
 D205Processor.prototype.setExternalSwitches = function setExternalSwitches() {
     /* Sets the eight external switches from the most-significant digits of
-    the D register */
+    the D register. If the memory operand word is negative, sets a break-
+    point stop at the end of the instruction, per Bulletin 3031 */
     var d;                              // current D-register digit
     var w = this.D % 0x10000000000;     // working copy of D word
     var x;                              // digit index
+
+    if (this.D % 0x20000000000 >= 0x10000000000) {
+        this.togBKPT = 1;
+    }
 
     for (x=7; x>=0; --x) {
         d = (w - w%0x1000000000)/0x1000000000;
@@ -2330,6 +2297,7 @@ D205Processor.prototype.setExternalSwitches = function setExternalSwitches() {
         case 3:                         // complement the switch
             this.externalSwitch[x] = 1 - (this.externalSwitch[x] % 0x01);
             break;
+        // default: leave switch unchanged
         } // switch
     } // for x
 };

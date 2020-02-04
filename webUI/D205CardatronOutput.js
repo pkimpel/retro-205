@@ -85,7 +85,7 @@ D205CardatronOutput.prototype.theColorGreen = "#CFC";   // for greenbar shading
 
 D205CardatronOutput.trackSize = 316;     // digits
 D205CardatronOutput.digitTime = 60/21600/D205CardatronOutput.trackSize;
-                                        // one digit time, about 8.8 µs at 21600rpm
+                                        // one digit time, about 8.8 Âµs at 21600rpm
 D205CardatronOutput.digitsPerMilli = 0.001/D205CardatronOutput.digitTime;
                                         // digit times per millisecond: 113.8
 
@@ -115,7 +115,7 @@ D205CardatronOutput.prototype.outputXlate = [
 // and ElectroData Technical Newsletter #5 of February 14, 1958.
 D205CardatronOutput.prototype.zoneXlate = [         // numeric digit:0 1 2 3 4 5 6 7 8 9
         //0   1   2   3   4   5   6   7   8   9     //               = = = = = = = = = =
-        [ 0,  1,  7,  1,  7,  7,  7,  7,  0,  1],   // zone digit 0:   A 9 . ¤ ¤ . ¤ 8 I
+        [ 0,  1,  7,  1,  7,  7,  7,  7,  0,  1],   // zone digit 0:   A 9 . Â¤ Â¤ . Â¤ 8 I
         [ 1,  8,  8,  8,  8,  8,  8,  8,  1,  2],   // zone digit 1: & J I $ * * $ * H R
         [ 2,  4,  9,  4,  4,  9,  9,  9,  2,  4],   // zone digit 2: - / R , % % , % Q Z
         [10,  0, 10,  0,  0, 10, 10, 10,  2,  0],   // zone digit 3: - 1 R # @ @ # @ Q 9
@@ -212,12 +212,12 @@ D205CardatronOutput.prototype.setDeviceReady = function setDeviceReady(ready) {
 
     this.runoutSupplyCount = 0;
     if (ready && !this.ready) {
-        D205Util.addClass(this.$$("COStartBtn"), "greenLit")
-        D205Util.removeClass(this.$$("COStopBtn"), "redLit");
+        this.$$("COStartBtn").classList.add("greenLit")
+        this.$$("COStopBtn").classList.remove("redLit");
         this.ready = true;
     } else if (!ready && this.ready) {
-        D205Util.removeClass(this.$$("COStartBtn"), "greenLit")
-        D205Util.addClass(this.$$("COStopBtn"), "redLit");
+        this.$$("COStartBtn").classList.remove("greenLit")
+        this.$$("COStopBtn").classList.add("redLit");
         this.ready = false;
     }
 };
@@ -227,7 +227,7 @@ D205CardatronOutput.prototype.runoutSupply = function runoutSupply(ev) {
     /* Handles an event to clear the supply from the printer/punch */
 
     this.runoutSupplyCount = 0;
-    D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
+    this.$$("COEndOfSupplyBtn").classList.remove("redLit");
     this.supplyMeter.value = this.supplyLeft = this.maxSupplyLines;
     this.groupLinesLeft = 0;
     while (this.supply.firstChild) {
@@ -339,7 +339,7 @@ D205CardatronOutput.prototype.printLine = function printLine(text, spaceBefore) 
         this.supplyMeter.value = this.supplyLeft -= 1;
     } else {
         this.setDeviceReady(false);
-        D205Util.addClass(this.$$("COEndOfSupplyBtn"), "redLit");
+        this.$$("COEndOfSupplyBtn").classList.add("redLit");
     }
 };
 
@@ -572,7 +572,7 @@ D205CardatronOutput.prototype.COEndOfSupplyBtn_onClick = function COEndOfSupplyB
 
     if (this.supplyLeft <= 0 && !this.ready) {
         this.runoutSupplyCount = 0;
-        D205Util.removeClass(this.$$("COEndOfSupplyBtn"), "redLit");
+        this.$$("COEndOfSupplyBtn").classList.remove("redLit");
         this.setDeviceReady(true);
     }
 };
@@ -654,8 +654,8 @@ D205CardatronOutput.prototype.COSetZSBtn_onClick = function COSetZSBtn_onClick(e
         zsCol = tron.parseZeroSuppressList(text, win);
         if (zsCol !== null) {
             tron.zsCol = zsCol;
-            D205Util.removeClass(tron.$$("COSetZSBtn"), (zsCol.length > 0 ? "blackButton1" : "greenButton1"));
-            D205Util.addClass(tron.$$("COSetZSBtn"), (zsCol.length > 0 ? "greenButton1" : "blackButton1"));
+            tron.$$("COSetZSBtn").classList.remove(zsCol.length > 0 ? "blackButton1" : "greenButton1");
+            tron.$$("COSetZSBtn").classList.add(zsCol.length > 0 ? "greenButton1" : "blackButton1");
 
             // Store the new list in the system configuration object
             text = zsCol.join(",");
@@ -761,8 +761,8 @@ D205CardatronOutput.prototype.deviceOnLoad = function deviceOnLoad(ev) {
     if (zsCol !== null) {
         this.zsCol = zsCol;
         if (zsCol.length > 0) {
-            D205Util.removeClass(this.$$("COSetZSBtn"), (zsCol.length > 0 ? "blackButton1" : "greenButton1"));
-            D205Util.addClass(this.$$("COSetZSBtn"), (zsCol.length > 0 ? "greenButton1" : "blackButton1"));
+            this.$$("COSetZSBtn").classList.remove(zsCol.length > 0 ? "blackButton1" : "greenButton1");
+            this.$$("COSetZSBtn").classList.add(zsCol.length > 0 ? "greenButton1" : "blackButton1");
         }
     }
 

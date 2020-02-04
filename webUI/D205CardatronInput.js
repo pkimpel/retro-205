@@ -84,7 +84,7 @@ D205CardatronInput.prototype.eodBias = -0x900000000000; // signals end-of-data t
 
 D205CardatronInput.trackSize = 315;     // digits
 D205CardatronInput.digitTime = 60/21600/D205CardatronInput.trackSize;
-                                        // one digit time, about 8.8 µs at 21600rpm
+                                        // one digit time, about 8.8 Âµs at 21600rpm
 D205CardatronInput.digitsPerMilli = 0.001/D205CardatronInput.digitTime;
                                         // digit times per millisecond: 113.4
 
@@ -185,12 +185,12 @@ D205CardatronInput.prototype.setReaderReady = function setReaderReady(ready) {
 
     this.$$("CIFileSelector").disabled = ready;
     if (ready && !this.ready) {
-        D205Util.addClass(this.$$("CIStartBtn"), "greenLit")
-        D205Util.removeClass(this.$$("CIStopBtn"), "redLit");
+        this.$$("CIStartBtn").classList.add("greenLit")
+        this.$$("CIStopBtn").classList.remove("redLit");
         this.ready = true;
     } else if (this.ready && !ready) {
-        D205Util.removeClass(this.$$("CIStartBtn"), "greenLit")
-        D205Util.addClass(this.$$("CIStopBtn"), "redLit");
+        this.$$("CIStartBtn").classList.remove("greenLit")
+        this.$$("CIStopBtn").classList.add("redLit");
         this.ready = false;
     }
 };
@@ -445,7 +445,7 @@ D205CardatronInput.prototype.determineFormatBand = function determineFormatBand(
         case "7":
             format = 7;
             break;
-        case "`":                       // 1-8 punch
+        case "\`":                      // 1-8 punch
             format = 1;
             this.noReload = true;
             this.setFormatLockout(true);
@@ -465,7 +465,7 @@ D205CardatronInput.prototype.determineFormatBand = function determineFormatBand(
             this.noReload = true;
             this.setFormatLockout(true);
             break;
-        case "'":                       // 5-8 punch
+        case "\'":                      // 5-8 punch
         case "|":                           // translates to a 5-numeric digit
             format = 5;
             this.noReload = true;
@@ -533,7 +533,7 @@ D205CardatronInput.prototype.finishCardRead = function finishCardRead() {
                     c = card.charCodeAt(col);   // translate char to buffer code
                     if (c < 0x80) {
                         c = this.cardFilter[c];
-                    } else if (c == 0xA4) {     // the "lozenge" ("¤")
+                    } else if (c == 0xA4) {     // the "lozenge" ("Â¤")
                         c = this.cardFilter[0x3C];  // use the code for "<"
                     } else {
                         c = 0;

@@ -235,13 +235,13 @@ D205MagTapeDrive.prototype.setAtBOT = function setAtBOT(atBOT) {
     if (atBOT ^ this.atBOT) {
         this.atBOT = atBOT;
         if (!atBOT) {
-            D205Util.removeClass(this.$$("MTAtBOTLight"), "annunciatorLit");
+            this.$$("MTAtBOTLight").classList.remove("annunciatorLit");
         } else {
             this.blockNr = 0;
             this.showBlockNr();
             this.tapeInches = 0;
             this.reelAngle = 0;
-            D205Util.addClass(this.$$("MTAtBOTLight"), "annunciatorLit");
+            this.$$("MTAtBOTLight").classList.add("annunciatorLit");
             this.reelBar.value = this.tapeMaxInches;
             this.reelIcon.style.transform = "none";
         }
@@ -255,9 +255,9 @@ D205MagTapeDrive.prototype.setAtEOT = function setAtEOT(atEOT) {
     if (atEOT ^ this.atEOT) {
         this.atEOT = atEOT;
         if (!atEOT) {
-            D205Util.removeClass(this.$$("MTAtEOTLight"), "annunciatorLit");
+            this.$$("MTAtEOTLight").classList.remove("annunciatorLit");
         } else {
-            D205Util.addClass(this.$$("MTAtEOTLight"), "annunciatorLit");
+            this.$$("MTAtEOTLight").classList.add("annunciatorLit");
             this.reelBar.value = 0;
         }
     }
@@ -301,8 +301,8 @@ D205MagTapeDrive.prototype.setTapeUnloaded = function setTapeUnloaded() {
         this.reelBar.value = 0;
         this.reelIcon.style.visibility = "hidden";
         this.$$("MTFileName").value = "";
-        D205Util.addClass(this.$$("MTUnloadedLight"), "annunciatorLit");
-        D205Util.removeClass(this.$$("MTBlockNrLight"), "annunciatorLit");
+        this.$$("MTUnloadedLight").classList.add("annunciatorLit");
+        this.$$("MTBlockNrLight").classList.remove("annunciatorLit");
         if (this.timer) {
             clearCallback(this.timer);
             this.timer = 0;
@@ -344,8 +344,8 @@ D205MagTapeDrive.prototype.loadTape = function loadTape() {
         mt.tapeState = mt.tapeLocal;    // setTapeReady() requires it not be unloaded
         mt.setTapeReady(true);
         mt.reelIcon.style.visibility = "visible";
-        D205Util.removeClass(mt.$$("MTUnloadedLight"), "annunciatorLit");
-        D205Util.addClass(mt.$$("MTBlockNrLight"), "annunciatorLit");
+        mt.$$("MTUnloadedLight").classList.remove("annunciatorLit");
+        mt.$$("MTBlockNrLight").classList.add("annunciatorLit");
         mt.showBlockNr();
         win.close();
     }
@@ -608,8 +608,8 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
         this.timer = 0;
         this.busy = false;
         this.tapeState = this.tapeLocal;
-        D205Util.removeClass(this.$$("MTRewindingLight"), "annunciatorLit");
-        D205Util.addClass(this.$$("MTBlockNrLight"), "annunciatorLit");
+        this.$$("MTRewindingLight").classList.remove("annunciatorLit");
+        this.$$("MTBlockNrLight").classList.add("annunciatorLit");
         this.setTapeReady(this.rewindReady);
     }
 
@@ -647,8 +647,8 @@ D205MagTapeDrive.prototype.tapeRewind = function tapeRewind() {
         this.tapeState = this.tapeRewinding;
         this.setTapeReady(false);
         this.setAtEOT(false);
-        D205Util.removeClass(this.$$("MTBlockNrLight"), "annunciatorLit");
-        D205Util.addClass(this.$$("MTRewindingLight"), "annunciatorLit");
+        this.$$("MTBlockNrLight").classList.remove("annunciatorLit");
+        this.$$("MTRewindingLight").classList.add("annunciatorLit");
         this.timer = setCallback(this.mnemonic, this, 1000, rewindStart);
     }
 };
