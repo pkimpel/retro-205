@@ -23,6 +23,10 @@ B205PrimeNumber-Table.pt
     you stop the program. It would take months of continuous running to
     overflow the 7-digit output field capacity.
 
+B205PrimeNumber-Table--Decoded.pt
+    Disassembly of the paper-tape image in B205PrimeNumber-Table.pt with
+    annotations added.
+
 Fast-Drum-Zero.card
     Card-image copy of a program found pasted in the back of Donald
     Knuth's Burroughs 205 Central Computer Handbook, as donated to the
@@ -36,8 +40,9 @@ Fast-Drum-Zero.pt
     Copy of Fast-Drum-Zero.card converted to load and run from paper
     tape.
 
-Fast Drum Zero Program--Decoded.pdf
-    Document containing an annotated disassembly of Fast-Drum-Zero.card.
+Fast-Drum-Zero--Decoded.pdf
+    Disassembly of the card images in Fast-Drum-Zero.card with
+    annotations added.
 
 List-Cards-to-Console-Output.card
     Card-load program to read cards from Cardatron input unit 1 under
@@ -61,4 +66,5 @@ Square-Roots100.pt
     AUTO STOP: as desired.
 
 Paul Kimpel
-October 2015
+February 2020
+
