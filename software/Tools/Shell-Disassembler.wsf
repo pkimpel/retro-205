@@ -19,7 +19,7 @@ Option Explicit
 ' Parameters:
 '   Name of object code text file file (required).
 '   Name of resulting assembly listing file (optional - by default will have
-'       name of output list file with "-DISASM.measy" concatenated.
+'       name of output list file with "-SHELL.card" concatenated.
 '-----------------------------------------------------------------------
 ' Modification Log.
 ' 2015-07-11  P.Kimpel
@@ -28,8 +28,8 @@ Option Explicit
 '   Implement MEASY output format.
 '-----------------------------------------------------------------------
 
-Const defaultSuffix = "-DISASM.measy"
-Const startAddr = 2200
+Const defaultSuffix = "-SHELL.card"
+Const startAddr = 1000
 
 Dim args
 Dim codeDict
@@ -83,6 +83,7 @@ Sub DisassembleCode
   Dim opcode
   Dim operand
   Dim sign
+  Dim tag
   Dim text
   Dim word
   Dim wordLen
@@ -92,114 +93,122 @@ Sub DisassembleCode
 
   Do While Not codeFile.AtEndOfStream
     word = codeFile.ReadLine
-    word = Pic9n(word, 11)
+    word = Pic9n(Trim(word), 11)
+
     sign = Mid(word, 1, 1)
-    ctl = Mid(word, 2, 4)
-    opcode = Mid(word, 6, 2)
-    operand = Mid(word, 8, 4)
-    text = Space(8) & PicZn(addr, 4) & " " & _
-           sign & " " & ctl & " " & opcode & " " & operand & Space(14)
     If sign = "0" Then
-      text = text & " "
-    Else
-      text = text & sign
+      sign = " "
+    ElseIf sign = "1" Then
+      sign = "-"
     End If
 
+    ctl = Mid(word, 2, 4)
     If ctl = "0000" Then
-      text = text & "    "
-    Else
-      text = text & ctl
+      ctl = "    "
     End If
 
+    opcode = Mid(word, 6, 2)
     If codeDict.Exists(opcode) Then
-      text = text & Space(7) & codeDict(opcode) & Space(2) & operand
-      If operand > "3999" And operand < "8000" Then
-        text = text & Space(5) & Mid(operand, 1, 1)
-      End If
+      opcode = codeDict(opcode)
     Else
-      text = text & opcode & operand
+      opcode = Space(3) & opcode
     End If
 
-    addr = addr+1
+    tag = Mid(word, 8, 1)
+    If tag < "4" Or tag > "7" Then
+      tag = " "
+    End If
 
+    operand = Mid(word, 8, 4)
+
+    text = "1" & Space(2) & Pic9n(addr, 4) & Space(2) & _
+           Space(5) & sign & ctl & opcode & tag & " " & operand
     disFile.WriteLine text
+
+    If sign < "4" Or sign > "5" Then
+      addr = addr+1
+    Else
+      addr = CInt(operand)
+      disFile.WriteLine "1" & Space(8+5+1+4) & "REM"
+      disfile.WriteLine "1" & Space(8+5+1+4) & "ORG    " & operand
+    End If
   Loop
 End Sub
 
 '---------------------------------------------------------------
 
 Set codeDict = CreateObject("Scripting.Dictionary")
-codeDict.Add "00", "PTR "
-codeDict.Add "01", "CIRA"
-codeDict.Add "02", "STC "
-codeDict.Add "03", "PTW "
-codeDict.Add "04", "CNZ "
-codeDict.Add "06", "UA  "
-codeDict.Add "07", "PTWF"
-codeDict.Add "08", "HLT "
-codeDict.Add "10", "DAD "
-codeDict.Add "11", "BA  "
-codeDict.Add "12", "STA "
-codeDict.Add "13", "SRT "
-codeDict.Add "14", "SLT "
-codeDict.Add "15", "NOR "
-codeDict.Add "16", "ASC "
-codeDict.Add "17", "SSC "
-codeDict.Add "20", "BUN "
-codeDict.Add "21", "CUR "
-codeDict.Add "22", "DB  "
-codeDict.Add "23", "RND "
-codeDict.Add "24", "BF4 "
-codeDict.Add "25", "BF5 "
-codeDict.Add "26", "BF6 "
-codeDict.Add "27", "BF7 "
-codeDict.Add "28", "BOF "
-codeDict.Add "29", "CCR "
-codeDict.Add "30", "CUB "
-codeDict.Add "31", "CUBR"
-codeDict.Add "32", "IB  "
-codeDict.Add "33", "CLR "
-codeDict.Add "34", "BT4 "
-codeDict.Add "35", "BT5 "
-codeDict.Add "36", "BT6 "
-codeDict.Add "37", "BT7 "
-codeDict.Add "38", "CCB "
-codeDict.Add "39", "CCBR"
-codeDict.Add "40", "MRD "
-codeDict.Add "42", "MTS "
-codeDict.Add "44", "CRD "
-codeDict.Add "45", "CRI "
-codeDict.Add "48", "CRF "
-codeDict.Add "50", "MOW "
-codeDict.Add "52", "MRW "
-codeDict.Add "54", "CWR "
-codeDict.Add "55", "CWI "
-codeDict.Add "58", "CWF "
-codeDict.Add "60", "MUL "
-codeDict.Add "61", "DIV "
-codeDict.Add "63", "EXT "
-codeDict.Add "64", "CAD "
-codeDict.Add "65", "CSU "
-codeDict.Add "66", "CAA "
-codeDict.Add "67", "CSA "
-codeDict.Add "70", "MRO "
-codeDict.Add "71", "EXC "
-codeDict.Add "72", "LDB "
-codeDict.Add "73", "OSD "
-codeDict.Add "74", "ADD "
-codeDict.Add "75", "SUB "
-codeDict.Add "76", "ADA "
-codeDict.Add "77", "SUA "
-codeDict.Add "80", "FAD "
-codeDict.Add "81", "FSU "
-codeDict.Add "82", "FMU "
-codeDict.Add "83", "FDV "
-codeDict.Add "85", "MSH "
-codeDict.Add "87", "MSE "
-codeDict.Add "90", "FAA "
-codeDict.Add "91", "FSA "
-codeDict.Add "92", "FMA "
-codeDict.Add "93", "FDA "
+codeDict.Add "00", "PTR  "
+codeDict.Add "01", "CIRA "
+codeDict.Add "02", "STC  "
+codeDict.Add "03", "PTW  "
+codeDict.Add "04", "CNZ  "
+codeDict.Add "06", "UA   "
+codeDict.Add "07", "PTWF "
+codeDict.Add "08", "STOP "
+codeDict.Add "10", "DAD  "
+codeDict.Add "11", "BA   "
+codeDict.Add "12", "ST   "
+codeDict.Add "13", "SR   "
+codeDict.Add "14", "SL   "
+codeDict.Add "15", "NOR  "
+codeDict.Add "16", "ADSC "
+codeDict.Add "17", "SUSC "
+codeDict.Add "20", "CU   "
+codeDict.Add "21", "CUR  "
+codeDict.Add "22", "DB   "
+codeDict.Add "23", "RO   "
+codeDict.Add "24", "BF4  "
+codeDict.Add "25", "BF5  "
+codeDict.Add "26", "BF6  "
+codeDict.Add "27", "BF7  "
+codeDict.Add "28", "CC   "
+codeDict.Add "29", "CCR  "
+codeDict.Add "30", "CUB  "
+codeDict.Add "31", "CUBR "
+codeDict.Add "32", "IB   "
+codeDict.Add "33", "CR   "
+codeDict.Add "34", "BT4  "
+codeDict.Add "35", "BT5  "
+codeDict.Add "36", "BT6  "
+codeDict.Add "37", "BT7  "
+codeDict.Add "38", "CCB  "
+codeDict.Add "39", "CCBR "
+codeDict.Add "40", "MTR  "
+codeDict.Add "42", "MTS  "
+codeDict.Add "44", "CDR  "
+codeDict.Add "45", "CDRI "
+codeDict.Add "48", "CDRF "
+codeDict.Add "50", "MTW  "
+codeDict.Add "52", "MTRW "
+codeDict.Add "54", "CDW  "
+codeDict.Add "55", "CDWI "
+codeDict.Add "58", "CDWF "
+codeDict.Add "60", "M    "
+codeDict.Add "61", "DIV  "
+codeDict.Add "63", "EX   "
+codeDict.Add "64", "CAD  "
+codeDict.Add "65", "CSU  "
+codeDict.Add "66", "CADA "
+codeDict.Add "67", "CSUA "
+codeDict.Add "70", "MRO  "
+codeDict.Add "71", "EXC  "
+codeDict.Add "72", "SB   "
+codeDict.Add "73", "OSGD "
+codeDict.Add "74", "AD   "
+codeDict.Add "75", "SU   "
+codeDict.Add "76", "ADA  "
+codeDict.Add "77", "SUA  "
+codeDict.Add "80", "FAD  "
+codeDict.Add "81", "FSU  "
+codeDict.Add "82", "FM   "
+codeDict.Add "83", "FDIV "
+codeDict.Add "85", "MSH  "
+codeDict.Add "87", "MSE  "
+codeDict.Add "90", "FAA  "
+codeDict.Add "91", "FSA  "
+codeDict.Add "92", "FMA  "
+codeDict.Add "93", "FDA  "
 
 Set fso = WScript.CreateObject("Scripting.FileSystemObject")
 
