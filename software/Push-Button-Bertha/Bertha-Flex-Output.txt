@@ -1,0 +1,44 @@
+From Shell assembly:
+
+
+353ucew 5563524711
+vy14
+7 3180
+vyg
+ 2222222222
+
+
+/ D / E* F" G / A B C: B / C:* B C: / D** A / E* F" G / A B C: B / C:* B C: /
+
+/ C*** / A** C8 C D / F E** / B** C:8 E F" / G*** / E D B C: / E C:**
+
+/ C:8 B8 C:8 F8 B D / C*** / E* F" G / A B C: B / C:* B C: //
+
+
+
+From Tom's paper tape file:
+
+
+
+ 2222222222
+
+
+/ D / E* F" G / A B C: B / C:* B C: / D** A / E* F" G / A B C: B / C:* B C: /
+
+/ C*** / A** C8 C D / F E** / B** C:8 E F" / G*** / E D B C: / E C:**
+
+/ C:8 B8 C:8 F8 B D / C*** / E* F" G / A B C: B / C:* B C: //
+
+
+
+    8071927
+
+
+/ C / F* D A / G C: F" G / C* A F / C** D / F* D A / G C: F" G / C* A F /
+
+/ C*** / C:** D8 A C" / C C"** / C** F8 C" C / G*** / C" C G C: / A F"**
+
+/ G8 D8 E8 C8 E D / C*** / F* D A / G C: F" G / C* A F //
+
+
+
