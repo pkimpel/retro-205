@@ -1,0 +1,139 @@
+<?XML version="1.0"?>
+<package>
+<job id="Shell-Object-Deck-to-Format-6">
+<reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
+<script language="VBScript">
+<![CDATA[
+
+Option Explicit
+'-----------------------------------------------------------------------
+' retro-205 Shell-Object-Deck-to-Format-6.wsf
+' Copyright (c) 2020, Paul Kimpel,
+' Licensed under the MIT License, see
+'       http://www.opensource.org/licenses/mit-license.php
+'-----------------------------------------------------------------------
+' VBScript to read a text file of card images with object code output by
+' the Shell Assembler. Converts the object code to a standard Cardatron
+' format-6 object load deck.
+' Uses Scripting Runtime FileSystemObject.
+' Parameters:
+'   Name of object code card-image file (required).
+'   Name of resulting format-6 card image load deck By default,
+'       this will be the name of input file with "-LOAD.card" concatenated.
+'-----------------------------------------------------------------------
+' Modification Log.
+' 2020-03-30  P.Kimpel
+'   Original version, cloned from retro-205/software/Tools/Shell-Disassembler.wsf.
+'-----------------------------------------------------------------------
+
+Const defaultSuffix = "-LOAD.card"
+Const unitNr = "1"
+
+Dim args
+Dim shellFile
+Dim shellName
+Dim format6File
+Dim format6Name
+Dim fso
+
+'---------------------------------------
+Function Pic9n(byVal v, byVal d)
+  'Expands or truncates the value "v" to a length of "d", right-justified
+  'over zeroes.
+  Dim length
+  Dim s
+
+  s = Trim(CStr(v))
+  length = Len(s)
+  If length > d Then
+    Pic9n = Right(s, d)
+  ElseIf length < d Then
+    Pic9n = String(d-length, "0") & s
+  Else
+    Pic9n = s
+  End If
+End Function
+
+'---------------------------------------
+Sub ReformatLoadDeck
+  'Creates the Cardatron format-6 text file.
+  Dim addr
+  Dim card
+  Dim cardCol
+  Dim cdw
+  Dim nextAddr
+  Dim text
+  Dim word
+  Dim x
+
+  nextAddr = -1
+  cdw = "608" & unitNr & "044"          '-- card write instruction less address
+  text = ""
+
+  Do While Not shellFile.AtEndOfStream
+    card = shellFile.ReadLine
+    If Left(card, 1) = "1" Then
+      cardCol = 5
+      Do While cardCol < 80
+        addr = CInt(Pic9n(LTrim(Mid(card, cardCol, 4)), 4))
+        word = Mid(card, cardCol+4, 11)
+        cardCol = cardCol+15
+
+        If addr <> nextAddr Or Len(text) >= 66 Then
+          nextAddr = addr
+          format6File.WriteLine "666" & Space(66-Len(text)) & cdw & Pic9n(nextAddr, 4) & text
+          text = ""
+        End If
+
+        text = word & text
+        nextAddr = nextAddr+1
+      Loop
+    End If
+  Loop
+
+  '-- Write final card of code and card with halt instruction
+  format6File.WriteLine "666" & Space(66-Len(text)) & cdw & Pic9n(nextAddr, 4) & text
+  format6File.WriteLine "666" & Space(66) & "60800089999"
+End Sub
+
+'---------------------------------------------------------------
+
+Set fso = WScript.CreateObject("Scripting.FileSystemObject")
+
+Set args = WScript.Arguments
+If args.Count < 1 Then
+  MsgBox "Must supply at least the name of the Shell object deck file."
+  WScript.Quit 9
+Else
+  shellName = Trim(args.Item(0))
+  If args.Count > 1 Then
+    format6Name = Trim(args.Item(1))
+  Else
+    format6Name = fso.BuildPath(fso.GetParentFolderName(shellName), fso.GetBaseName(shellName)) & defaultSuffix
+  End If
+End If
+
+Set args = Nothing
+
+'-- Main Line --
+If Not fso.FileExists(shellName) Then
+  MsgBox "Shell object code file does not exist: " & vbCrLf & shellName
+Else
+  Set shellFile = fso.OpenTextFile(shellName, ForReading, False, False)
+  Set format6File = fso.CreateTextFile(format6Name, True, False)
+  ReformatLoadDeck
+  format6File.Close
+  Set format6File = Nothing
+  shellFile.Close
+  Set shellFile = Nothing
+  MsgBox "Format-6 load file created: " & vbCrLf & format6Name
+End If
+
+Set fso = Nothing
+
+WScript.Quit 0
+
+]]>
+</script>
+</job>
+</package>

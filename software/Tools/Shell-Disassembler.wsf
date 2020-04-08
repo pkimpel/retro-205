@@ -1,35 +1,34 @@
 <?XML version="1.0"?>
 <package>
-<job id="Simple-Disassembler">
+<job id="Shell-Disassembler">
 <reference object="Scripting.FileSystemObject" /> 'Microsoft Scripting Runtime TypeLib (for fso)
 <script language="VBScript">
 <![CDATA[
 
 Option Explicit
 '-----------------------------------------------------------------------
-' retro-205 Simple-Disassembler.wsf
-' Copyright (c) 2015, Paul Kimpel,
+' retro-205 Shell-Disassembler.wsf
+' Copyright (c) 2020, Paul Kimpel,
 ' Licensed under the MIT License, see
 '       http://www.opensource.org/licenses/mit-license.php
 '-----------------------------------------------------------------------
-' VBScript to read a text file containing one decimal word per line, format the
-' line in the canonical 1-4-3-4 object code notation, and do a very simple-minded
-' disassembly of each word in MEASY listing format.
+' VBScript to read a text file containing one decimal word per line. Does
+' a primitive disassembly of each word and formats it for input to the
+' Shell Assembler. Places the address of each word in columns 4-7 of the
+' card image, which are ignored by the assembler.
 ' Uses Scripting Runtime FileSystemObject.
 ' Parameters:
-'   Name of object code text file file (required).
-'   Name of resulting assembly listing file (optional - by default will have
-'       name of output list file with "-SHELL.card" concatenated.
+'   Name of object code text file (required).
+'   Name of resulting Shell Assembler card image source file. By default,
+'       this will be the name of input file with "-SHELL.card" concatenated.
 '-----------------------------------------------------------------------
 ' Modification Log.
-' 2015-07-11  P.Kimpel
-'   Original version, cloned from retro-205/software/EASY-MEASY/MEASY-ListingZeroSuppress.wsf.
-' 2015-08-26  P.Kimpel
-'   Implement MEASY output format.
+' 2020-03-29  P.Kimpel
+'   Original version, cloned from retro-205/software/Tools/Simple-Disassembler.wsf.
 '-----------------------------------------------------------------------
 
 Const defaultSuffix = "-SHELL.card"
-Const startAddr = 1000
+Const startAddr = 0
 
 Dim args
 Dim codeDict
@@ -58,24 +57,6 @@ Function Pic9n(byVal v, byVal d)
 End Function
 
 '---------------------------------------
-Function PicZn(byVal v, byVal d)
-  'Expands or truncates the value "v" to a length of "d", right-justified
-  'over spaces.
-  Dim length
-  Dim s
-
-  s = Trim(CStr(v))
-  length = Len(s)
-  If length > d Then
-    PicZn = Right(s, d)
-  ElseIf length < d Then
-    PicZn = Space(d-length) & s
-  Else
-    PicZn = s
-  End If
-End Function
-
-'---------------------------------------
 Sub DisassembleCode
   'Creates the disassembled text file.
   Dim addr
@@ -86,7 +67,6 @@ Sub DisassembleCode
   Dim tag
   Dim text
   Dim word
-  Dim wordLen
   Dim x
 
   addr = startAddr

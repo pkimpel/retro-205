@@ -55,6 +55,17 @@ MEASY-ListingZeroSuppress.wsf
     not zero-suppressed) so it could be more easily compared with the
     transcription of scans of MEASY-generated listings.
 
+Shell-Disassembler.wsf
+    Extracts object code from a text file containing one decimal word
+    per line, does a primitive disassembly of the object code word, and
+    formats the fomats the word for input to the Shell Assembler. The
+    address of each word is placed in columns 4-7 of the card image,
+    which are ignored by the assembler.	 
+
+Shell-Object-Deck-to-Format-6.wsf.
+    Converts a punched-card object deck produced by the Shell Assembler
+    to a standard 205 Cardatron format-6 loadable object deck.
+
 Shell-LoadTapeBuilder.wsf
     Extracts object code from the Shell Assembler output tapes created
     by assembling the transcribed source code of the assembler itself.
@@ -78,7 +89,11 @@ Shell-Xscript-Reformatter.wsf
         1 of the tape starting at block 120.
 
 Shell-Xscript-To-Card.wsf
-    Extracts source code from transcriptions of Shell Assembler output listings. It reads the transcription text file and outputs an assembler card deck for the source code. Optionally, it extracts the object code from the listing and outputs a separate file with the code in loadable paper-tape format.
+    Extracts source code from transcriptions of Shell Assembler output
+    listings. It reads the transcription text file and outputs an
+    assembler card deck for the source code. Optionally, it extracts the
+    object code from the listing and outputs a separate file with the
+    code in loadable paper-tape format.
 
 Simple-Disassembler.wsf
     Reads a text file containing one 205 decimal word per line, format
@@ -90,5 +105,5 @@ Simple-Disassembler.wsf
 
 
 Paul Kimpel
-January 2020
+March 2020
 

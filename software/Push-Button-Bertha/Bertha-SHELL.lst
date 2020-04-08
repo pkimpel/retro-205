@@ -1,0 +1,444 @@
+200      PUSH-BUTTON BERTHA                                                00 00 00
+                                               -
+
+
+
+
+      0001   0000  4 0000 00 1000          4      PTR      1000
+      0002
+      0003                          RDTBL         EQU      0000       START OF 1000-WORD RANDOM DIGI
+      0004
+      0005                                        ORG      1000
+      0006   1000  0 0000 64 5000   START         CAD   5 LCCR        LOAD LOWER-CASE/CARRIAGE-RETUR
+      0007   1001  0 0000 03 0404                 PTW      0404       OUTPUT LC/CR CODES
+      0008   1002  0 0000 64 3000                 CAD     LCCR        LOAD LC/CR CODES AS INITIAL SE
+      0009   1003  0 0000 33 0000                 CR       0000       CLEAR R FOR UPCOMING SHIFTS
+      0010   1004  0 0000 10 0000                 DAD      0000       GET 1ST SEED DIGIT
+      0011   1005  0 0000 14 0001                 SL       0001       ROTATE SEED
+      0012   1006  0 0000 10 0000                 DAD      0000       GET 2ND DIGIT
+      0013   1007  0 0000 14 0001                 SL       0001
+      0014   1008  0 0000 10 0000                 DAD      0000       GET 3RD DIGIT
+      0015   1009  0 0000 14 0001                 SL       0001
+      0016   1010  0 0000 10 0000                 DAD      0000       GET 4TH DIGIT
+      0017   1011  0 0000 14 0001                 SL       0001
+      0018   1012  0 0000 10 0000                 DAD      0000       GET 5TH DIGIT
+      0019   1013  0 0000 14 0001                 SL       0001
+      0020   1014  0 0000 10 0000                 DAD      0000       GET 6TH DIGIT
+      0021   1015  0 0000 14 0001                 SL       0001
+      0022   1016  0 0000 10 0000                 DAD      0000       GET 7TH DIGIT
+      0023   1017  0 0000 14 0001                 SL       0001
+      0024   1018  0 0000 10 0000                 DAD      0000       GET 8TH DIGIT
+      0025   1019  0 0000 30 1020                 CUB          +0001
+      0026   1020  0 0000 14 0001                 SL       0001
+      0027   1021  0 0000 10 0000                 DAD      0000       GET 9TH DIGIT
+      0028   1022  0 0000 14 0001                 SL       0001
+      0029   1023  0 0000 10 0000                 DAD      0000       GET 10TH DIGIT, DO NOT SHIFT
+      0030   1024  0 0000 12 5001                 ST    5 SEED        STORE SEED VALUE
+      0031   1025  0 0000 03 0310                 PTW      0310       PRINT SEED VALUE
+      0032   1026  0 0000 64 5002                 CAD   5 CRBAR       OUTPUT CR AND MEASURE MARK
+      0033   1027  0 0000 03 0410                 PTW      0410
+      0034
+      0035   1028  0 0000 21 2000   .G            CUR     GENR        GENERATE 1000 RANDOM DIGITS
+      0036   1029  0 0000 72 5003   GETD1         SB    5 DIGX        SET B TO CURRENT RANDOM DIGIT
+      0037   1030  0 0000 22 7032                 DB    7 +B          DEC AND BRANCH IF INDEX GEQ 0
+      0038   1031  0 0000 20 7028                 CU    7 -G          OTHERWISE, GENERATE NEXT 1000
+      0039   1032  0 0000 11 0000   .B            BA       0000       MOVE B TO A
+      0040   1033  0 0000 02 5003                 STC   5 DIGX        STORE NEW DIGIT INDEX
+      0041   1034  1 0000 72 0000          -      SB      RDTBL       LOAD RANDOM DIGIT TO B
+      0042   1035  1 0000 20 3020          -      CU      BTBL1       BRANCH BASED ON DIGIT
+      0043   1036  1 0000 64 3030   LDN1   -      CAD     NOTE1       LOAD NOTE AND
+      0044   1037  0 0000 03 0410                 PTW      0410         PRINT IT OUT
+      0045   1038  0 0000 11 0000                 BA       0000       MOVE B TO A
+      0046   1039  0 0000 30 1040                 CUB          +0001
+      0047   1040  0 0000 02 5004                 STC   5 LSTNT       STORE LAST NOTE INDEX
+      0048
+      0049   1041  0 0000 72 5003   GETD2         SB    5 DIGX        SET B TO CURRENT RANDOM DIGIT
+      0050   1042  0 0000 22 7045                 DB    7 +B          DEC AND BRANCH IF INDEX GEQ 0
+      0051   1043  0 0000 21 2000                 CUR     GENR        OTHERWISE, GENERATE NEXT 1000
+      0052   1044  0 0000 20 7043                 CU    7      -0001  LOOP INFINITELY    S.B. TO 704
+      0053   1045  0 0000 11 0000   .B            BA       0000       MOVE B TO A
+      0054   1046  0 0000 02 5003                 STC   5 DIGX        STORE NEW DIGIT INDEX
+      0055   1047  1 0000 72 0000          -      SB      RDTBL       LOAD RANDOM DIGIT TO B
+      0056   1048  0 0000 11 0000                 BA       0000       MOVE NEW DIGIT INDEX TO A
+      0057   1049  0 0000 75 5004                 SU    5 LSTNT       SUBTRACT LAST NOTE INDEX
+      0058   1050  0 0000 02 4000                 STC   4 LOOP4       STORE RESULT IN TEMP
+      0059   1051  0 0000 66 4000                 CADA  4 LOOP4       LOAD ABSOLUTE VALUE FROM TEMP
+      0060   1052  0 0000 74 5006                 AD    5 TC7         ADD TENS-COMPL OF 7
+      0061   1053  0 0000 28 7041                 CC    7 GETD2       IF TEMP GEQ 7, GET ANOTHER DIG
+      0062   1054  0 0000 30 1060                 CUB     +B
+      0063   1055  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0064   1056  0 0000 00 0000                 NUM     0000000000
+      0065   1057  0 0000 00 0000                 NUM     0000000000
+      0066   1058  0 0000 00 0000                 NUM     0000000000
+      0067   1059  0 0000 00 0000                 NUM     0000000000
+      0068
+      0069   1060  0 0000 11 0000   .B            BA       0000       MOVE B TO A
+      0070   1061  0 0000 02 5004                 STC   5 LSTNT       STORE CURRENT DIGIT AS LAST NO
+      0071   1062  1 0000 64 3040          -      CAD     BTBL2       LOAD INDEXED INSTRUCTION FROM
+      0072   1063  0 0000 02 7074                 STC   7 +I          STORE IN EXECUTION LOC
+      0073   1064  1 0000 64 3050          -      CAD     NOTE2       LOAD NOTE
+      0074   1065  0 0000 72 5007                 SB    5 L6INX       LOAD LOOP6 INDEX TO B
+      0075   1066  1 0000 12 6000          -      ST    6 LOOP6       STORE NOTE WORD INDEXED TO LOO
+      0076   1067  0 0000 03 0406                 PTW      0406       PRINT OUT NOTE WORD
+      0077   1068  1 0000 64 3083          -      CAD     RHYTH       LOAD RHYTHM WORD AND
+      0078   1069  0 0000 03 0404                 PTW      0404         PRINT IT OUT
+      0079   1070  0 0000 22 7072                 DB    7 +C          DEC LOOP6 INDEX, BRANCH IF GEQ
+      0080   1071  0 0000 30 1080                 CUB     +N          OTHERWISE, JUMP OUT OF LOOP
+      0081   1072  0 0000 11 0000   .C            BA       0000       MOVE B TO A
+      0082   1073  0 0000 02 5007                 STC   5 L6INX       STORE UPDATED LOOP6 INDEX
+      0083   1074  0 0000 00 0000   .I            NUM     0000000000  EXECUTE SB OR CUB FROM BTBL2 T
+      0084   1075  0 0000 20 7060                 CU    7 -B          LOOP AGAIN
+      0085   1076  0 0000 00 0001   N2X1          NUM     0000000001
+      0086   1077  0 0000 00 0008   N2X8          NUM     0000000008
+      0087   1078  0 0000 00 0005   N2X5          NUM     0000000005
+      0088   1079  0 0000 00 0000                 NUM     0000000000  WORD R.F.E.
+      0089
+      0090   1080  0 0000 72 7094   .N            SB    7 +B          SET B TO 9
+      0091   1081  1 0000 64 6002   .P     -      CAD   6 LOOP6+0002  LOAD INDEXED LOOP6 WORD AND
+      0092   1082  0 0000 03 0406                 PTW      0406         PRINT IT OUT
+      0093   1083  1 0000 64 3085          -      CAD     RHYTH+0002  LOAD ASSOCIATED RHYTHM WORD AN
+      0094   1084  0 0000 03 0404                 PTW      0404         PRINT IT OUT, TOO
+      0095   1085  0 0000 22 7081                 DB    7 -P          DEC B, LOOP BACK IF GEQ 0
+      0096   1086  0 0000 64 5008                 CAD   5 CRCWN
+      0097   1087  0 0000 03 0410                 PTW      0410
+      0098   1088  0 0000 64 5009                 CAD   5 CRCWN+0001
+      0099   1089  0 0000 03 0410                 PTW      0410
+      0100
+      0101   1090  0 0000 72 5003   GETD3         SB    5 DIGX        SET B TO CURRENT RANDOM DIGIT
+      0102   1091  0 0000 22 7094                 DB    7 +B          DEC B, EXIT LOOP IF GEQ 0
+      0103   1092  0 0000 21 2000                 CUR     GENR        OTHERWISE, GET NEXT 1000 RANDO
+      0104   1093  0 0000 20 7090                 CU    7 GETD3       LOOP AGAIN TO GET RANDOM DIGIT
+      0105   1094  0 0000 11 0009   .B            BA       0009       MOVE B TO A
+      0106   1095  0 0000 02 5003                 STC   5 DIGX        STORE UPDATED DIGIT INDEX
+      0107   1096  1 0000 72 0000          -      SB      RDTBL       LOAD RANDOM DIGIT TO B
+      0108   1097  1 0000 20 3100          -      CU      BTBL3       INDEXED BRANCH THRU BTBL3
+      0109   1098  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0110   1099  0 0000 00 0000                 NUM     0000000000
+      0111   1100  0 0000 11 0000   CONT3         BA       0000       MOVE B TO A
+      0112   1101  0 0000 02 5004                 STC   5 LSTNT       STORE DIGIT AS LAST NOTE INDEX
+      0113   1102  1 0000 64 3110          -      CAD     NOTE3       LOAD NOTE WORD AND
+      0114   1103  0 0000 03 0410                 PTW      0410         PRINT IT OUT
+      0115
+      0116   1104  0 0000 72 5003   GETD4         SB    5 DIGX        SET B TO CURRENT RANDOM DIGIT
+      0117   1105  0 0000 22 7108                 DB    7 +B          DEC B, BRANCH IF GEQ 0
+      0118   1106  0 0000 21 2000                 CUR     GENR        OTHERWISE, GENERATE NEXT 1000
+      0119   1107  0 0000 20 7104                 CU    7 GETD4       LOOP AGAIN TO GET RANDOM DIGIT
+      0120   1108  0 0000 11 0000   .B            BA       0000       MOVE B TO A
+      0121   1109  0 0000 02 5003                 STC   5 DIGX        STORE UPDATED DIGIT INDEX
+      0122   1110  1 0000 72 0000          -      SB      RDTBL       LOAD RANDOM DIGIT TO B
+      0123   1111  0 0000 11 0000                 BA       0000       MOVE B TO A
+      0124   1112  0 0000 75 5004                 SU    5 LSTNT       SUBTRACT LAST NOTE INDEX
+      0125   1113  0 0000 02 4000                 STC   4 LOOP4       STORE DIFFERENCE IN TEMP
+      0126   1114  0 0000 66 4000                 CADA  4 LOOP4       LOAD ABSOLUTE FROM TEMP
+      0127   1115  0 0000 74 5006                 AD    5 TC7         ADD TENS-COMPL OF 7
+      0128   1116  0 0000 28 7104                 CC    7 GETD4       IF DIGIT WAS GEQ 7, GET ANOTHE
+      0129   1117  0 0000 30 1120                 CUB     +N
+      0130   1118  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0131   1119  0 0000 00 0000                 NUM     0000000000
+      0132   1120  0 0000 11 0000   .N            BA       0000       MOVE B TO A
+      0133   1121  0 0000 02 5004                 STC   5 LSTNT       STORE RANDOM DIGIT AS LAST NOT
+      0134   1122  1 0000 64 3120          -      CAD     BTBL4       LOAD INDEXED INSTRUCTION FROM
+      0135   1123  0 0000 02 7133                 STC   7 +I          STORE IN EXECUTION LOC
+      0136   1124  1 0000 64 3050          -      CAD     NOTE2       LOAD INDEXED NOTE WORD AND
+      0137   1125  0 0000 03 0406                 PTW      0406         PRINT IT OUT
+      0138   1126  0 0000 72 5010                 SB    5 LST2A       SET B TO LAST NOT2A INDEX
+      0139   1127  1 0000 64 3060          -      CAD     NOT2A       LOAD INDEXED NOTE WORD AND
+      0140   1128  0 0000 03 0410                 PTW      0410         PRINT IT OUT
+      0141   1129  0 0000 22 7131                 DB    7 +B          DEC B, BRANCH IF GEQ 0
+      0142   1130  0 0000 30 1140                 CUB     GETD5       OTHERWISE, JUMP OUT OF LOOP
+      0143   1131  0 0000 11 0000   .B            BA       0000       MOVE B TO A
+      0144   1132  0 0000 02 5010                 STC   5 LST2A       STORE IN LAST NOT2A INDEX
+      0145   1133  0 0000 00 0000   .I            NUM     0000000000  EXECUTE SB OR CUB FROM BTBL4 T
+      0146   1134  0 0000 20 7120                 CU    7 -N          LOOP AGAIN
+      0147   1135  0 0000 00 0001   N4X1          NUM     0000000001
+      0148   1136  0 0000 00 0008   N4X8          NUM     0000000008
+      0149   1137  0 0000 00 0005   N4X5          NUM     0000000005
+      0150   1138  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0151   1139  0 0000 00 0000                 NUM     0000000000
+      0152
+      0153   1140  0 0000 72 5003   GETD5         SB    5 DIGX        SET B TO CURRENT RANDOM DIGIT
+      0154   1141  0 0000 22 7144                 DB    7 +B          DEC B, BRANCH IF GEQ 0
+      0155   1142  0 0000 21 2000                 CUR     GENR        OTHERWISE, GENERATE NEXT 1000
+      0156   1143  0 0000 20 7140                 CU    7 GETD5       LOOP AGAIN TO GET RANDOM DIGIT
+      0157   1144  0 0000 11 0000   .B            BA       0000       MOVE B TO A
+      0158   1145  0 0000 02 5003                 STC   5 DIGX        STORE UPDATED DIGIT INDEX
+      0159   1146  1 0000 72 0000          -      SB      RDTBL       LOAD RANDOM DIGIT TO B
+      0160   1147  1 0000 20 3130          -      CU      BTBL5       BRANCH INDEXED BY RANDOM DIGIT
+      0161   1148  1 0000 64 3140   LDN4   -      CAD     NOTE4       LOAD NOTE WORD AND
+      0162   1149  0 0000 03 0410                 PTW      0410         PRINT IT OUT
+      0163   1150  0 0000 72 5003   CONT5         SB    5 DIGX        GET CURRENT RANDOM DIGIT INDEX
+      0164   1151  0 0000 22 7154                 DB    7 +N          DEC B, BRANCH IF GEQ 0
+      0165   1152  0 0000 21 2000                 CUR     GENR        OTHERWISE, GENERATE NEXT 1000
+      0166   1153  0 0000 20 7150                 CU    7 CONT5       LOOP AGAIN TO GET RANDOM DIGIT
+      0167   1154  0 0000 11 0000   .N            BA       0000       MOVE B TO A
+      0168   1155  0 0000 02 5003                 STC   5 DIGX        STORE UPDATED RANDOM DIGIT IND
+      0169   1156  1 0000 72 0000          -      SB      RDTBL       LOAD RANDOM DIGIT TO B
+      0170   1157  1 0000 20 3160          -      CU      BTBL6       BRANCH INDEXED BY RANDOM DIIT
+      0171   1158  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0172   1159  0 0000 00 0000                 NUM     0000000000
+      0173
+      0174   1160  1 0000 64 3150   LDN5   -      CAD     NOTE5       LOAD NOTE WORD AND
+      0175   1161  0 0000 03 0410                 PTW      0410         PRINT IT OUT
+      0176   1162  0 0000 64 5012                 CAD   5 BAR         LOAD STAFF MEASURE BAR AND
+      0177   1163  0 0000 03 0404                 PTW      0404         PRINT IT OUT
+      0178   1164  0 0000 72 5011                 SB    5 C9          SET B TO 9
+      0179   1165  1 0000 64 6002   .P     -      CAD   6 LOOP6+0002  LOAD INDEXED LOOP6 WORD AND
+      0180   1166  0 0000 03 0406                 PTW      0406         PRINT IT OUT
+      0181   1167  1 0000 64 3085          -      CAD     RHYT2       LOAD CORRESPONDING RHYTHM WORD
+      0182   1168  0 0000 03 0404                 PTW      0404         PRINT IT OUT, TOO
+      0183   1169  0 0000 22 7165                 DB    7 -P          DEC B, LOOP IF GEQ 0
+      0184   1170  0 0000 64 5013                 CAD   5 BARCR       LOAD ENDING BAR FOR STAFF AND
+      0185   1171  0 0000 03 0410                 PTW      0410         PRINT IT OUT
+      0186   1172  0 0000 64 5014                 CAD   5 CR5         PRINT 5 NEW-LINES
+      0187   1173  0 0000 03 0410                 PTW      0410
+      0188   1174  0 0000 64 5014                 CAD   5 CR5         PRINT 5 MORE NEW-LINES
+      0189   1175  0 0000 03 0410                 PTW      0410         AND FALL INTO ENTRY POINT HA
+      0190
+      0191   1176  0 0000 35 3000   ENTRY         BT5     FIVE        LOAD LOOP5 VALUES
+      0192   1177  0 0000 08 9669                 STOP     9669       HALT FOR OPERATOR ADJUSTMENTS
+      0193   1178  0 0000 30 1000                 CUB     START       GO TO START
+      0194   1179  4 0000 00 2000          4      PTR      2000
+      0195
+      0196                                                            SUBROUTINE TO GENERATE 1000 RA
+      0197
+      0198                                        ORG      2000
+      0199   2000  0 0000 64 5019   GENR          CAD   5 XITOP       LOAD 720, CU OP CODE WITH BP M
+      0200   2001  0 0000 14 0004                 SL       0004       ROTATE A+R TO SET RETURN ADDR
+      0201   2002  0 0000 02 2029                 STC     +X          STORE IN EXIT LOCATION
+      0202   2003  0 0000 27 3500                 BF7     SAVE7       SAVE CALLER-S LOOP 7 WORDS
+      0203   2004  0 0000 30 2005                 CUB     +A
+      0204   2005  0 0118 42 0000   .A       0118 MTS      0000       /SKIP/ SEARCH TU1 LANE 1 BLOCK
+      0205   2006  0 0000 28 7005                 CC    7 -A          LOOP UNTIL SEARCH COMPLETE
+      0206   2007  0 0000 72 5018                 SB    5 C19         SET B TO 19
+      0207   2008  0 0000 64 5001   .D            CAD   5 SEED        LOAD SEED VALUE
+      0208   2009  0 0000 60 5001                 M     5 SEED        SQUARE IT
+      0209   2010  0 0000 14 0005                 SL       0005       ROTATE PRODUCT LEFT 5
+      0210   2011  0 0000 12 5001                 ST    5 SEED        STORE UPDATED SEED
+      0211   2012  0 0000 63 7024                 EX    7 +U          EXTRACT LOW-ORDER DIGIT
+      0212   2013  1 0000 02 4000          -      STC   4 LOOP4       STORE DIGIT IN INDEXED LOOP4 L
+      0213   2014  0 0000 22 7008                 DB    7 -D          LOOP TO GEN NEXT RANDOM DIGIT
+      0214   2015  0 9500 24 0000   .B       9500 BF4     RDTBL       STORE BLOCK OF DIGITS, /04 IS
+      0215   2016  0 0000 64 7015                 CAD   7 -B          LOAD PRIOR BF4 INSTR
+      0216   2017  0 0000 74 5016                 AD    5 INC1        ADD 20 TO ADDR, 1 TO COUNT IN
+      0217   2018  0 0000 28 2025                 CC      +R          BRANCH IF LOOP COUNT IN /04 OV
+      0218   2019  0 0000 02 7015                 STC   7 -B          STORE UPDATED BF4 INSTR
+      0219   2020  0 0000 64 7005                 CAD   7 -A          LOAD MTS INSTR
+      0220   2021  0 0000 74 5015                 AD    5 C20         INCR BLOCK ADDR BY 20
+      0221   2022  0 0000 02 7005                 STC   7 -A          STORE UPDATED MTS INSTR
+      0222   2023  0 0000 20 7005                 CU    7 -A          BRANCH TO GEN NEXT BLOCK OF DI
+      0223   2024  0 0000 00 0001   .U            NUM     0000000001  DIGIT EXTRACT MASK
+      0224   2025  0 0018 52 0000   .R       0018 MTRW     0000       /SKIP/ REWIND TU1
+      0225   2026  0 0000 28 2025                 CC      -R          LOOP IF TU1 BUSY
+      0226   2027  0 8008 54 0000            8008 CDW     RDTBL       /SKIP/ SKEL CARD PUNCH WD
+      0227   2028  0 0000 37 3500                 BT7     SAVE7       RESTORE CALLER-S LOOP 7 WORDS
+      0228                          .X            EQU                 SUBROUTINE EXIT INSTR
+      0229   2029  4 0000 00 3000          4      PTR      3000
+      0230
+      0231                                                            VARIABLES, CONSTANTS, AND TABL
+      0232
+      0233                                        ORG      3000
+      0234                          FIVE          EQU                 LOOP 5 LAYOUT
+      0235   3000  0 2705 00 0000   LCCR          NUM     2705000000  LOWER-CASE/CARRIAGE-RETURN COD
+      0236   3001  0 0000 00 0000   SEED          NUM     0000000000  SCRAMBLED SEED VALUE
+      0237   3002  0 0505 05 3043   CRBAR         NUM     0505053043  CR CR CR UC /
+      0238   3003  0 0000 00 1000   DIGX          NUM     0000001000  CURRENT RANDOM DIGIT INDEX
+      0239   3004  0 0000 00 0000   LSTNT         NUM     0000000000  INDEX OF LAST NOTE SELECTED
+      0240   3005  0 0000 00 0000                 NUM     0000000000  --NOT USED--
+      0241   3006  0 9999 99 9993   TC7           NUM     9999999993  TENS-COMPL OF 7
+      0242   3007  0 0000 00 0011   L6INX         NUM     0000000011  --NOT USED--
+      0243   3008  0 0505 43 3462   CRCWN         NUM     0505433462  CR CR / SP C WHOLE C NOTE
+      0244   3009  0 5050 50 3443                 NUM     5050503443  * * * SP /
+      0245   3010  0 0000 00 0020   LST2A         NUM     0000000020  LAST NOT2A INDEX
+      0246   3011  0 0000 00 0009   C9            NUM     0000000009  CONSTANT 9
+      0247   3012  0 3443 00 0000   BAR           NUM     3443000000  SP /
+      0248   3013  0 4305 05 0505   BARCR         NUM     4305050505  / CR CR CR CR
+      0249   3014  0 0505 05 0505   CR5           NUM     0505050505  CR CR CR CR CR
+      0250   3015  0 0000 00 0020   C20           NUM     0000000020  CONSTANT 20
+      0251   3016  0 0010 00 0020   INC1          NUM     0010000020  LOOP COUNT AND ADDRESS INCREME
+      0252   3017  0 0000 00 0000                 NUM     0000000000  --NOT USED--
+      0253   3018  0 0000 00 0019   C19           NUM     0000000019  CONSTANT 19
+      0254   3019  0 0000 00 0720   XITOP         NUM     0000000720  CU OP CODE WITH 1-2-4 BREAKPOI
+      0255
+      0256   3020  0 0000 20 7029   BTBL1         CU    7 GETD1                    BRANCH TABLE 1
+      0257   3021  0 0000 20 7036                 CU    7 LDN1
+      0258   3022  0 0000 20 7036                 CU    7 LDN1
+      0259   3023  0 0000 20 7036                 CU    7 LDN1
+      0260   3024  0 0000 20 7029                 CU    7 GETD1
+      0261   3025  0 0000 20 7036                 CU    7 LDN1
+      0262   3026  0 0000 20 7029                 CU    7 GETD1
+      0263   3027  0 0000 20 7036                 CU    7 LDN1
+      0264   3028  0 0000 20 7036                 CU    7 LDN1
+      0265   3029  0 0000 20 7029                 CU    7 GETD1
+      0266
+      0267   3030  0 3462 33 3443   NOTE1         NUM     3462333443  SP C 2 SP /  NOTE TABLE 1
+      0268   3031  0 3462 34 4300                 NUM     3462344300  SP C SP /
+      0269   3032  0 3463 34 4300                 NUM     3463344300  SP D SP /
+      0270   3033  0 3464 34 6300                 NUM     3464346300  SP E SP D       NO /, 63 S.B.
+      0271   3034  0 3465 34 4300                 NUM     3465344300  SP F SP /
+      0272   3035  0 3466 34 4300                 NUM     3466344300  SP G SP /
+      0273   3036  0 3420 34 4300                 NUM     3420344300  SP A SP /
+      0274   3037  0 3461 34 4300                 NUM     3461344300  SP B SP /
+      0275   3038  0 3462 36 3443                 NUM     3462363443  SP C L SP /     L, 23 S.B. 33
+      0276   3039  0 3465 33 3443                 NUM     3465333443  SP F SP /
+      0277
+      0278   3040  0 0000 72 7076   BTBL2         SB    7 N2X1                     BRANCH TABLE 2
+      0279   3041  0 0000 30 1041                 CUB     GETD2
+      0280   3042  0 0000 30 1041                 CUB     GETD2
+      0281   3043  0 0000 30 1041                 CUB     GETD2
+      0282   3044  0 0000 30 1041                 CUB     GETD2
+      0283   3045  0 0000 30 1041                 CUB     GETD2
+      0284   3046  0 0000 30 1041                 CUB     GETD2
+      0285   3047  0 0000 72 7077                 SB    7 N2X8
+      0286   3048  0 0000 30 1041                 CUB     GETD2
+      0287   3049  0 0000 72 7078                 SB    7 N2X5
+      0288
+      0289   3050  0 3462 33 0000   NOTE2         NUM     3462330000  SP C 7       NOTE TABLE 2
+      0290   3051  0 3462 00 0000                 NUM     3462000000  SP C
+      0291   3052  0 3463 00 0000                 NUM     3463000000  SP D
+      0292   3053  0 3464 00 0000                 NUM     3464000000  SP E
+      0293   3054  0 3465 00 0000                 NUM     3465000000  SP F
+      0294   3055  0 3466 00 0000                 NUM     3466000000  SP G
+      0295   3056  0 3420 00 0000                 NUM     3420000000  SP A
+      0296   3057  0 3461 00 0000                 NUM     3461000000  SP B
+      0297   3058  0 3462 26 0000                 NUM     3462260000  SP C 2
+      0298   3059  0 3465 33 0000                 NUM     3465330000  SP F 7
+      0299
+      0300   3060  0 0000 00 0000   NOT2A         NUM     0000000000               NOTE TABLE 2A
+      0301   3061  0 2750 30 0000                 NUM     2750300000  LC 8 UC          (21 WORDS)
+      0302   3062  0 2750 30 0000                 NUM     2750300000  LC 8 UC
+      0303   3063  0 2750 30 0000                 NUM     2750300000  LC 8 UC
+      0304   3064  0 2750 30 0000                 NUM     2750300000  LC 8 UC
+      0305   3065  0 5050 05 0543                 NUM     5050050543  * * CR CR /
+      0306   3066  0 0000 00 0000                 NUM     0000000000
+      0307   3067  0 3443 00 0000                 NUM     3443000000  SP /
+      0308   3068  0 0000 00 0000                 NUM     0000000000
+      0309   3069  0 0000 00 0000                 NUM     0000000000
+      0310   3070  0 0000 00 0000                 NUM     0000000000
+      0311   3071  0 5050 50 3443                 NUM     5050503443  * * * SP /
+      0312   3072  0 3443 00 0000                 NUM     3443000000  SP /
+      0313   3073  0 0000 00 0000                 NUM     0000000000
+      0314   3074  0 2750 30 0000                 NUM     2750300000  LC 8 UC
+      0315   3075  0 5050 00 0000                 NUM     5050000000  * *
+      0316   3076  0 5050 34 4300                 NUM     5050344300  * * SP /
+      0317   3077  0 0000 00 0000                 NUM     0000000000
+      0318   3078  0 3443 00 0000                 NUM     3443000000  SP /
+      0319   3079  0 0000 00 0000                 NUM     0000000000
+      0320   3080  0 2750 30 0000                 NUM     2750300000  LC 8 UC
+      0321
+      0322   3081  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0323   3082  0 0000 00 0000                 NUM     0000000000
+      0324
+      0325   3083  0 3443 00 0000   RHYTH         NUM     3443000000  SP /         RHYTHM TABLE
+      0326   3084  0 5050 00 0000                 NUM     5050000000  * *              (12 WORDS)
+      0327   3085  0 3443 00 0000   RHYT2         NUM     3443000000  SP /
+      0328   3086  0 0000 00 0000                 NUM     0000000000
+      0329   3087  0 5000 00 0000                 NUM     5000000000  *
+      0330   3088  0 3443 00 0000                 NUM     3443000000  SP /
+      0331   3089  0 0000 00 0000                 NUM     0000000000
+      0332   3090  0 0000 00 0000                 NUM     0000000000
+      0333   3091  0 0000 00 0000                 NUM     0000000000
+      0334   3092  0 3443 00 0000                 NUM     3443000000  SP /
+      0335   3093  0 0000 00 0000                 NUM     0000000000
+      0336   3094  0 5000 00 0000                 NUM     5000000000  *
+      0337
+      0338   3095  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0339   3096  0 0000 00 0000                 NUM     0000000000
+      0340   3097  0 0000 00 0000                 NUM     0000000000
+      0341   3098  0 0000 00 0000                 NUM     0000000000
+      0342   3099  0 0000 00 0000                 NUM     0000000000
+      0343
+      0344   3100  0 0000 20 7090   BTBL3         CU    7 GETD3                    BRANCH TABLE 3
+      0345   3101  0 0000 20 7090                 CU    7 GETD3
+      0346   3102  0 0000 20 7090                 CU    7 GETD3
+      0347   3103  0 0000 20 7090                 CU    7 GETD3
+      0348   3104  0 0000 20 7090                 CU    7 GETD3
+      0349   3105  0 0000 20 7090                 CU    7 GETD3
+      0350   3106  0 0000 30 1100                 CUB     CONT3
+      0351   3107  0 0000 20 7090                 CU    7 GETD3
+      0352   3108  0 0000 30 1100                 CUB     CONT3
+      0353   3109  0 0000 20 7090                 CU    7 GETD3
+      0354
+      0355   3110  0 3435 64 3500   NOTE3         NUM     3435643500  SP CS E CS   NOTE TABLE 3
+      0356   3111  0 3435 64 3500                 NUM     3435643500  SP CS E CS     CS=COLOR SHIFT
+      0357   3112  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0358   3113  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0359   3114  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0360   3115  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0361   3116  0 3420 50 5000                 NUM     3420505000  SP A CR CR
+      0362   3117  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0363   3118  0 3462 26 5050                 NUM     3462265050  SP C 2 * * SP
+      0364   3119  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0365
+      0366   3120  0 0000 72 7135   BTBL4         SB    7 N4X1                     BRANCH TABLE 4
+      0367   3121  0 0000 30 1104                 CUB     GETD4
+      0368   3122  0 0000 30 1104                 CUB     GETD4
+      0369   3123  0 0000 30 1104                 CUB     GETD4
+      0370   3124  0 0000 30 1104                 CUB     GETD4
+      0371   3125  0 0000 30 1104                 CUB     GETD4
+      0372   3126  0 0000 30 1104                 CUB     GETD4
+      0373   3127  0 0000 72 7136                 SB    7 N4X8
+      0374   3128  0 0000 30 1104                 CUB     GETD4
+      0375   3129  0 0000 72 7137                 SB    7 N4X5
+      0376
+      0377   3130  0 0000 20 7148   BTBL5         CU    7 LDN4                     BRANCH TABLE 5
+      0378   3131  0 0000 20 7140                 CU    7 GETD5
+      0379   3132  0 0000 20 7148                 CU    7 LDN4
+      0380   3133  0 0000 20 7140                 CU    7 GETD5
+      0381   3134  0 0000 20 7140                 CU    7 GETD5
+      0382   3135  0 0000 20 7148                 CU    7 LDN4
+      0383   3136  0 0000 20 7140                 CU    7 GETD5
+      0384   3137  0 0000 20 7148                 CU    7 LDN4
+      0385   3138  0 0000 20 7140                 CU    7 GETD5
+      0386   3139  0 0000 20 7140                 CU    7 GETD5
+      0387
+      0388   3140  0 3462 33 3443   NOTE4         NUM     3462333443  SP C 7 SP /  NOTE TABLE 4
+      0389   3141  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0390   3142  0 3463 34 4300                 NUM     3463344300  SP D SP /
+      0391   3143  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0392   3144  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0393   3145  0 3463 34 4300                 NUM     3463344300  SP D SP /
+      0394   3146  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0395   3147  0 3461 34 4300                 NUM     3461344300  SP B SP /
+      0396   3148  0 3455 64 3500                 NUM     3455643500  SP X E CS    55 SHOULD BE 35
+      0397   3149  0 3435 64 3500                 NUM     3435643500  SP CS E CS
+      0398
+      0399   3150  0 0000 00 0000   NOTE5         NUM     0000000000
+      0400   3151  0 3462 50 5050                 NUM     3462505050  SP C * * *
+      0401   3152  0 0000 00 0000                 NUM     0000000000
+      0402   3153  0 3464 50 5050                 NUM     3464505050  SP E * * *
+      0403   3154  0 0000 00 0000                 NUM     0000000000
+      0404   3155  0 0000 00 0000                 NUM     0000000000
+      0405   3156  0 0000 00 0000                 NUM     0000000000
+      0406   3157  0 0000 00 0000                 NUM     0000000000
+      0407   3158  0 0000 00 0000                 NUM     0000000000
+      0408   3159  0 0000 00 0000                 NUM     0000000000
+      0409
+      0410   3160  0 0000 20 7150   BTBL6         CU    7 CONT5                    BRANCH TABLE 6
+      0411   3161  0 0000 30 1160                 CUB     LDN5
+      0412   3162  0 0000 20 7150                 CU    7 CONT5
+      0413   3163  0 0000 30 1160                 CUB     LDN5
+      0414   3164  0 0000 20 7150                 CU    7 CONT5
+      0415   3165  0 0000 20 7150                 CU    7 CONT5
+      0416   3166  0 0000 20 7150                 CU    7 CONT5
+      0417   3167  0 0000 20 7150                 CU    7 CONT5
+      0418   3168  0 0000 20 7150                 CU    7 CONT5
+      0419   3169  0 0000 20 7150                 CU    7 CONT5
+      0420
+      0421   3170  0 0000 00 0000                 NUM     0000000000  WORDS R.F.E.
+      0422   3171  0 0000 00 0000                 NUM     0000000000
+      0423   3172  0 0000 00 0000                 NUM     0000000000
+      0424   3173  0 0000 00 0000                 NUM     0000000000
+      0425   3174  0 0000 00 0000                 NUM     0000000000
+      0426   3175  0 0000 00 0000                 NUM     0000000000
+      0427   3176  0 0000 00 0000                 NUM     0000000000
+      0428   3177  0 0000 00 0000                 NUM     0000000000
+      0429   3178  0 0000 00 0000                 NUM     0000000000
+      0430   3179  0 0000 00 0000                 NUM     0000000000
+      0431
+      0432   3180  6 0000 20 1176          6      CU      ENTRY
+      0433
+      0434                          SAVE7         EQU      3500       LOOP 7 SAVE AREA
+      0435                          LOOP4         EQU      4000       LOOP 4 BASE ADDRESS
+      0436                          LOOP6         EQU      6000       LOOP 6 BASE ADDRESS
+      0437
+      0438                                        END

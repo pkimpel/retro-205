@@ -1,392 +1,425 @@
 2  PUSH-BUTTON BERTHA
 1  1000       4    PTR    1000
 1                  REM
+1        RDTBL     EQU    0000     START OF 1000-WORD RANDOM DIGIT TABLE
+1                  REM
 1                  ORG    1000
-1  1000            CAD  5 5000
-1  1001            PTW    0404
-1  1002            CAD    3000
-1  1003            CR     0000
-1  1004            DAD    0000
-1  1005            SL     0001
-1  1006            DAD    0000
+1  1000  START     CAD  5LCCR      LOAD LOWER-CASE/CARRIAGE-RETURN CODES
+1  1001            PTW    0404     OUTPUT LC/CR CODES
+1  1002            CAD   LCCR      LOAD LC/CR CODES AS INITIAL SEED
+1  1003            CR     0000     CLEAR R FOR UPCOMING SHIFTS
+1  1004            DAD    0000     GET 1ST SEED DIGIT
+1  1005            SL     0001     ROTATE SEED
+1  1006            DAD    0000     GET 2ND DIGIT
 1  1007            SL     0001
-1  1008            DAD    0000
+1  1008            DAD    0000     GET 3RD DIGIT
 1  1009            SL     0001
-1  1010            DAD    0000
+1  1010            DAD    0000     GET 4TH DIGIT
 1  1011            SL     0001
-1  1012            DAD    0000
+1  1012            DAD    0000     GET 5TH DIGIT
 1  1013            SL     0001
-1  1014            DAD    0000
+1  1014            DAD    0000     GET 6TH DIGIT
 1  1015            SL     0001
-1  1016            DAD    0000
+1  1016            DAD    0000     GET 7TH DIGIT
 1  1017            SL     0001
-1  1018            DAD    0000
-1  1019            CUB    1020
+1  1018            DAD    0000     GET 8TH DIGIT
+1  1019            CUB        +0001
 1  1020            SL     0001
-1  1021            DAD    0000
+1  1021            DAD    0000     GET 9TH DIGIT
 1  1022            SL     0001
-1  1023            DAD    0000
-1  1024            ST   5 5001
-1  1025            PTW    0310
-1  1026            CAD  5 5002
+1                  DAD    0000     GET 10TH DIGIT, DO NOT SHIFT
+1  1024            ST   5SEED      STORE SEED VALUE
+1  1025            PTW    0310     PRINT SEED VALUE
+1  1026            CAD  5CRBAR     OUTPUT CR AND MEASURE MARK
 1  1027            PTW    0410
-1  1028            CUR    2000
-1  1029            SB   5 5003
-1  1030            DB   7 7032
-1  1031            CU   7 7028
-1  1032            BA     0000
-1  1033            STC  5 5003
-1  1034       -    SB     0000
-1  1035       -    CU     3020
-1  1036       -    CAD    3030
-1  1037            PTW    0410
-1  1038            BA     0000
-1  1039            CUB    1040
-1  1040            STC  5 5004
-1  1041            SB   5 5003
-1  1042            DB   7 7045
-1  1043            CUR    2000
-1  1044            CU   7 7043
-1  1045            BA     0000
-1  1046            STC  5 5003
-1  1047       -    SB     0000
-1  1048            BA     0000
-1  1049            SU   5 5004
-1  1050            STC  4 4000
-1  1051            CADA 4 4000
-1  1052            AD   5 5006
-1  1053            CC   7 7041
-1  1054            CUB    1060
-1  1055            NUM   0000000000
+1                  REM
+1  1028  .G        CUR   GENR      GENERATE 1000 RANDOM DIGITS
+1  1029  GETD1     SB   5DIGX      SET B TO CURRENT RANDOM DIGIT INDEX
+1  1030            DB   7+B        DEC AND BRANCH IF INDEX GEQ 0
+1  1031            CU   7-G        OTHERWISE, GENERATE NEXT 1000 DIGITS
+1  1032  .B        BA     0000     MOVE B TO A
+1  1033            STC  5DIGX      STORE NEW DIGIT INDEX
+1  1034       -    SB    RDTBL     LOAD RANDOM DIGIT TO B
+1  1035       -    CU    BTBL1     BRANCH BASED ON DIGIT
+1  1036  LDN1 -    CAD   NOTE1     LOAD NOTE AND
+1  1037            PTW    0410       PRINT IT OUT
+1  1038            BA     0000     MOVE B TO A
+1  1039            CUB        +0001
+1  1040            STC  5LSTNT     STORE LAST NOTE INDEX
+1                  REM
+1  1041  GETD2     SB   5DIGX      SET B TO CURRENT RANDOM DIGIT INDEX
+1  1042            DB   7+B        DEC AND BRANCH IF INDEX GEQ 0
+1  1043            CUR   GENR      OTHERWISE, GENERATE NEXT 1000 DIGITS
+1  1044            CU   7     -0001LOOP INFINITELY ?? S.B. TO 7042??
+1  1045  .B        BA     0000     MOVE B TO A
+1  1046            STC  5DIGX      STORE NEW DIGIT INDEX
+1  1047       -    SB    RDTBL     LOAD RANDOM DIGIT TO B
+1  1048            BA     0000     MOVE NEW DIGIT INDEX TO A
+1  1049            SU   5LSTNT     SUBTRACT LAST NOTE INDEX
+1  1050            STC  4LOOP4     STORE RESULT IN TEMP
+1  1051            CADA 4LOOP4     LOAD ABSOLUTE VALUE FROM TEMP
+1  1052            AD   5TC7       ADD TENS-COMPL OF 7
+1  1053            CC   7GETD2     IF TEMP GEQ 7, GET ANOTHER DIGIT
+1  1054            CUB   +B
+1  1055            NUM   0000000000WORDS R.F.E.
 1  1056            NUM   0000000000
 1  1057            NUM   0000000000
 1  1058            NUM   0000000000
 1  1059            NUM   0000000000
-1  1060            BA     0000
-1  1061            STC  5 5004
-1  1062       -    CAD    3040
-1  1063            STC  7 7074
-1  1064       -    CAD    3050
-1  1065            SB   5 5007
-1  1066       -    ST   6 6000
-1  1067            PTW    0406
-1  1068       -    CAD    3083
-1  1069            PTW    0404
-1  1070            DB   7 7072
-1  1071            CUB    1080
-1  1072            BA     0000
-1  1073            STC  5 5007
-1  1074            NUM   0000000000
-1  1075            CU   7 7060
-1  1076            NUM   0000000001
-1  1077            NUM   0000000008
-1  1078            NUM   0000000005
-1  1079            NUM   0000000000
-1  1080            SB   7 7094
-1  1081       -    CAD  6 6002
-1  1082            PTW    0406
-1  1083       -    CAD    3085
-1  1084            PTW    0404
-1  1085            DB   7 7081
-1  1086            CAD  5 5008
+1                  REM
+1  1060  .B        BA     0000     MOVE B TO A
+1  1061            STC  5LSTNT     STORE CURRENT DIGIT AS LAST NOTE INDEX
+1  1062       -    CAD   BTBL2     LOAD INDEXED INSTRUCTION FROM TABLE
+1  1063            STC  7+I        STORE IN EXECUTION LOC
+1  1064       -    CAD   NOTE2     LOAD NOTE
+1  1065            SB   5L6INX     LOAD LOOP6 INDEX TO B
+1  1066       -    ST   6LOOP6     STORE NOTE WORD INDEXED TO LOOP6
+1  1067            PTW    0406     PRINT OUT NOTE WORD
+1  1068       -    CAD   RHYTH     LOAD RHYTHM WORD AND
+1  1069            PTW    0404       PRINT IT OUT
+1  1070            DB   7+C        DEC LOOP6 INDEX, BRANCH IF GEQ 0
+1  1071            CUB   +N        OTHERWISE, JUMP OUT OF LOOP
+1  1072  .C        BA     0000     MOVE B TO A
+1  1073            STC  5L6INX     STORE UPDATED LOOP6 INDEX
+1  1074  .I        NUM   0000000000EXECUTE SB OR CUB FROM BTBL2 TABLE
+1  1075            CU   7-B        LOOP AGAIN
+1  1076  N2X1      NUM   0000000001
+1  1077  N2X8      NUM   0000000008
+1  1078  N2X5      NUM   0000000005
+1  1079            NUM   0000000000WORD R.F.E.
+1                  REM
+1  1080  .N        SB   7+B        SET B TO 9
+1  1081  .P   -    CAD  6LOOP6+0002LOAD INDEXED LOOP6 WORD AND
+1  1082            PTW    0406       PRINT IT OUT
+1  1083       -    CAD   RHYTH+0002LOAD ASSOCIATED RHYTHM WORD AND
+1  1084            PTW    0404       PRINT IT OUT, TOO
+1  1085            DB   7-P        DEC B, LOOP BACK IF GEQ 0
+1  1086            CAD  5CRCWN
 1  1087            PTW    0410
-1  1088            CAD  5 5009
+1  1088            CAD  5CRCWN+0001
 1  1089            PTW    0410
-1  1090            SB   5 5003
-1  1091            DB   7 7094
-1  1092            CUR    2000
-1  1093            CU   7 7090
-1  1094            BA     0009
-1  1095            STC  5 5003
-1  1096       -    SB     0000
-1  1097       -    CU     3100
-1  1098            NUM   0000000000
+1                  REM
+1  1090  GETD3     SB   5DIGX      SET B TO CURRENT RANDOM DIGIT INDEX
+1  1091            DB   7+B        DEC B, EXIT LOOP IF GEQ 0
+1  1092            CUR   GENR      OTHERWISE, GET NEXT 1000 RANDOM DIGITS
+1  1093            CU   7GETD3     LOOP AGAIN TO GET RANDOM DIGIT
+1  1094  .B        BA     0009     MOVE B TO A
+1  1095            STC  5DIGX      STORE UPDATED DIGIT INDEX
+1  1096       -    SB    RDTBL     LOAD RANDOM DIGIT TO B
+1  1097       -    CU    BTBL3     INDEXED BRANCH THRU BTBL3
+1  1098            NUM   0000000000WORDS R.F.E.
 1  1099            NUM   0000000000
-1  1100            BA     0000
-1  1101            STC  5 5004
-1  1102       -    CAD    3110
-1  1103            PTW    0410
-1  1104            SB   5 5003
-1  1105            DB   7 7108
-1  1106            CUR    2000
-1  1107            CU   7 7104
-1  1108            BA     0000
-1  1109            STC  5 5003
-1  1110       -    SB     0000
-1  1111            BA     0000
-1  1112            SU   5 5004
-1  1113            STC  4 4000
-1  1114            CADA 4 4000
-1  1115            AD   5 5006
-1  1116            CC   7 7104
-1  1117            CUB    1120
-1  1118            NUM   0000000000
+1  1100  CONT3     BA     0000     MOVE B TO A
+1  1101            STC  5LSTNT     STORE DIGIT AS LAST NOTE INDEX
+1  1102       -    CAD   NOTE3     LOAD NOTE WORD AND
+1  1103            PTW    0410       PRINT IT OUT
+1                  REM
+1  1104  GETD4     SB   5DIGX      SET B TO CURRENT RANDOM DIGIT INDEX
+1  1105            DB   7+B        DEC B, BRANCH IF GEQ 0
+1  1106            CUR   GENR      OTHERWISE, GENERATE NEXT 1000 DIGITS
+1  1107            CU   7GETD4     LOOP AGAIN TO GET RANDOM DIGIT
+1  1108  .B        BA     0000     MOVE B TO A
+1  1109            STC  5DIGX      STORE UPDATED DIGIT INDEX
+1  1110       -    SB    RDTBL     LOAD RANDOM DIGIT TO B
+1  1111            BA     0000     MOVE B TO A
+1  1112            SU   5LSTNT     SUBTRACT LAST NOTE INDEX
+1  1113            STC  4LOOP4     STORE DIFFERENCE IN TEMP
+1  1114            CADA 4LOOP4     LOAD ABSOLUTE FROM TEMP
+1  1115            AD   5TC7       ADD TENS-COMPL OF 7
+1  1116            CC   7GETD4     IF DIGIT WAS GEQ 7, GET ANOTHER
+1  1117            CUB   +N
+1  1118            NUM   0000000000WORDS R.F.E.
 1  1119            NUM   0000000000
-1  1120            BA     0000
-1  1121            STC  5 5004
-1  1122       -    CAD    3120
-1  1123            STC  7 7133
-1  1124       -    CAD    3050
-1  1125            PTW    0406
-1  1126            SB   5 5010
-1  1127       -    CAD    3060
-1  1128            PTW    0410
-1  1129            DB   7 7131
-1  1130            CUB    1140
-1  1131            BA     0000
-1  1132            STC  5 5010
-1  1133            NUM   0000000000
-1  1134            CU   7 7120
-1  1135            NUM   0000000001
-1  1136            NUM   0000000008
-1  1137            NUM   0000000005
-1  1138            NUM   0000000000
+1  1120  .N        BA     0000     MOVE B TO A
+1  1121            STC  5LSTNT     STORE RANDOM DIGIT AS LAST NOTE INDEX
+1  1122       -    CAD   BTBL4     LOAD INDEXED INSTRUCTION FROM TABLE
+1  1123            STC  7+I        STORE IN EXECUTION LOC
+1  1124       -    CAD   NOTE2     LOAD INDEXED NOTE WORD AND
+1  1125            PTW    0406       PRINT IT OUT
+1  1126            SB   5LST2A     SET B TO LAST NOT2A INDEX
+1  1127       -    CAD   NOT2A     LOAD INDEXED NOTE WORD AND
+1  1128            PTW    0410       PRINT IT OUT
+1  1129            DB   7+B        DEC B, BRANCH IF GEQ 0
+1  1130            CUB   GETD5     OTHERWISE, JUMP OUT OF LOOP
+1  1131  .B        BA     0000     MOVE B TO A
+1  1132            STC  5LST2A     STORE IN LAST NOT2A INDEX
+1  1133  .I        NUM   0000000000EXECUTE SB OR CUB FROM BTBL4 TABLE
+1  1134            CU   7-N        LOOP AGAIN
+1  1135  N4X1      NUM   0000000001
+1  1136  N4X8      NUM   0000000008
+1  1137  N4X5      NUM   0000000005
+1  1138            NUM   0000000000WORDS R.F.E.
 1  1139            NUM   0000000000
-1  1140            SB   5 5003
-1  1141            DB   7 7144
-1  1142            CUR    2000
-1  1143            CU   7 7140
-1  1144            BA     0000
-1  1145            STC  5 5003
-1  1146       -    SB     0000
-1  1147       -    CU     3130
-1  1148       -    CAD    3140
-1  1149            PTW    0410
-1  1150            SB   5 5003
-1  1151            DB   7 7154
-1  1152            CUR    2000
-1  1153            CU   7 7150
-1  1154            BA     0000
-1  1155            STC  5 5003
-1  1156       -    SB     0000
-1  1157       -    CU     3160
-1  1158            NUM   0000000000
+1                  REM
+1  1140  GETD5     SB   5DIGX      SET B TO CURRENT RANDOM DIGIT INDEX
+1  1141            DB   7+B        DEC B, BRANCH IF GEQ 0
+1  1142            CUR   GENR      OTHERWISE, GENERATE NEXT 1000 DIGITS
+1  1143            CU   7GETD5     LOOP AGAIN TO GET RANDOM DIGIT
+1  1144  .B        BA     0000     MOVE B TO A
+1  1145            STC  5DIGX      STORE UPDATED DIGIT INDEX
+1  1146       -    SB    RDTBL     LOAD RANDOM DIGIT TO B
+1  1147       -    CU    BTBL5     BRANCH INDEXED BY RANDOM DIGIT
+1  1148  LDN4 -    CAD   NOTE4     LOAD NOTE WORD AND
+1  1149            PTW    0410       PRINT IT OUT
+1  1150  CONT5     SB   5DIGX      GET CURRENT RANDOM DIGIT INDEX
+1  1151            DB   7+N        DEC B, BRANCH IF GEQ 0
+1  1152            CUR   GENR      OTHERWISE, GENERATE NEXT 1000 DIGITS
+1  1153            CU   7CONT5     LOOP AGAIN TO GET RANDOM DIGIT
+1  1154  .N        BA     0000     MOVE B TO A
+1  1155            STC  5DIGX      STORE UPDATED RANDOM DIGIT INDEX
+1  1156       -    SB    RDTBL     LOAD RANDOM DIGIT TO B
+1  1157       -    CU    BTBL6     BRANCH INDEXED BY RANDOM DIIT
+1  1158            NUM   0000000000WORDS R.F.E.
 1  1159            NUM   0000000000
-1  1160       -    CAD    3150
-1  1161            PTW    0410
-1  1162            CAD  5 5012
-1  1163            PTW    0404
-1  1164            SB   5 5011
-1  1165       -    CAD  6 6002
-1  1166            PTW    0406
-1  1167       -    CAD    3085
-1  1168            PTW    0404
-1  1169            DB   7 7165
-1  1170            CAD  5 5013
-1  1171            PTW    0410
-1  1172            CAD  5 5014
+1                  REM
+1  1160  LDN5 -    CAD   NOTE5     LOAD NOTE WORD AND
+1  1161            PTW    0410       PRINT IT OUT
+1  1162            CAD  5BAR       LOAD STAFF MEASURE BAR AND
+1  1163            PTW    0404       PRINT IT OUT
+1  1164            SB   5C9        SET B TO 9
+1  1165  .P   -    CAD  6LOOP6+0002LOAD INDEXED LOOP6 WORD AND
+1  1166            PTW    0406       PRINT IT OUT
+1  1167       -    CAD   RHYT2     LOAD CORRESPONDING RHYTHM WORD AND
+1  1168            PTW    0404       PRINT IT OUT, TOO
+1  1169            DB   7-P        DEC B, LOOP IF GEQ 0
+1  1170            CAD  5BARCR     LOAD ENDING BAR FOR STAFF AND
+1  1171            PTW    0410       PRINT IT OUT
+1  1172            CAD  5CR5       PRINT 5 NEW-LINES
 1  1173            PTW    0410
-1  1174            CAD  5 5014
-1  1175            PTW    0410
-1  1176            BT5    3000
-1  1177            STOP   9669
-1  1178            CUB    1000
+1  1174            CAD  5CR5       PRINT 5 MORE NEW-LINES
+1  1175            PTW    0410       AND FALL INTO ENTRY POINT HALT
+1                  REM
+1  1176  ENTRY     BT5   FIVE      LOAD LOOP5 VALUES
+1  1177            STOP   9669     HALT FOR OPERATOR ADJUSTMENTS
+1  1178            CUB   START     GO TO START
 1  1179       4    PTR    2000
 1                  REM
+1                  REM             SUBROUTINE TO GENERATE 1000 RANDOM DIGITS
+1                  REM
 1                  ORG    2000
-1  2000            CAD  5 5019
-1  2001            SL     0004
-1  2002            STC    2029
-1  2003            BF7    3500
-1  2004            CUB    2005
-1  2005        0118MTS    0000
-1  2006            CC   7 7005
-1  2007            SB   5 5018
-1  2008            CAD  5 5001
-1  2009            M    5 5001
-1  2010            SL     0005
-1  2011            ST   5 5001
-1  2012            EX   7 7024
-1  2013       -    STC  4 4000
-1  2014            DB   7 7008
-1  2015        9500BF4    0000
-1  2016            CAD  7 7015
-1  2017            AD   5 5016
-1  2018            CC     2025
-1  2019            STC  7 7015
-1  2020            CAD  7 7005
-1  2021            AD   5 5015
-1  2022            STC  7 7005
-1  2023            CU   7 7005
-1  2024            NUM   0000000001
-1  2025        0018MTRW   0000
-1  2026            CC     2025
-1  2027        8008CDW    0000
-1  2028            BT7    3500
+1  2000  GENR      CAD  5XITOP     LOAD 720, CU OP CODE WITH BP MASK
+1  2001            SL     0004     ROTATE A+R TO SET RETURN ADDR
+1  2002            STC   +X        STORE IN EXIT LOCATION
+1  2003            BF7   SAVE7     SAVE CALLER-S LOOP 7 WORDS
+1  2004            CUB   +A
+1  2005  .A    0118MTS    0000     /SKIP/ SEARCH TU1 LANE 1 BLOCK 0
+1  2006            CC   7-A        LOOP UNTIL SEARCH COMPLETE
+1  2007            SB   5C19       SET B TO 19
+1  2008  .D        CAD  5SEED      LOAD SEED VALUE
+1  2009            M    5SEED      SQUARE IT
+1  2010            SL     0005     ROTATE PRODUCT LEFT 5
+1  2011            ST   5SEED      STORE UPDATED SEED
+1  2012            EX   7+U        EXTRACT LOW-ORDER DIGIT
+1  2013       -    STC  4LOOP4     STORE DIGIT IN INDEXED LOOP4 LOC
+1  2014            DB   7-D        LOOP TO GEN NEXT RANDOM DIGIT
+1  2015  .B    9500BF4   RDTBL     STORE BLOCK OF DIGITS, /04 IS LOOP COUNT
+1  2016            CAD  7-B        LOAD PRIOR BF4 INSTR
+1  2017            AD   5INC1      ADD 20 TO ADDR, 1 TO COUNT IN /04
+1  2018            CC    +R        BRANCH IF LOOP COUNT IN /04 OVERFLOWED
+1  2019            STC  7-B        STORE UPDATED BF4 INSTR
+1  2020            CAD  7-A        LOAD MTS INSTR
+1  2021            AD   5C20       INCR BLOCK ADDR BY 20
+1  2022            STC  7-A        STORE UPDATED MTS INSTR
+1  2023            CU   7-A        BRANCH TO GEN NEXT BLOCK OF DIGITS
+1  2024  .U        NUM   0000000001DIGIT EXTRACT MASK
+1  2025  .R    0018MTRW   0000     /SKIP/ REWIND TU1
+1  2026            CC    -R        LOOP IF TU1 BUSY
+1  2027        8008CDW   RDTBL     /SKIP/ SKEL CARD PUNCH WD
+1  2028            BT7   SAVE7     RESTORE CALLER-S LOOP 7 WORDS
+1        .X        EQU             SUBROUTINE EXIT INSTR
 1  2029       4    PTR    3000
 1                  REM
+1                  REM             VARIABLES, CONSTANTS, AND TABLES
+1                  REM
 1                  ORG    3000
-1  3000            NUM   2705000000
-1  3001            NUM   0000000000
-1  3002            NUM   0505053043
-1  3003            NUM   0000001000
-1  3004            NUM   0000000000
-1  3005            NUM   0000000000
-1  3006            NUM   9999999993
-1  3007            NUM   0000000011
-1  3008            NUM   0505433462
-1  3009            NUM   5050503443
-1  3010            NUM   0000000020
-1  3011            NUM   0000000009
-1  3012            NUM   3443000000
-1  3013            NUM   4305050505
-1  3014            NUM   0505050505
-1  3015            NUM   0000000020
-1  3016            NUM   0010000020
-1  3017            NUM   0000000000
-1  3018            NUM   0000000019
-1  3019            NUM   0000000720
-1  3020            CU   7 7029
-1  3021            CU   7 7036
-1  3022            CU   7 7036
-1  3023            CU   7 7036
-1  3024            CU   7 7029
-1  3025            CU   7 7036
-1  3026            CU   7 7029
-1  3027            CU   7 7036
-1  3028            CU   7 7036
-1  3029            CU   7 7029
-1  3030            NUM   3462333443
-1  3031            NUM   3462344300
-1  3032            NUM   3463344300
-1  3033            NUM   3464346300
-1  3034            NUM   3465344300
-1  3035            NUM   3466344300
-1  3036            NUM   3420344300
-1  3037            NUM   3461344300
-1  3038            NUM   3462363443
-1  3039            NUM   3465333443
-1  3040            SB   7 7076
-1  3041            CUB    1041
-1  3042            CUB    1041
-1  3043            CUB    1041
-1  3044            CUB    1041
-1  3045            CUB    1041
-1  3046            CUB    1041
-1  3047            SB   7 7077
-1  3048            CUB    1041
-1  3049            SB   7 7078
-1  3050            NUM   3462330000
-1  3051            NUM   3462000000
-1  3052            NUM   3463000000
-1  3053            NUM   3464000000
-1  3054            NUM   3465000000
-1  3055            NUM   3466000000
-1  3056            NUM   3420000000
-1  3057            NUM   3461000000
-1  3058            NUM   3462260000
-1  3059            NUM   3465330000
-1  3060            NUM   0000000000
-1  3061            NUM   2750300000
-1  3062            NUM   2750300000
-1  3063            NUM   2750300000
-1  3064            NUM   2750300000
-1  3065            NUM   5050050543
+1        FIVE      EQU             LOOP 5 LAYOUT
+1  3000  LCCR      NUM   2705000000LOWER-CASE/CARRIAGE-RETURN CODES
+1  3001  SEED      NUM   0000000000SCRAMBLED SEED VALUE
+1  3002  CRBAR     NUM   0505053043CR CR CR UC /
+1  3003  DIGX      NUM   0000001000CURRENT RANDOM DIGIT INDEX
+1  3004  LSTNT     NUM   0000000000INDEX OF LAST NOTE SELECTED
+1  3005            NUM   0000000000--NOT USED--
+1  3006  TC7       NUM   9999999993TENS-COMPL OF 7
+1  3007  L6INX     NUM   0000000011--NOT USED--
+1  3008  CRCWN     NUM   0505433462CR CR / SP C WHOLE C NOTE
+1  3009            NUM   5050503443* * * SP /
+1  3010  LST2A     NUM   0000000020LAST NOT2A INDEX
+1  3011  C9        NUM   0000000009CONSTANT 9
+1  3012  BAR       NUM   3443000000SP /
+1  3013  BARCR     NUM   4305050505/ CR CR CR CR
+1  3014  CR5       NUM   0505050505CR CR CR CR CR
+1  3015  C20       NUM   0000000020CONSTANT 20
+1  3016  INC1      NUM   0010000020LOOP COUNT AND ADDRESS INCREMENT WORD
+1  3017            NUM   0000000000--NOT USED--
+1  3018  C19       NUM   0000000019CONSTANT 19
+1  3019  XITOP     NUM   0000000720CU OP CODE WITH 1-2-4 BREAKPOINT MASK
+1                  REM
+1  3020  BTBL1     CU   7GETD1                  BRANCH TABLE 1
+1  3021            CU   7LDN1
+1  3022            CU   7LDN1
+1  3023            CU   7LDN1
+1  3024            CU   7GETD1
+1  3025            CU   7LDN1
+1  3026            CU   7GETD1
+1  3027            CU   7LDN1
+1  3028            CU   7LDN1
+1  3029            CU   7GETD1
+1                  REM
+1  3030  NOTE1     NUM   3462333443SP C : SP /  NOTE TABLE 1
+1  3031            NUM   3462344300SP C SP /
+1  3032            NUM   3463344300SP D SP /
+1  3033            NUM   3464346300SP E SP D    ?? NO /, 63 S.B. 43??
+1  3034            NUM   3465344300SP F SP /
+1  3035            NUM   3466344300SP G SP /
+1  3036            NUM   3420344300SP A SP /
+1  3037            NUM   3461344300SP B SP /
+1  3038            NUM   3462363443SP C L SP /  ?? L, 23 S.B. 33??
+1  3039            NUM   3465333443SP F SP /
+1                  REM
+1  3040  BTBL2     SB   7N2X1                   BRANCH TABLE 2
+1  3041            CUB   GETD2
+1  3042            CUB   GETD2
+1  3043            CUB   GETD2
+1  3044            CUB   GETD2
+1  3045            CUB   GETD2
+1  3046            CUB   GETD2
+1  3047            SB   7N2X8
+1  3048            CUB   GETD2
+1  3049            SB   7N2X5
+1                  REM
+1  3050  NOTE2     NUM   3462330000SP C "       NOTE TABLE 2
+1  3051            NUM   3462000000SP C
+1  3052            NUM   3463000000SP D
+1  3053            NUM   3464000000SP E
+1  3054            NUM   3465000000SP F
+1  3055            NUM   3466000000SP G
+1  3056            NUM   3420000000SP A
+1  3057            NUM   3461000000SP B
+1  3058            NUM   3462260000SP C :
+1  3059            NUM   3465330000SP F "
+1                  REM
+1  3060  NOT2A     NUM   0000000000             NOTE TABLE 2A
+1  3061            NUM   2750300000LC 8 UC          (21 WORDS)
+1  3062            NUM   2750300000LC 8 UC
+1  3063            NUM   2750300000LC 8 UC
+1  3064            NUM   2750300000LC 8 UC
+1  3065            NUM   5050050543* * CR CR /
 1  3066            NUM   0000000000
-1  3067            NUM   3443000000
+1  3067            NUM   3443000000SP /
 1  3068            NUM   0000000000
 1  3069            NUM   0000000000
 1  3070            NUM   0000000000
-1  3071            NUM   5050503443
-1  3072            NUM   3443000000
+1  3071            NUM   5050503443* * * SP /
+1  3072            NUM   3443000000SP /
 1  3073            NUM   0000000000
-1  3074            NUM   2750300000
-1  3075            NUM   5050000000
-1  3076            NUM   5050344300
+1  3074            NUM   2750300000LC 8 UC
+1  3075            NUM   5050000000* *
+1  3076            NUM   5050344300* * SP /
 1  3077            NUM   0000000000
-1  3078            NUM   3443000000
+1  3078            NUM   3443000000SP /
 1  3079            NUM   0000000000
-1  3080            NUM   2750300000
-1  3081            NUM   0000000000
+1  3080            NUM   2750300000LC 8 UC
+1                  REM
+1  3081            NUM   0000000000WORDS R.F.E.
 1  3082            NUM   0000000000
-1  3083            NUM   3443000000
-1  3084            NUM   5050000000
-1  3085            NUM   3443000000
+1                  REM
+1  3083  RHYTH     NUM   3443000000SP /         RHYTHM TABLE
+1  3084            NUM   5050000000* *              (12 WORDS)
+1  3085  RHYT2     NUM   3443000000SP /
 1  3086            NUM   0000000000
-1  3087            NUM   5000000000
-1  3088            NUM   3443000000
+1  3087            NUM   5000000000*
+1  3088            NUM   3443000000SP /
 1  3089            NUM   0000000000
 1  3090            NUM   0000000000
 1  3091            NUM   0000000000
-1  3092            NUM   3443000000
+1  3092            NUM   3443000000SP /
 1  3093            NUM   0000000000
-1  3094            NUM   5000000000
-1  3095            NUM   0000000000
+1  3094            NUM   5000000000*
+1                  REM
+1  3095            NUM   0000000000WORDS R.F.E.
 1  3096            NUM   0000000000
 1  3097            NUM   0000000000
 1  3098            NUM   0000000000
 1  3099            NUM   0000000000
-1  3100            CU   7 7090
-1  3101            CU   7 7090
-1  3102            CU   7 7090
-1  3103            CU   7 7090
-1  3104            CU   7 7090
-1  3105            CU   7 7090
-1  3106            CUB    1100
-1  3107            CU   7 7090
-1  3108            CUB    1100
-1  3109            CU   7 7090
-1  3110            NUM   3435643500
-1  3111            NUM   3435643500
-1  3112            NUM   3435643500
-1  3113            NUM   3435643500
-1  3114            NUM   3435643500
-1  3115            NUM   3435643500
-1  3116            NUM   3420505000
-1  3117            NUM   3435643500
-1  3118            NUM   3462265050
-1  3119            NUM   3435643500
-1  3120            SB   7 7135
-1  3121            CUB    1104
-1  3122            CUB    1104
-1  3123            CUB    1104
-1  3124            CUB    1104
-1  3125            CUB    1104
-1  3126            CUB    1104
-1  3127            SB   7 7136
-1  3128            CUB    1104
-1  3129            SB   7 7137
-1  3130            CU   7 7148
-1  3131            CU   7 7140
-1  3132            CU   7 7148
-1  3133            CU   7 7140
-1  3134            CU   7 7140
-1  3135            CU   7 7148
-1  3136            CU   7 7140
-1  3137            CU   7 7148
-1  3138            CU   7 7140
-1  3139            CU   7 7140
-1  3140            NUM   3462333443
-1  3141            NUM   3435643500
-1  3142            NUM   3463344300
-1  3143            NUM   3435643500
-1  3144            NUM   3435643500
-1  3145            NUM   3463344300
-1  3146            NUM   3435643500
-1  3147            NUM   3461344300
-1  3148            NUM   3455643500
-1  3149            NUM   3435643500
-1  3150            NUM   0000000000
-1  3151            NUM   3462505050
+1                  REM
+1  3100  BTBL3     CU   7GETD3                  BRANCH TABLE 3
+1  3101            CU   7GETD3
+1  3102            CU   7GETD3
+1  3103            CU   7GETD3
+1  3104            CU   7GETD3
+1  3105            CU   7GETD3
+1  3106            CUB   CONT3
+1  3107            CU   7GETD3
+1  3108            CUB   CONT3
+1  3109            CU   7GETD3
+1                  REM
+1  3110  NOTE3     NUM   3435643500SP CS E CS   NOTE TABLE 3
+1  3111            NUM   3435643500SP CS E CS     CS=COLOR SHIFT
+1  3112            NUM   3435643500SP CS E CS
+1  3113            NUM   3435643500SP CS E CS
+1  3114            NUM   3435643500SP CS E CS
+1  3115            NUM   3435643500SP CS E CS
+1  3116            NUM   3420505000SP A CR CR
+1  3117            NUM   3435643500SP CS E CS
+1  3118            NUM   3462265050SP C : * * SP
+1  3119            NUM   3435643500SP CS E CS
+1                  REM
+1  3120  BTBL4     SB   7N4X1                   BRANCH TABLE 4
+1  3121            CUB   GETD4
+1  3122            CUB   GETD4
+1  3123            CUB   GETD4
+1  3124            CUB   GETD4
+1  3125            CUB   GETD4
+1  3126            CUB   GETD4
+1  3127            SB   7N4X8
+1  3128            CUB   GETD4
+1  3129            SB   7N4X5
+1                  REM
+1  3130  BTBL5     CU   7LDN4                   BRANCH TABLE 5
+1  3131            CU   7GETD5
+1  3132            CU   7LDN4
+1  3133            CU   7GETD5
+1  3134            CU   7GETD5
+1  3135            CU   7LDN4
+1  3136            CU   7GETD5
+1  3137            CU   7LDN4
+1  3138            CU   7GETD5
+1  3139            CU   7GETD5
+1                  REM
+1  3140  NOTE4     NUM   3462333443SP C " SP /  NOTE TABLE 4
+1  3141            NUM   3435643500SP CS E CS
+1  3142            NUM   3463344300SP D SP /
+1  3143            NUM   3435643500SP CS E CS
+1  3144            NUM   3435643500SP CS E CS
+1  3145            NUM   3463344300SP D SP /
+1  3146            NUM   3435643500SP CS E CS
+1  3147            NUM   3461344300SP B SP /
+1  3148            NUM   3455643500SP X E CS    55 SHOULD BE 35??
+1  3149            NUM   3435643500SP CS E CS
+1                  REM
+1  3150  NOTE5     NUM   0000000000
+1  3151            NUM   3462505050SP C * * *
 1  3152            NUM   0000000000
-1  3153            NUM   3464505050
+1  3153            NUM   3464505050SP E * * *
 1  3154            NUM   0000000000
 1  3155            NUM   0000000000
 1  3156            NUM   0000000000
 1  3157            NUM   0000000000
 1  3158            NUM   0000000000
 1  3159            NUM   0000000000
-1  3160            CU   7 7150
-1  3161            CUB    1160
-1  3162            CU   7 7150
-1  3163            CUB    1160
-1  3164            CU   7 7150
-1  3165            CU   7 7150
-1  3166            CU   7 7150
-1  3167            CU   7 7150
-1  3168            CU   7 7150
-1  3169            CU   7 7150
-1  3170            NUM   0000000000
+1                  REM
+1  3160  BTBL6     CU   7CONT5                  BRANCH TABLE 6
+1  3161            CUB   LDN5
+1  3162            CU   7CONT5
+1  3163            CUB   LDN5
+1  3164            CU   7CONT5
+1  3165            CU   7CONT5
+1  3166            CU   7CONT5
+1  3167            CU   7CONT5
+1  3168            CU   7CONT5
+1  3169            CU   7CONT5
+1                  REM
+1  3170            NUM   0000000000WORDS R.F.E.
 1  3171            NUM   0000000000
 1  3172            NUM   0000000000
 1  3173            NUM   0000000000
@@ -396,5 +429,11 @@
 1  3177            NUM   0000000000
 1  3178            NUM   0000000000
 1  3179            NUM   0000000000
-1  3180       6    CU     1175
+1                  REM
+1  3180       6    CU    ENTRY
+1                  REM
+1        SAVE7     EQU    3500     LOOP 7 SAVE AREA
+1        LOOP4     EQU    4000     LOOP 4 BASE ADDRESS
+1        LOOP6     EQU    6000     LOOP 6 BASE ADDRESS
+1                  REM
 1                  END
