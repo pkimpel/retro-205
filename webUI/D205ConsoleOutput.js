@@ -32,9 +32,11 @@ function D205ConsoleOutput(mnemonic, p) {
 
     // Create the Flexowriter window and onload event
     if (this.hasFlexowriter) {
+        this.flexUse204Codes = p.config.getNode("Flexowriter.use204FlexCodes") || false;
         this.flexDoc = null;
         this.flexWin = null;
         this.flexPaper = null;
+        this.flexLine = null;
         this.flexEOP = null;
         this.flexCol = 0;
         D205Util.openPopup(window, "../webUI/D205Flexowriter.html", "Flexowriter",
@@ -59,17 +61,41 @@ D205ConsoleOutput.offSwitch = "./resources/ToggleDown.png";
 D205ConsoleOutput.midSwitch = "./resources/ToggleMid.png";
 D205ConsoleOutput.onSwitch = "./resources/ToggleUp.png";
 
-D205ConsoleOutput.cardatronXlate = [        // translate internal Cardatron code to ANSI
-        " ", "?", "?", ".", "?", "?", "?", "?", "?", "?",       // 00-09
-        "&", "?", "?", "$", "&", "?", "?", "$", "&", "?",       // 10-19
-        "-", "/", "?", ",", "%", "?", "?", "?", "?", "?",       // 20-29
-        "?", "?", "?", "?", "\t", "\n", "?", "?", "?", "?",     // 30-39
-        "?", "A", "B", "C", "D", "E", "F", "G", "H", "I",       // 40-49
-        "?", "J", "K", "L", "M", "N", "O", "P", "Q", "R",       // 50-59
-        "?", "?", "S", "T", "U", "V", "W", "X", "Y", "Z",       // 60-69
+D205ConsoleOutput.cardatronXlate = [    // translate internal Cardatron code to ANSI
+        " ", "|", "|", ".", "|", "|", "|", "|", "|", "|",       // 00-09
+        "&", "|", "|", "$", "&", "|", "|", "$", "&", "|",       // 10-19
+        "-", "/", "|", ",", "%", "|", "|", "|", "|", "|",       // 20-29
+        "|", "|", "|", "|", "\t", "\n", "|", "|", "|", "|",     // 30-39
+        "|", "A", "B", "C", "D", "E", "F", "G", "H", "I",       // 40-49
+        "|", "J", "K", "L", "M", "N", "O", "P", "Q", "R",       // 50-59
+        "|", "|", "S", "T", "U", "V", "W", "X", "Y", "Z",       // 60-69
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",       // 70-79
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",       // 80-89
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];      // 90-99
+
+D205ConsoleOutput.flex204XlateLower = [ // translate lower-case 203/204 Flexowriter codes to ANSI
+        "|", "|", "|", "|", "\t","\n","|", "|", "|", "|",       // 00-09
+        "|", "|", "|", "|", "|", "|", "|", "|", "|", "|",       // 10-19
+        "a", "r", "s", "t", "+", "-", ";", "|", "|", "|",       // 20-29
+        "|", ",", ".", "'", " ", "|", "l", "|", "|", "|",       // 30-39
+        "0", "1", "2", "3", "4", "5", "6", "7", "|", "|",       // 40-49
+        "8", "9", "u", "v", "w", "x", "y", "z", "|", "|",       // 50-59
+        "|", "b", "c", "d", "e", "f", "g", "h", "|", "|",       // 60-69
+        "i", "j", "k", "m", "n", "o", "p", "q", "|", "|",       // 70-79
+        "|", "|", "|", "|", "|", "|", "|", "|", "|", "|",       // 80-89
+        "|", "|", "|", "|", "|", "|", "|", "|", "|", "|"];      // 90-99
+
+D205ConsoleOutput.flex204XlateUpper = [ // translate upper-case 203/204 Flexowriter codes to ANSI
+        "|", "|", "|", "|", "\t","\n","|", "|", "|", "|",       // 00-09
+        "|", "|", "|", "|", "|", "|", "|", "|", "|", "|",       // 10-19
+        "A", "R", "S", "T", "=", "_", ":", "|", "|", "|",       // 20-29
+        "|", ",", ".", "\""," ", "|", "L", "|", "|", "|",       // 30-39
+        ")", "#", "&", "/", "$", "%", "?", "!", "|", "|",       // 40-49
+        "*", "(", "U", "V", "W", "X", "Y", "Z", "|", "|",       // 50-59
+        "|", "B", "C", "D", "E", "F", "G", "H", "|", "|",       // 60-69
+        "I", "J", "K", "M", "N", "O", "P", "Q", "|", "|",       // 70-79
+        "|", "|", "|", "|", "|", "|", "|", "|", "|", "|",       // 80-89
+        "|", "|", "|", "|", "|", "|", "|", "|", "|", "|"];      // 90-99
 
 
 /**************************************/
@@ -84,6 +110,8 @@ D205ConsoleOutput.prototype.clear = function clear() {
     this.alphaLock = 0;                 // alpha translation enabled for format=4
     this.zeroSuppress = 0;              // currently suppressing leading zeroes
     this.stopPrintout = 0;              // idle processor if a printout command occurs
+    this.upperCase = 0;                 // current shift position (204 Flex encoding only)
+    this.printRed = 0;                  // print in red color (204 Flex encoding only)
 
     this.wordCounter = 0;               // grouping words/line counter
     this.lineCounter = 0;               // grouping lines/group counter
@@ -136,6 +164,12 @@ D205ConsoleOutput.prototype.beforeUnload = function beforeUnload(ev) {
 ***********************************************************************/
 
 /**************************************/
+D205ConsoleOutput.prototype.flexSetMode = function flexSetMode(mode204) {
+    this.flex$$("FlexowriterMode").textContent =
+                (mode204 ? "203/204 CODES" : "CARDATRON CODES");
+};
+
+/**************************************/
 D205ConsoleOutput.prototype.flex$$ = function flex$$(e) {
     return this.flexDoc.getElementById(e);
 };
@@ -147,7 +181,9 @@ D205ConsoleOutput.prototype.flexEmptyPaper = function flexEmptyPaper() {
     while (this.flexPaper.firstChild) {
         this.flexPaper.removeChild(this.flexPaper.firstChild);
     }
-    this.flexPaper.appendChild(this.flexDoc.createTextNode(""));
+
+    this.flexLine = this.flexDoc.createTextNode("");
+    this.flexPaper.appendChild(this.flexLine);
 };
 
 /**************************************/
@@ -160,8 +196,11 @@ D205ConsoleOutput.prototype.flexEmptyLine = function flexEmptyLine(text) {
     while (paper.childNodes.length > this.maxScrollLines) {
         paper.removeChild(paper.firstChild);
     }
-    paper.lastChild.nodeValue += "\n";     // newline
-    paper.appendChild(this.flexDoc.createTextNode(line));
+
+    this.flexLine.nodeValue += "\n";    // newline
+    paper = this.flexLine.parentNode;
+    this.flexLine = this.flexDoc.createTextNode(line);
+    paper.appendChild(this.flexLine);
     this.flexCol = line.length;
     this.flexEOP.scrollIntoView();
 };
@@ -169,19 +208,36 @@ D205ConsoleOutput.prototype.flexEmptyLine = function flexEmptyLine(text) {
 /**************************************/
 D205ConsoleOutput.prototype.flexChar = function flexChar(c) {
     /* Outputs the character "c" to the output device */
-    var line = this.flexPaper.lastChild.nodeValue;
+    var line = this.flexLine.nodeValue;
     var len = line.length;
 
     if (len < 1) {
         line = c;
         ++this.flexCol;
-    } else if (len < 120) {
+    } else if (this.flexCol < 120) {
         line += c;
         ++this.flexCol;
     } else {
-         line = line.substring(0, 119) + c;
+         line = line.substring(0, len-1) + c;
     }
-    this.flexPaper.lastChild.nodeValue = line;
+
+    this.flexLine.nodeValue = line;
+};
+
+/**************************************/
+D205ConsoleOutput.prototype.flexPrintRed = function flexPrintRed(enable) {
+    /* Changes the printing color to/from red based on "enable" */
+    var e = null;
+
+    this.flexLine = this.flexDoc.createTextNode("");
+    if (enable) {
+        e = this.flexDoc.createElement("SPAN");
+        e.className = "red";
+        e.appendChild(this.flexLine);
+        this.flexPaper.appendChild(e);
+    } else {
+        this.flexPaper.appendChild(this.flexLine);
+    }
 };
 
 /**************************************/
@@ -222,6 +278,10 @@ D205ConsoleOutput.prototype.button_Click = function button_Click(ev) {
     switch (ev.target.id) {
     case "ResetBtn":
         this.resetCounters();
+        break;
+    case "FlexowriterMode":
+        this.flexUse204Codes = !this.flexUse204Codes;
+        this.flexSetMode(this.flexUse204Codes);
         break;
     } // switch ev.target.id
 
@@ -284,6 +344,7 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload(ev) {
     this.flexEOP = this.flex$$("EndOfPaper");
     this.flexEmptyPaper();
     this.flexEmptyLine();
+    this.flexSetMode(this.flexUse204Codes);
 
     body = this.flex$$("FormatControlsDiv");
     this.resetLamp = new ColoredLamp(body, null, null, "ResetLamp", "whiteLamp", "whiteLit");
@@ -319,6 +380,7 @@ D205ConsoleOutput.prototype.flexOnload = function flexOnload(ev) {
             D205ConsoleOutput.prototype.flexCopyPaper.bind(this));
 
     this.flex$$("ResetBtn").addEventListener("click", this.boundButton_Click);
+    this.flex$$("FlexowriterMode").addEventListener("click", this.boundButton_Click);
 
     this.flex$$("ZeroSuppressSwitch").addEventListener("click", this.boundFlipSwitch);
     this.flex$$("TabSpaceSwitch").addEventListener("click", this.boundFlipSwitch);
@@ -445,8 +507,8 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
     /* Sets the format digit at the beginning of output for a word, or as the
     result of a POF instruction. Delays for an appropriate amount of time, then
     calls the Processor's signalOK function. */
-    var delay = 120;                    // default character output delay, ms
-    var tabCol;                         // tabulation column
+    var delay = 1000/14;                // default character output delay, ms
+    var tabCol = 0;                     // tabulation column
 
     if (this.stopPrintout) {
         this.pendingOutputFcn = writeFormatDigit;
@@ -462,11 +524,12 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
                 case 3:                     // suppress sign, print space instead
                 case 4:                     // translate alphanumerically
                     this.alphaLock = 0;
+                    delay = 120;
                     this.formatDigit = formatDigit;
                     break;
                 case 5:                     // actuate carriage return
+                    delay = this.flexCol/120*55 + 70;   // 70-125ms based on carriage position
                     this.flexEmptyLine();
-                    delay = 200;
                     break;
                 case 6:                     // actuate tab key
                     tabCol = Math.floor((this.flexCol + 8)/8)*8;
@@ -491,13 +554,10 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
                 // Format digit is used only to feed blank tape -- it isn't output by this implementation
                 switch (formatDigit) {
                 case 1:
-                    delay = this.punchPeriod*10;
-                    for (tabCol=0; tabCol<10; ++tabCol) {
-                        this.punchChar(" ");
-                    }
+                    delay = this.punchPeriod;
+                    this.punchChar(" ");
                     break;
                 default:
-                    delay = this.punchPeriod;
                     break;
                 } // switch formatDigit
 
@@ -512,7 +572,7 @@ D205ConsoleOutput.prototype.writeFormatDigit = function writeFormatDigit(
 D205ConsoleOutput.prototype.writeSignDigit = function writeSignDigit(outputUnit, signDigit, signalOK) {
     /* Outputs (or not) the sign digit of a word. Delays for an appropriate
     amount of time, then calls the Processor's signalOK function */
-    var delay = 70;                     // default character output delay, ms
+    var delay = 65;                     // default character output delay, ms
 
     if (this.stopPrintout) {
         this.pendingOutputFcn = writeSignDigit;
@@ -533,6 +593,7 @@ D205ConsoleOutput.prototype.writeSignDigit = function writeSignDigit(outputUnit,
                     this.flexChar(" ");
                     break;
                 case 4:                     // translate alphanumerically -- ignore the sign
+                    delay = 62;
                     break;
                 default:
                     this.flexChar((signDigit & 0x01) ? "-" : "+");
@@ -556,9 +617,9 @@ D205ConsoleOutput.prototype.writeSignDigit = function writeSignDigit(outputUnit,
 /**************************************/
 D205ConsoleOutput.prototype.writeNumberDigit = function writeNumberDigit(outputUnit, digit, signalOK) {
     /* Sets the current digit in the translator and outputs it if appropriate */
-    var char;                           // ASCII character to output
+    var char = "";                      // ASCII character to output
     var delay = 70;                     // default delay
-    var tabCol;                         // tabulation column
+    var tabCol = 0;                     // tabulation column
 
     switch (outputUnit) {
     case 1:                             // Flexowriter
@@ -566,22 +627,53 @@ D205ConsoleOutput.prototype.writeNumberDigit = function writeNumberDigit(outputU
             if (this.formatDigit == 4) {    // translate alphanumerically
                 if (this.alphaLock) {
                     this.alphaLock = 0;
-                    delay = 62;
-                    char = D205ConsoleOutput.cardatronXlate[this.alphaFirstDigit*10 + digit];
+                    delay = 75;
+                    digit += this.alphaFirstDigit*10;
+                    if (!this.flexUse204Codes) {
+                        char = D205ConsoleOutput.cardatronXlate[digit];
+                    } else {
+                        char = this.upperCase ? D205ConsoleOutput.flex204XlateUpper[digit]
+                                              : D205ConsoleOutput.flex204XlateLower[digit];
+                        switch (digit) {
+                        case 1:         // backspace
+                            if (this.flexCol > 0) {
+                                --this.flexCol;
+                                tabCol = this.flexLine.nodeValue.length;
+                                if (tabCol > 0) {
+                                    this.flexLine.nodeValue =
+                                        this.flexLine.nodeValue.substring(0, tabCol-1);
+                                }
+                            }
+                            break;
+                        case 27:        // lower case
+                            this.upperCase = false;
+                            break;
+                        case 30:        // upper case
+                            this.upperCase = true;
+                            break;
+                        case 35:        // color shift
+                            this.printRed = 1 - this.printRed;
+                            this.flexPrintRed(this.printRed);
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+
                     switch (char) {
-                    case "?":               // some characters are just ignored by the Flex
+                    case "|":       // some characters are just ignored by the Flex
                         break;
-                    case "\t":              // tabulate
+                    case "\t":      // tabulate
                         tabCol = Math.floor((this.flexCol + 8)/8)*8;
                         while (this.flexCol < tabCol) {
                             this.flexChar(" ");
                         }
                         break;
-                    case "\n":              // carriage return
+                    case "\n":      // carriage return
+                        delay = this.flexCol/120*55 + 70;   // 70-125ms based on carriage position
                         this.flexEmptyLine();
-                        delay = 200;
                         break;
-                    default:                // all printable characters
+                    default:        // all printable characters
                         this.flexChar(char);
                         break;
                     }
@@ -616,7 +708,7 @@ D205ConsoleOutput.prototype.writeFinish = function writeFinish(outputUnit, contr
     /* Signals end of output for a word. Delays for an appropriate amount of
     time, then calls the Processor's signalOK function */
     var delay = 140;                    // default delay, ms
-    var tabCol;
+    var tabCol = 0;                     // TCU tabulation column
 
     switch (outputUnit) {
     case 1:                             // Flexowriter

@@ -6,6 +6,12 @@ Unless otherwise specified, all files are in standard Windows text
 format, with carriage-return/line-feed delimiters.
 
 
+204-Flex-Test.pt
+    Paper tape program to test the option for supporting the original
+    Datatron 203/204 Flexowriter character encoding as an alternative
+    to the Datatron 205 encoding used with the Cardatron. This option
+    was released in emulator version 1.03.
+
 B205PrimeNumber-Checker.pt
     Paper tape program to accept 7-digit numbers from the console
     keyboard and determine whether or not they are prime. On the Control
@@ -66,5 +72,5 @@ Square-Roots100.pt
     AUTO STOP: as desired.
 
 Paul Kimpel
-February 2020
+March 2020
 

@@ -777,6 +777,7 @@ D205MagTapeDrive.prototype.tapeDriveOnLoad = function tapeDriveOnLoad(ev) {
             D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
     this.notWrite = prefs.notWriteSwitch;
     this.notWriteSwitch.set(this.notWrite ? 1 : 0);
+    this.notWriteLamp.set(this.notWrite ? 1 : 0);
 
 
     this.tapeState = this.tapeLocal;    // setTapeUnloaded() requires it to be in local

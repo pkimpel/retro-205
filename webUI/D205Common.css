@@ -423,6 +423,10 @@ BUTTON.large {
     border:             1px solid #DDD;
     border-radius:      4px}
 
+BUTTON.blueButton {
+    background-image:   radial-gradient(circle, #006, #009);
+    color:              white}
+
 BUTTON.greenButton {
     background-image:   radial-gradient(circle, #030, #060);
     color:              white}
@@ -437,6 +441,10 @@ BUTTON.blackButton {
 
 BUTTON.blackLit {
     color:              white}
+
+BUTTON.blueLit {
+    color:              white;
+    background-image:   radial-gradient(circle, #00F, #00F, #00C)}
 
 BUTTON.greenLit {
     color:              black;

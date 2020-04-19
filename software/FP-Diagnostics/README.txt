@@ -54,15 +54,16 @@ The following convention for file name extensions and suffixes was used:
     Object code card-image files produced by the Shell Assembler.
 
 The various tests have file names taken from their code numbers
-specified in TM 4113:
+specified in TM 4113.
 
-3.G00.1A.*
-    Floating Point Composite Test -- a test of all floating-point
-    operations that was designed to be run on a regular basis and detect
-    malfunctions in the Floating Point Control Unit. Based on results
-    reported by this test, one or more of the other test programs would
-    be run to further isolate the problem. This test should require 7
-    minutes 32 seconds total to run.
+The diagnostic test routines consisted of a Floating Point Composite
+Test (3.G00.1A) that was designed to test of all floating-point
+operations and be run on a regular basis and detect malfunctions in the
+Floating Point Control Unit. Based on results reported by this test, one
+or more of the other "Series Test" programs would be run to further
+isolate the problem. At present we do not have the Composite Test.
+
+Series Test Routines:
 
 3.G01.1A.*
     Floating Point Command Survey -- tests salient features of all
@@ -97,6 +98,8 @@ specified in TM 4113:
     x+y or x-y with y+x or y-x, respectively. It requires 15 minutes 3
     seconds.
 
+Supporting Utility Routines:
+
 Diagnostic-Error.*
     Common error reporting routine used by all tests except the
     Composite (3.G00.1A).
@@ -120,17 +123,14 @@ System-Error-Format-Loader.*
     Addendum to the System-Error routine used when the test is run using
     Cardatron devices instead of paper tape and the teletype.
 
-To run the 3.G00.1A (Composite) test using paper tape:
+To run the Series Tests using paper tape:
 
-     1. Load System-Error.pt into the paper tape reader.
-     2. Load 3.G00.1A.pt into the paper tape reader.
+     1. Load Diagnostic-Error.pt into the paper tape reader.
+     2. Load the paper-tape image for the desired test into the paper
+     tape reader.
      3. Load Interpretive-Error.pt into the paper tape reader.
      4. With the Console Input switch in the OPTICAL READER position,
      click the CLEAR button and then the CONT or START button.
-
-To run the other tests, use the same procedure, except load the
-Diagnostic-Error.pt routine instead of System-Error.pt, and load the
-corresponding test's .pt file instead of 3.G00.1A.pt.
 
 See TM 4113 for tables that interpret the error codes output by the
 tests and for instructions to use Cardatron devices instead of Console
@@ -139,4 +139,3 @@ devices.
 
 Paul Kimpel
 February 2020
-

@@ -58,6 +58,36 @@
     vertical-align:     bottom;
     margin:             4px}
 
+#ConfigListDiv {
+    position:           relative;
+    font-family:        DejaVuSansWeb, sans-serif;
+    font-size:          8pt}
+
+#CancelBtn {
+    position:           absolute;
+    top:                0;
+    right:              80px;
+    height:             20px}
+
+#SaveBtn {
+    position:           absolute;
+    top:                0;
+    right:              8px;
+    height:             20px}
+
+#DeleteBtn {
+    position:           absolute;
+    top:                30px;
+    right:              80px;
+    height:             20px}
+
+#CloneBtn {
+    position:           absolute;
+    top:                30px;
+    right:              8px;
+    height:             20px}
+
+
 #ConsoleTable,
 #CardatronTable,
 #MagTapeOptionsTable,
@@ -80,22 +110,13 @@
     width:              4em;
     white-space:        nowrap}
 
+#PanelDiv TABLE THEAD TR TH {
+    vertical-align:     bottom}
+
 #MessageArea {
     position:           absolute;
     bottom:             8px;
     left:               8px;
-    right:              90px;
+    right:              8px;
     width:              auto;
     font-size:          8pt}
-
-#CancelBtn {
-    position:           absolute;
-    bottom:             8px;
-    right:              80px;
-    height:             20px}
-
-#SaveBtn {
-    position:           absolute;
-    bottom:             8px;
-    right:              8px;
-    height:             20px}

@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.02";
+D205Processor.version = "1.03";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -1143,6 +1143,17 @@ D205Processor.prototype.floatingAdd = function floatingAdd() {
     // Set toggles for display purposes and set the result.
     this.procTime += 7;                 // total = 7 + 2 if decomplement needed + normalizing shifts
     this.togSIGN = sign;
+
+    /***** DEBUG *****
+    console.log("C=" + this.COP.toString(16) + " " + (this.CADDR+0x10000).toString(16).substring(1) + " " +
+                       (this.CCONTROL+0x10000).toString(16).substring(1) +
+                "  B=" + (this.B+0x10000).toString(16).substring(1) +
+                "  A=" + (this.A+0x100000000000).toString(16).substring(1) +
+                "  D=" + (this.D+0x100000000000).toString(16).substring(1) +
+                "  ==" + ((sign*0x100 + ae)*0x100000000 + am + 0x100000000000).toString(16).substring(1) +
+                (this.stopOverflow ? "  OF" : ""));
+    *****************/
+
     this.A = (sign*0x100 + ae)*0x100000000 + am;
     this.D = 0;
 };
@@ -1514,6 +1525,9 @@ D205Processor.prototype.blockFromLoop = function blockFromLoop(loop, successor) 
         this.memL7 = 1;
         loopMem = this.L7;
         break;
+    default:
+        throw new Error("Invalid blockFromLoop loop number: " + loop);
+        break;
     } // switch loop
 
     for (x=D205Processor.loopSize; x>0; --x) {
@@ -1565,6 +1579,7 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
         addr %= 4000;
         this.memMAIN = 1;
     }
+
     switch (loop) {
     case 4:
         this.memL4 = 1;
@@ -1581,6 +1596,9 @@ D205Processor.prototype.blockToLoop = function blockToLoop(loop, successor) {
     case 7:
         this.memL7 = 1;
         loopMem = this.L7;
+        break;
+    default:
+        throw new Error("Invalid blockToLoop loop number: " + loop);
         break;
     } // switch loop
 
@@ -1726,10 +1744,10 @@ D205Processor.prototype.consoleOutputNumberDigit = function consoleOutputNumberD
         this.togPO2 = 1-this.togPO2;    // for display only
         this.togDELAY = 1-this.togDELAY;// for display only
         if (this.SHIFT == 0x19) {       // if the shift counter is already 19, we're done
-            d = (this.CADDR - this.CADDR%0x1000)/0x1000;
+            d = (this.CADDR - this.CADDR%0x1000)/0x1000;    // get the do-not-count digit
             this.console.writeFinish(d, this.boundConsoleOutputFinished);
         } else {
-            d = (this.A - w)/0x10000000000; // get the digit
+            d = (this.A - w)/0x10000000000; // get the digit to output
             this.A = w*0x10 + d;        // rotate A+sign left one
             this.SHIFT = this.bcdAdd(this.SHIFT, 1);
             this.console.writeNumberDigit(d, this.boundConsoleOutputNumberDigit);

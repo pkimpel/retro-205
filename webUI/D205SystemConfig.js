@@ -24,6 +24,8 @@ function D205SystemConfig() {
     this.flushTimer = 0;                // timer token for flushing configuration to localStorage
     this.window = null;                 // configuration UI window object
     this.alertWin = window;             // current base window for alert/confirm/prompt
+    this.onUIClose = null;              // reference to originator's on-close callback function
+    this.configData = {};               // configuration data structure
 
     // Load or create the system configuration data
     s = localStorage.getItem(this.configStorageName);
@@ -36,8 +38,144 @@ function D205SystemConfig() {
 
 /**************************************/
 D205SystemConfig.prototype.configStorageName = "retro-205-Config";
-D205SystemConfig.prototype.configVersion = 1;
+D205SystemConfig.prototype.configVersion = 2;
+D205SystemConfig.prototype.defaultConfigName = "Default";
 D205SystemConfig.prototype.flushDelay = 60000;  // flush timer setting, ms
+
+D205SystemConfig.prototype.initialConfigData = {
+    version: D205SystemConfig.prototype.configVersion,
+    currentConfig: D205SystemConfig.prototype.defaultConfigName,
+
+    configs: {
+        "Default": {
+            fixed: false,               // default config can be modified
+
+            SupervisoryPanel: {
+                pulseSourceSwitch: 0,
+                wordContSwitch: 0,
+                frequencyKnob: 0,
+                audibleAlarmSwitch: 0,
+                lockNormalSwitch: 0,
+                stepContinuousSwitch: 0},
+
+            ControlConsole: {
+                hasFlexowriter: true,
+                hasPaperTapeReader: true,
+                hasPaperTapePunch: true,
+                poSuppressSwitch: 0,
+                skipSwitch: 0,
+                audibleAlarmSwitch: 0,
+                outputKnob: 2,
+                breakpointKnob: 0,
+                inputKnob: 1},
+
+            Flexowriter: {
+                use204FlexCodes: false,
+                zeroSuppressSwitch: 0,
+                tabSpaceSwitch: 2,
+                groupingCountersSwitch: 0,
+                autoStopSwitch: 0,
+                powerSwitch: 1,
+                wordsKnob: 0,
+                linesKnob: 0,
+                groupsKnob: 0},
+
+            Cardatron: {
+                hasCardatron: true,
+                units: [
+                    null,               // unit[0] not used
+                    {type: "CR1", formatSelect: 0, formatCol: 1},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "LP3", algolGlyphs: true, greenBar: true,  zeroSuppressCols: ""},
+                    {type: "CP2", algolGlyphs: true, greenBar: false, zeroSuppressCols: ""},
+                    {type: "CP1", algolGlyphs: true, greenBar: false, zeroSuppressCols: ""}
+            ]},
+
+            MagTape: {
+                hasMagTape: true,
+                suppressBSwitch: false, // false => off => suppress B-register modification
+                units: [
+                    null,               // unit[0] not used
+                    {type: "MTA", designate: 0, remoteSwitch: false, rewindReadySwitch: true, notWriteSwitch: false},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "MTD", designate: 3, remoteSwitch: false, rewindReadySwitch: true, notWriteSwitch: false},
+                    {type: "MTE", designate: 4, remoteSwitch: false, rewindReadySwitch: true, notWriteSwitch: false},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"}
+            ]}
+        }, // Default config
+
+        "Basic203": {
+            fixed: true,                // config cannot be modified
+
+            SupervisoryPanel: {
+                pulseSourceSwitch: 0,
+                wordContSwitch: 0,
+                frequencyKnob: 0,
+                audibleAlarmSwitch: 0,
+                lockNormalSwitch: 0,
+                stepContinuousSwitch: 0},
+
+            ControlConsole: {
+                hasFlexowriter: true,
+                hasPaperTapeReader: true,
+                hasPaperTapePunch: true,
+                poSuppressSwitch: 0,
+                skipSwitch: 0,
+                audibleAlarmSwitch: 0,
+                outputKnob: 2,
+                breakpointKnob: 0,
+                inputKnob: 1},
+
+            Flexowriter: {
+                use204FlexCodes: true,
+                zeroSuppressSwitch: 0,
+                tabSpaceSwitch: 2,
+                groupingCountersSwitch: 0,
+                autoStopSwitch: 0,
+                powerSwitch: 1,
+                wordsKnob: 0,
+                linesKnob: 0,
+                groupsKnob: 0},
+
+            Cardatron: {
+                hasCardatron: false,
+                units: [
+                    null,                   // unit[0] not used
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"}
+            ]},
+
+            MagTape: {
+                hasMagTape: false,
+                suppressBSwitch: false,     // false => off => suppress B-register modification
+                units: [
+                    null,                   // unit[0] not used
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"},
+                    {type: "NONE"}
+            ]}
+        } // Basic203 config
+    } // configs{}
+}; // initialConfigData
 
 /**************************************/
 D205SystemConfig.prototype.$$ = function $$(id) {
@@ -47,124 +185,11 @@ D205SystemConfig.prototype.$$ = function $$(id) {
 /**************************************/
 D205SystemConfig.prototype.createConfigData = function createConfigData() {
     /* Creates and initializes a new configuration data object and stores it in
-    localStorage. If former state preference objects exist, these are merged into
-    the new data object and then deleted */
-    var pref;
-    var prefs;
-    var s;
+    localStorage */
 
-    this.configData = {
-        version: this.configVersion,
-
-        SupervisoryPanel: {
-            pulseSourceSwitch: 0,
-            wordContSwitch: 0,
-            frequencyKnob: 0,
-            audibleAlarmSwitch: 0,
-            lockNormalSwitch: 0,
-            stepContinuousSwitch: 0},
-
-        ControlConsole: {
-            hasFlexowriter: true,
-            hasPaperTapeReader: true,
-            hasPaperTapePunch: true,
-            poSuppressSwitch: 0,
-            skipSwitch: 0,
-            audibleAlarmSwitch: 0,
-            outputKnob: 2,
-            breakpointKnob: 0,
-            inputKnob: 1},
-
-        Flexowriter: {
-            zeroSuppressSwitch: 0,
-            tabSpaceSwitch: 2,
-            groupingCountersSwitch: 0,
-            autoStopSwitch: 0,
-            powerSwitch: 1,
-            wordsKnob: 0,
-            linesKnob: 0,
-            groupsKnob: 0},
-
-        Cardatron: {
-            hasCardatron: true,
-            units: [
-                null,                   // unit[0] not used
-                {type: "CR1", formatSelect: 0, formatCol: 1},
-                {type: "NONE"},
-                {type: "NONE"},
-                {type: "NONE"},
-                {type: "LP3", algolGlyphs: true, greenBar: true,  zeroSuppressCols: ""},
-                {type: "CP2", algolGlyphs: true, greenBar: false, zeroSuppressCols: ""},
-                {type: "CP1", algolGlyphs: true, greenBar: false, zeroSuppressCols: ""}
-                ]},
-
-        MagTape: {
-            hasMagTape: true,
-            suppressBSwitch: false,     // false => off => suppress B-register modification
-            units: [
-                null,                   // unit[0] not used
-                {type: "MTA", designate: 0, remoteSwitch: false, rewindReadySwitch: true, notWriteSwitch: false},
-                {type: "NONE"},
-                {type: "NONE"},
-                {type: "MTD", designate: 3, remoteSwitch: false, rewindReadySwitch: true, notWriteSwitch: false},
-                {type: "MTE", designate: 4, remoteSwitch: false, rewindReadySwitch: true, notWriteSwitch: false},
-                {type: "NONE"},
-                {type: "NONE"},
-                {type: "NONE"},
-                {type: "NONE"},
-                {type: "NONE"}
-                ]}
-        };
-
+    this.configData = {};               // start with a clean slate
+    D205Util.deepCopy(this.initialConfigData, this.configData);
     this.flushHandler();
-
-    // Convert old Supervisory Panel prefs
-    s = localStorage.getItem("retro-205-SupervisoryPanel-Prefs");
-    if (s) {
-        try {
-            prefs = JSON.parse(s);
-        } finally {
-            // nothing
-        }
-
-        for (pref in prefs) {
-            this.configData.SupervisoryPanel[pref] = prefs[pref];
-        }
-        this.flushHandler();
-        localStorage.removeItem("retro-205-SupervisoryPanel-Prefs");
-    }
-
-    // Convert old Control Console prefs
-    s = localStorage.getItem("retro-205-ControlConsole-Prefs");
-    if (s) {
-        try {
-            prefs = JSON.parse(s);
-        } finally {
-            // nothing
-        }
-
-        for (pref in prefs) {
-            this.configData.ControlConsole[pref] = prefs[pref];
-        }
-        this.flushHandler();
-        localStorage.removeItem("retro-205-ControlConsole-Prefs");
-    }
-
-    // Convert old Flexowriter prefs
-    s = localStorage.getItem("retro-205-Flexowriter-Prefs");
-    if (s) {
-        try {
-            prefs = JSON.parse(s);
-        } finally {
-            // nothing
-        }
-
-        for (pref in prefs) {
-            this.configData.Flexowriter[pref] = prefs[pref];
-        }
-        this.flushHandler();
-        localStorage.removeItem("retro-205-Flexowriter-Prefs");
-    }
 };
 
 /**************************************/
@@ -172,22 +197,68 @@ D205SystemConfig.prototype.loadConfigData = function loadConfigData(jsonConfig) 
     /* Attempts to parse the JSON configuration data string and store it in
     this.configData. If the parse is unsuccessful, recreates the default configuration.
     Applies any necessary updates to older configurations */
+    var newConfig = null;
+    var oldConfig = null;
+    var modified = false;
+    var name = "";
+    var pref = null;
 
     try {
         this.configData = JSON.parse(jsonConfig);
     } catch (e) {
-        alert("Could not parse system configuration data:\n" +
+        this.alertWin.alert("Could not parse system configuration data:\n" +
               e.message + "\nReinitializing configuration");
         this.createConfigData();
     }
 
-    // Apply updates
-    if (this.getNode("Cardatron.hasCardatron") === undefined) {
-        this.putNode("Cardatron.hasCardatron", true);
+    // Convert old single-config structure to new multi-config structure
+    if (this.configData.version < 2) {
+        modified = true;
+        oldConfig = this.configData;
+        this.createConfigData();
+        newConfig = this.configData.configs[this.defaultConfigName];
+
+        D205Util.deepCopy(oldConfig.SupervisoryPanel, newConfig.SupervisoryPanel);
+        D205Util.deepCopy(oldConfig.ControlConsole, newConfig.ControlConsole);
+        D205Util.deepCopy(oldConfig.Flexowriter, newConfig.Flexowriter);
+        D205Util.deepCopy(oldConfig.Cardatron, newConfig.Cardatron);
+        D205Util.deepCopy(oldConfig.MagTape, newConfig.MagTape);
+
+        // Apply version 1 updates
+        if (this.getNode("Cardatron.hasCardatron") === undefined) {
+            this.putNode("Cardatron.hasCardatron", true);
+        }
+
+        if (this.getNode("MagTape.hasMagTape") === undefined) {
+            this.putNode("MagTape.hasMagTape", true);
+        }
+
+        pref = this.getNode("ControlConsole.use204FlexCodes");
+        if (pref !== undefined) {
+            this.putNode("Flexowriter.use204FlexCodes", pref);
+            this.putNode("ControlConsole.use204FlexCodes", undefined);
+        }
     }
 
-    if (this.getNode("MagTape.hasMagTape") === undefined) {
-        this.putNode("MagTape.hasMagTape", true);
+    // Apply any new initial configurations that are not in the user's config
+    for (name in this.initialConfigData.configs) {
+        if (!(name in this.configData.configs)) {
+            modified = true;
+            this.configData.configs[name] = {};
+            D205Util.deepCopy(this.initialConfigData.configs[name], this.configData.configs[name]);
+        }
+    }
+
+    // Make sure the current config name is valid
+    if (!(this.configData.currentConfig in this.configData.configs)) {
+        this.alertWin.alert("Current config name \"" + this.configData.currentConfig +
+                "\" does not exist, reverting to \"" + this.defaultConfigName + "\".");
+        modified = true;
+        this.configData.currentConfig = this.defaultConfigName;
+    }
+
+    if (modified) {
+        this.flushHandler();
     }
 };
 
@@ -211,6 +282,29 @@ D205SystemConfig.prototype.flush = function flush() {
 };
 
 /**************************************/
+D205SystemConfig.prototype.getConfigName = function getConfigName() {
+    /* Returns the name of the current configuration */
+
+    return this.configData.currentConfig;
+};
+
+/**************************************/
+D205SystemConfig.prototype.setConfigName = function setConfigName(configName) {
+    /* Attempts to set the name of the current configuration. Returns the name
+    of the configuration then in effect */
+
+    if (configName in this.configData.configs) {
+        this.configData.currentConfig = configName;
+        this.flushHandler();
+    } else {
+        this.alertWin.alert("Configuration name \"" + configName +
+                "\" does not exist, reverting to \"" + this.configData.currentConfig + "\".");
+    }
+
+    return this.configData.currentConfig;
+};
+
+/**************************************/
 D205SystemConfig.prototype.getNode = function getNode(nodeName, index) {
     /* Retrieves a specified node of the configuration data object tree.
     "nodeName" specifies the node using dotted-path format. A blank name
@@ -219,7 +313,7 @@ D205SystemConfig.prototype.getNode = function getNode(nodeName, index) {
     that element of the array. If a node does not exist, returns undefined */
     var name;
     var names;
-    var node = this.configData;
+    var node = this.configData.configs[this.configData.currentConfig];
     var top;
     var x;
 
@@ -258,9 +352,13 @@ D205SystemConfig.prototype.putNode = function putNode(nodeName, data, index) {
     several configuration changes into short order can be grouped in one flush */
     var name;
     var names;
-    var node = this.configData;
+    var node = this.configData.configs[this.configData.currentConfig];
     var top;
     var x;
+
+    if (node.fixed) {
+        return;                         // not allowed to change this config
+    }
 
     name = nodeName.trim();
     if (name.length > 0) {
@@ -312,16 +410,141 @@ D205SystemConfig.prototype.setListValue = function setListValue(id, value) {
 };
 
 /**************************************/
+D205SystemConfig.prototype.showConfigName = function showConfigName() {
+    /* Displays the current configuration name at the bottom of the form */
+
+    this.$$("MessageArea").textContent = "System Configuration \"" +
+            this.configData.currentConfig + "\" loaded.";
+};
+
+/**************************************/
+D205SystemConfig.prototype.loadConfigList = function loadConfigList() {
+    /* Loads the configuration list <select> list from the current configration */
+    var configs = this.configData.configs;
+    var cur = this.configData.currentConfig;
+    var list = this.$$("ConfigList");
+    var names = Object.keys(configs).sort();
+    var selected = false;
+    var text = "";
+    var value = "";
+    var x = 0;
+
+    while (list.firstChild) {
+        list.removeChild(list.firstChild);
+    }
+
+    for (x=0; x<names.length; ++x) {
+        value = names[x];
+        selected = (value == cur);
+        text = value;
+        if (configs[value].fixed) {
+            text += " (non-modifiable)";
+        }
+
+        list.add(new Option(text, value, selected, selected));
+    }
+};
+
+/**************************************/
+D205SystemConfig.prototype.enableFormModification = function enableFormModification() {
+    /* Enables or disables modification of the configuration form controls based
+    on the config.fixed property */
+    var cd = this.configData.configs[this.configData.currentConfig];
+    var e = null;
+    var elements = null;
+    var fixed = cd.fixed;               // fixed/non-modifiable configuration
+    var x = 0;
+
+    elements = this.$$("ConfigPanel").querySelectorAll("*");
+    for (x=0; x<elements.length; ++x) {
+        e = elements[x];
+        if ("disabled" in e) {
+            e.disabled = fixed;
+        }
+    }
+};
+
+/**************************************/
+D205SystemConfig.prototype.selectConfig = function selectConfig(ev) {
+    /* Click event handler for the ConfigList <select> list */
+    var list = ev.target;
+    var index = list.selectedIndex;
+
+    if (index >= 0) {
+        this.configData.currentConfig = list.options[list.selectedIndex].value;
+        this.loadConfigDialog();
+    }
+};
+
+/**************************************/
+D205SystemConfig.prototype.cloneConfig = function cloneConfig(ev) {
+    /* Click event handler for the CLONE button */
+    var configs = this.configData.configs;
+    var cur = this.configData.currentConfig;
+    var name = this.alertWin.prompt("Enter the name for the new configuration");
+
+    if (name !== null) {
+        name = name.trim();
+        if (name.length > 0) {
+            if (name in configs) {
+                this.alertWin.alert("The configuration \"" + name + "\" already exists.");
+            } else {
+                configs[name] = {};
+                D205Util.deepCopy(configs[cur], configs[name]);
+                configs[name].fixed = false;
+                this.configData.currentConfig = name;
+                this.loadConfigList();
+                // do not reload the configuration form
+                this.showConfigName();
+                this.enableFormModification();
+                this.flushHandler();
+            }
+        }
+    }
+};
+
+/**************************************/
+D205SystemConfig.prototype.deleteConfig = function deleteConfig(ev) {
+    /* Click event handler for the DELETE button */
+    var configs = this.configData.configs;
+    var cur = this.configData.currentConfig;
+
+    if (configs[cur].fixed) {
+        this.alertWin.alert("Cannot delete a non-modifiable configuration");
+    } else if (cur == this.defaultConfigName) {
+        this.alertWin.alert("Cannot delete the default configuration");
+    } else if (this.alertWin.confirm("Are you sure you want to delete the \"" +
+            cur + "\" configuration?")) {
+        delete configs[cur];
+        this.configData.currentConfig = this.defaultConfigName;
+        this.loadConfigList();
+        this.loadConfigDialog();
+        this.flushHandler();
+    }
+};
+
+/**************************************/
+D205SystemConfig.prototype.closeConfigDialog = function closeConfigDialog() {
+    /* Closes the configuration form window */
+
+    this.window.close();
+};
+
+/**************************************/
 D205SystemConfig.prototype.loadConfigDialog = function loadConfigDialog() {
     /* Loads the configuration UI window with the settings from this.configData */
-    var cd = this.configData;           // local configuration reference
+    var cd = this.configData.configs[this.configData.currentConfig];
     var prefix;                         // unit id prefix
     var unit;                           // unit configuration object
     var x;                              // unit index
 
+    // Control Console
     this.$$("ConsoleFlex").checked = cd.ControlConsole.hasFlexowriter;
     this.$$("ConsoleTapeReader").checked = cd.ControlConsole.hasPaperTapeReader;
     this.$$("ConsoleTapePunch").checked = cd.ControlConsole.hasPaperTapePunch;
+
+    // Flexowriter
+    this.$$("Use204FlexCodes").checked = cd.Flexowriter.use204FlexCodes;
 
     // Cardatron units
     for (x=1; x<=7; ++x) {
@@ -349,7 +572,6 @@ D205SystemConfig.prototype.loadConfigDialog = function loadConfigDialog() {
     } // for x
 
     // Magnetic Tape units
-
     this.$$("SuppressBMod").checked = !cd.MagTape.suppressBSwitch;
     for (x=1; x<=10; ++x) {
         unit = cd.MagTape.units[x];
@@ -361,7 +583,10 @@ D205SystemConfig.prototype.loadConfigDialog = function loadConfigDialog() {
         this.$$(prefix + "NotWrite").checked = unit.notWriteSwitch;
     } // for x
 
-    this.$$("MessageArea").textContent = "205 System Configuration loaded.";
+    // Set form element disabled attributes based on fixed configuration
+    this.enableFormModification();
+
+    this.showConfigName();
     this.window.focus();
 };
 
@@ -369,15 +594,20 @@ D205SystemConfig.prototype.loadConfigDialog = function loadConfigDialog() {
 D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
     /* Saves the configuration UI window settings to this.configData and flushes
     the updated configuration to localStorage */
-    var cd = this.configData;           // local configuration reference
+    var cd = this.configData.configs[this.configData.currentConfig];
     var e;                              // local element reference
     var prefix;                         // unit id prefix
     var unit;                           // unit configuration object
     var x;                              // unit index
 
+    // Control Console
     cd.ControlConsole.hasFlexowriter = this.$$("ConsoleFlex").checked;
     cd.ControlConsole.hasPaperTapeReader = this.$$("ConsoleTapeReader").checked;
     cd.ControlConsole.hasPaperTapePunch = this.$$("ConsoleTapePunch").checked;
+
+    // Flexowriter
+
+    cd.Flexowriter.use204FlexCodes = this.$$("Use204FlexCodes").checked;
 
     // Cardatron units
 
@@ -408,8 +638,6 @@ D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
         } // switch unit.type
     } // for x
 
-
-
     // Magnetic Tape units
 
     cd.MagTape.hasMagTape = false;
@@ -430,8 +658,9 @@ D205SystemConfig.prototype.saveConfigDialog = function saveConfigDialog() {
     } // for x
 
     this.flushHandler();                // store the configuration
-    this.$$("MessageArea").textContent = "205 System Configuration updated.";
-    this.window.close();
+    this.alertWin.alert("System Configuration \"" + this.configData.currentConfig +
+                "\" saved and made current.");
+    this.closeConfigDialog();
 };
 
 /**************************************/
@@ -441,15 +670,32 @@ D205SystemConfig.prototype.closeConfigUI = function closeConfigUI() {
     this.alertWin = window;             // revert alerts to the global window
     window.focus();
     if (this.window) {
+        this.$$("ConfigList").removeEventListener("change",
+                this.selectConfig.bind(this), false);
+        this.$$("SaveBtn").removeEventListener("click",
+                this.saveConfigDialog.bind(this), false);
+        this.$$("CancelBtn").removeEventListener("click",
+                this.closeConfigDialog.bind(this), false);
+        this.$$("CloneBtn").removeEventListener("click",
+                this.cloneConfig.bind(this), false);
+        this.$$("DeleteBtn").removeEventListener("click",
+                this.deleteConfig.bind(this), false);
+        this.window.removeEventListener("unload",
+                this.closeConfigUI.bind(this), false);
         if (!this.window.closed) {
             this.window.close();
         }
+
         this.window = null;
+        if (this.onUIClose) {
+            this.onUIClose(this.configData.currentConfigName);
+            this.onUIClose = null;
+        }
     }
 }
 
 /**************************************/
-D205SystemConfig.prototype.openConfigUI = function openConfigUI() {
+D205SystemConfig.prototype.openConfigUI = function openConfigUI(onUIClose) {
     /* Opens the system configuration update dialog and displays the current
     system configuration */
 
@@ -460,17 +706,27 @@ D205SystemConfig.prototype.openConfigUI = function openConfigUI() {
                 (screen.availHeight-this.window.outerHeight)/2);
         this.window.focus();
         this.alertWin = this.window;
+
+        this.$$("ConfigList").addEventListener("change",
+                this.selectConfig.bind(this), false);
         this.$$("SaveBtn").addEventListener("click",
                 this.saveConfigDialog.bind(this), false);
         this.$$("CancelBtn").addEventListener("click",
-                function(ev) {this.window.close()}.bind(this), false);
+                this.closeConfigDialog.bind(this), false);
+        this.$$("CloneBtn").addEventListener("click",
+                this.cloneConfig.bind(this), false);
+        this.$$("DeleteBtn").addEventListener("click",
+                this.deleteConfig.bind(this), false);
         this.window.addEventListener("unload",
                 this.closeConfigUI.bind(this), false);
+
+        this.loadConfigList();
         this.loadConfigDialog();
     }
 
     this.doc = null;
     this.window = null;
+    this.onUIClose = onUIClose;
     D205Util.openPopup(window, "../webUI/D205SystemConfig.html", this.configStorageName,
             "location=no,scrollbars,resizable,width=640,height=800",
             this, configUI_Load);

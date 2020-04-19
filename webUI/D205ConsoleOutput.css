@@ -72,10 +72,20 @@
 
 #FlexowriterLogo {
     position:           absolute;
-    top:                32px;
+    top:                20px;
     right:              16px;
     margin-left:        auto;
     margin-right:       auto}
+
+#FlexowriterMode {
+    position:           absolute;
+    top:                128px;
+    right:              34px;
+    width:              88px;
+    border:             2px solid #CCC;
+    padding:            4px;
+    border-radius:      4px;
+    background-color:   black}
 
 #FlexowriterPlaten {
     position:           absolute;
@@ -98,6 +108,8 @@
     margin-top:         2000px;
     margin-bottom:      0;
     padding:            0}
+#Paper .red {
+    color:              #F00}
 
 #EndOfPaper {
     display:            block;

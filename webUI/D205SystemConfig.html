@@ -13,7 +13,7 @@
 ************************************************************************
 * ElectroData/Burroughs 205 Emulator System Configuration page.
 *
-* Implements the system configuration user interface for the D205 emulator.
+* Defines the system configuration user interface for the D205 emulator.
 *
 ************************************************************************
 * 2016-11-18  P.Kimpel
@@ -38,426 +38,442 @@
     </div>
     <hr>
 
+    <div id=ConfigListDiv>
+        Configuration:
+        <select id=ConfigList>
+        </select>
+        <button id=CancelBtn class="redButton"
+                title="Close the configuration window without changing anything">CANCEL</button>
+        <button id=DeleteBtn class="blackButton blackLit"
+                title="Delete this configuration">DELETE</button>
+        <button id=CloneBtn class="blueButton"
+                title="Clone this configuration as a new one">CLONE</button>
+        <button id=SaveBtn class="greenButton"
+                title="Save this configuration and make it the current one">SAVE</button>
+    </div>
 
-    <div class=heading>Console Unit Selection:</div>
+    <div id=ConfigPanel>
+        <div class=heading>Console Unit Selection:</div>
 
-    <table id=ConsoleTable>
-    <tbody>
-    <tr>
-        <td class=center>
-            <input id=ConsoleFlex type=checkbox value=1 checked>
-        <td>
-            <label for=ConsoleFlex>Flexowriter Printer
-    <tr>
-        <td class=center>
-            <input id=ConsoleTapeReader type=checkbox value=1 checked>
-        <td>
-            <label for=ConsoleTapeReader>Paper Tape Readers (mechanical &amp; optical)
-    <tr>
-        <td class=center>
-            <input id=ConsoleTapePunch type=checkbox value=1 checked>
-        <td>
-            <label for=ConsoleTapePunch>Paper Tape Punch
-    </table>
+        <table id=ConsoleTable>
+        <tbody>
+        <tr>
+            <td class=center>
+                <input id=ConsoleFlex type=checkbox value=1 checked>
+            <td>
+                <label for=ConsoleFlex>Flexowriter Printer
+                &nbsp;&nbsp;&nbsp;
+                <input id=Use204FlexCodes type=checkbox value=1>
+                <label for=Use204FlexCodes>Use 203/204 Flexowriter encoding</label>
+        <tr>
+            <td class=center>
+                <input id=ConsoleTapeReader type=checkbox value=1 checked>
+            <td>
+                <label for=ConsoleTapeReader>Paper Tape Readers (mechanical &amp; optical)
+        <tr>
+            <td class=center>
+                <input id=ConsoleTapePunch type=checkbox value=1 checked>
+            <td>
+                <label for=ConsoleTapePunch>Paper Tape Punch
+        </table>
 
-    <div class=heading>Cardatron Unit Selection:</div>
+        <div class=heading>Cardatron Unit Selection:</div>
 
-    <table id=CardatronTable>
-    <thead>
-    <tr>
-        <th>Slot<th>Type<th>Algol Glyphs<th>Greenbar<th>Zero-Suppress Columns (set on device)
-    <tbody>
-    <tr>
-        <td class=center>1
-        <td class=center>
-            <select id=Cardatron1Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR1>Card Reader 1
-                <option          value=CP7>Card Punch 7
-                <option          value=LP7>Line Printer 7
-            </select>
-        <td class=center>
-            <input id=Cardatron1AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron1Greenbar type=checkbox value=1>
-        <td id=Cardatron1ZeroSuppressCols>
-            &nbsp;
+        <table id=CardatronTable>
+        <thead>
+        <tr>
+            <th>Slot<th>Type<th>Algol Glyphs<th>Greenbar<th>Zero-Suppress Columns<br>(set on device)
+        <tbody>
+        <tr>
+            <td class=center>1
+            <td class=center>
+                <select id=Cardatron1Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR1>Card Reader 1
+                    <option          value=CP7>Card Punch 7
+                    <option          value=LP7>Line Printer 7
+                </select>
+            <td class=center>
+                <input id=Cardatron1AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron1Greenbar type=checkbox value=1>
+            <td id=Cardatron1ZeroSuppressCols>
+                &nbsp;
 
-    <tr>
-        <td class=center>2
-        <td class=center>
-            <select id=Cardatron2Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR2>Card Reader 2
-                <option          value=CP6>Card Punch 6
-                <option          value=LP6>Line Printer 6
-            </select>
-        <td class=center>
-            <input id=Cardatron2AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron2Greenbar type=checkbox value=1>
-        <td id=Cardatron2ZeroSuppressCols>
-            &nbsp;
-    <tr>
-        <td class=center>3
-        <td class=center>
-            <select id=Cardatron3Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR3>Card Reader 3
-                <option          value=CP5>Card Punch 5
-                <option          value=LP5>Line Printer 5
-            </select>
-        <td class=center>
-            <input id=Cardatron3AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron3Greenbar type=checkbox value=1>
-        <td id=Cardatron3ZeroSuppressCols>
-            &nbsp;
-    <tr>
-        <td class=center>4
-        <td class=center>
-            <select id=Cardatron4Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR4>Card Reader 4
-                <option          value=CP4>Card Punch 4
-                <option          value=LP4>Line Printer 4
-            </select>
-        <td class=center>
-            <input id=Cardatron4AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron4Greenbar type=checkbox value=1>
-        <td id=Cardatron4ZeroSuppressCols>
-            &nbsp;
-    <tr>
-        <td class=center>5
-        <td class=center>
-            <select id=Cardatron5Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR5>Card Reader 5
-                <option          value=CP3>Card Punch 3
-                <option          value=LP3>Line Printer 3
-            </select>
-        <td class=center>
-            <input id=Cardatron5AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron5Greenbar type=checkbox value=1>
-        <td id=Cardatron5ZeroSuppressCols>
-            &nbsp;
-    <tr>
-        <td class=center>6
-        <td class=center>
-            <select id=Cardatron6Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR6>Card Reader 6
-                <option          value=CP2>Card Punch 2
-                <option          value=LP2>Line Printer 2
-            </select>
-        <td class=center>
-            <input id=Cardatron6AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron6Greenbar type=checkbox value=1>
-        <td id=Cardatron6ZeroSuppressCols>
-            &nbsp;
-    <tr>
-        <td class=center>7
-        <td class=center>
-            <select id=Cardatron7Type>
-                <option selected value=NONE>(not used)
-                <option          value=CR7>Card Reader 7
-                <option          value=CP1>Card Punch 1
-                <option          value=LP1>Line Printer 1
-            </select>
-        <td class=center>
-            <input id=Cardatron7AlgolGlyphs type=checkbox value=1>
-        <td class=center>
-            <input id=Cardatron7Greenbar type=checkbox value=1>
-        <td id=Cardatron7ZeroSuppressCols>
-            &nbsp;
-    </table>
+        <tr>
+            <td class=center>2
+            <td class=center>
+                <select id=Cardatron2Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR2>Card Reader 2
+                    <option          value=CP6>Card Punch 6
+                    <option          value=LP6>Line Printer 6
+                </select>
+            <td class=center>
+                <input id=Cardatron2AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron2Greenbar type=checkbox value=1>
+            <td id=Cardatron2ZeroSuppressCols>
+                &nbsp;
+        <tr>
+            <td class=center>3
+            <td class=center>
+                <select id=Cardatron3Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR3>Card Reader 3
+                    <option          value=CP5>Card Punch 5
+                    <option          value=LP5>Line Printer 5
+                </select>
+            <td class=center>
+                <input id=Cardatron3AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron3Greenbar type=checkbox value=1>
+            <td id=Cardatron3ZeroSuppressCols>
+                &nbsp;
+        <tr>
+            <td class=center>4
+            <td class=center>
+                <select id=Cardatron4Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR4>Card Reader 4
+                    <option          value=CP4>Card Punch 4
+                    <option          value=LP4>Line Printer 4
+                </select>
+            <td class=center>
+                <input id=Cardatron4AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron4Greenbar type=checkbox value=1>
+            <td id=Cardatron4ZeroSuppressCols>
+                &nbsp;
+        <tr>
+            <td class=center>5
+            <td class=center>
+                <select id=Cardatron5Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR5>Card Reader 5
+                    <option          value=CP3>Card Punch 3
+                    <option          value=LP3>Line Printer 3
+                </select>
+            <td class=center>
+                <input id=Cardatron5AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron5Greenbar type=checkbox value=1>
+            <td id=Cardatron5ZeroSuppressCols>
+                &nbsp;
+        <tr>
+            <td class=center>6
+            <td class=center>
+                <select id=Cardatron6Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR6>Card Reader 6
+                    <option          value=CP2>Card Punch 2
+                    <option          value=LP2>Line Printer 2
+                </select>
+            <td class=center>
+                <input id=Cardatron6AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron6Greenbar type=checkbox value=1>
+            <td id=Cardatron6ZeroSuppressCols>
+                &nbsp;
+        <tr>
+            <td class=center>7
+            <td class=center>
+                <select id=Cardatron7Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=CR7>Card Reader 7
+                    <option          value=CP1>Card Punch 1
+                    <option          value=LP1>Line Printer 1
+                </select>
+            <td class=center>
+                <input id=Cardatron7AlgolGlyphs type=checkbox value=1>
+            <td class=center>
+                <input id=Cardatron7Greenbar type=checkbox value=1>
+            <td id=Cardatron7ZeroSuppressCols>
+                &nbsp;
+        </table>
 
 
-    <div class=heading>Magnetic Tape Unit Selection:</div>
+        <div class=heading>Magnetic Tape Unit Selection:</div>
 
-    <table id=MagTapeOptionsTable>
-    <tbody>
-    <tr>
-        <td class=center>
-            <input id=SuppressBMod type=checkbox value=1 checked>
-        <td class=center>
-            <label for=SuppressBMod>Suppress B-Register Modification
-    </table>
+        <table id=MagTapeOptionsTable>
+        <tbody>
+        <tr>
+            <td class=center>
+                <input id=SuppressBMod type=checkbox value=1 checked>
+            <td class=center>
+                <label for=SuppressBMod>Suppress B-Register Modification
+        </table>
 
-    <table id=MagTapeTable>
-    <thead>
-    <tr>
-        <th>Unit<th>Type<th>Designate<th>Remote<th>Rewind-Ready<th>Not-Write
-    <tbody>
-    <tr>
-        <td class=center>A
-        <td class=center>
-            <select id=MagTape1Type>
-                <option          value=NONE>(not used)
-                <option selected value=MTA>DataReader
-                <option          value=DFA>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape1Designate>
-                <option selected value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape1Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape1RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape1NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>B
-        <td class=center>
-            <select id=MagTape2Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTB>DataReader
-                <option          value=DFB>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape2Designate>
-                <option          value=1>1
-                <option selected value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape2Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape2RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape2NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>C
-        <td class=center>
-            <select id=MagTape3Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTC>DataReader
-                <option          value=DFC>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape3Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option selected value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape3Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape3RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape3NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>D
-        <td class=center>
-            <select id=MagTape4Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTD>DataReader
-                <option          value=DFD>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape4Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option selected value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape4Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape4RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape4NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>E
-        <td class=center>
-            <select id=MagTape5Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTE>DataReader
-                <option          value=DFE>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape5Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option selected value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape5Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape5RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape5NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>F
-        <td class=center>
-            <select id=MagTape6Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTF>DataReader
-                <option          value=DFG>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape6Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option selected value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape6Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape6RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape6NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>G
-        <td class=center>
-            <select id=MagTape7Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTG>DataReader
-                <option          value=DFG>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape7Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option selected value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape7Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape7RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape7NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>H
-        <td class=center>
-            <select id=MagTape8Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTH>DataReader
-                <option          value=DFH>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape8Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option selected value=8>8
-                <option          value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape8Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape8RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape8NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>I
-        <td class=center>
-            <select id=MagTape9Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTI>DataReader
-                <option          value=DFI>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape9Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option selected value=9>9
-                <option          value=0>0
-        <td class=center>
-            <input id=MagTape9Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape9RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape9NotWrite type=checkbox value=1>
-    <tr>
-        <td class=center>J
-        <td class=center>
-            <select id=MagTape10Type>
-                <option selected value=NONE>(not used)
-                <option          value=MTJ>DataReader
-                <option          value=DFJ>DataFile
-            </select>
-        <td class=center>
-            <select id=MagTape10Designate>
-                <option          value=1>1
-                <option          value=2>2
-                <option          value=3>3
-                <option          value=4>4
-                <option          value=5>5
-                <option          value=6>6
-                <option          value=7>7
-                <option          value=8>8
-                <option          value=9>9
-                <option selected value=0>0
-        <td class=center>
-            <input id=MagTape10Remote type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape10RewindReady type=checkbox value=1 checked>
-        <td class=center>
-            <input id=MagTape10NotWrite type=checkbox value=1>
-    </table>
+        <table id=MagTapeTable>
+        <thead>
+        <tr>
+            <th>Unit<th>Type<th>Designate<th>Remote<th>Rewind-Ready<th>Not-Write
+        <tbody>
+        <tr>
+            <td class=center>A
+            <td class=center>
+                <select id=MagTape1Type>
+                    <option          value=NONE>(not used)
+                    <option selected value=MTA>DataReader
+                    <option          value=DFA>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape1Designate>
+                    <option selected value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape1Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape1RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape1NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>B
+            <td class=center>
+                <select id=MagTape2Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTB>DataReader
+                    <option          value=DFB>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape2Designate>
+                    <option          value=1>1
+                    <option selected value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape2Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape2RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape2NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>C
+            <td class=center>
+                <select id=MagTape3Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTC>DataReader
+                    <option          value=DFC>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape3Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option selected value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape3Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape3RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape3NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>D
+            <td class=center>
+                <select id=MagTape4Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTD>DataReader
+                    <option          value=DFD>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape4Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option selected value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape4Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape4RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape4NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>E
+            <td class=center>
+                <select id=MagTape5Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTE>DataReader
+                    <option          value=DFE>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape5Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option selected value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape5Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape5RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape5NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>F
+            <td class=center>
+                <select id=MagTape6Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTF>DataReader
+                    <option          value=DFG>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape6Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option selected value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape6Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape6RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape6NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>G
+            <td class=center>
+                <select id=MagTape7Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTG>DataReader
+                    <option          value=DFG>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape7Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option selected value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape7Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape7RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape7NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>H
+            <td class=center>
+                <select id=MagTape8Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTH>DataReader
+                    <option          value=DFH>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape8Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option selected value=8>8
+                    <option          value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape8Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape8RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape8NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>I
+            <td class=center>
+                <select id=MagTape9Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTI>DataReader
+                    <option          value=DFI>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape9Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option selected value=9>9
+                    <option          value=0>0
+            <td class=center>
+                <input id=MagTape9Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape9RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape9NotWrite type=checkbox value=1>
+        <tr>
+            <td class=center>J
+            <td class=center>
+                <select id=MagTape10Type>
+                    <option selected value=NONE>(not used)
+                    <option          value=MTJ>DataReader
+                    <option          value=DFJ>DataFile
+                </select>
+            <td class=center>
+                <select id=MagTape10Designate>
+                    <option          value=1>1
+                    <option          value=2>2
+                    <option          value=3>3
+                    <option          value=4>4
+                    <option          value=5>5
+                    <option          value=6>6
+                    <option          value=7>7
+                    <option          value=8>8
+                    <option          value=9>9
+                    <option selected value=0>0
+            <td class=center>
+                <input id=MagTape10Remote type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape10RewindReady type=checkbox value=1 checked>
+            <td class=center>
+                <input id=MagTape10NotWrite type=checkbox value=1>
+        </table>
+    </div>
 
 
     <div id=MessageArea></div>
-    <button id=CancelBtn class="redButton">CANCEL</button>
-    <button id=SaveBtn class="greenButton">SAVE</button>
 </div>
 
 </body>

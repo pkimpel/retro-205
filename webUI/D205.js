@@ -22,6 +22,13 @@ window.addEventListener("load", function() {
     var statusMsgTimer = 0;             // status message timer control cookie
 
     /**************************************/
+    function showConfigName() {
+        /* Displays the name of the current system configuration */
+
+        document.getElementById("ConfigName").textContent = config.getConfigName();
+    }
+
+    /**************************************/
     function systemShutDown() {
         /* Powers down the Processor and shuts down all of the panels and I/O devices */
         var e;
@@ -77,7 +84,7 @@ window.addEventListener("load", function() {
     function configureSystem(ev) {
         /* Opens the system configuration UI */
 
-        config.openConfigUI();
+        config.openConfigUI(showConfigName);
     }
 
     /**************************************/
@@ -106,6 +113,35 @@ window.addEventListener("load", function() {
             diagWindow.global = global; // give it access to our globals.
             diagWindow.focus();
         });
+    }
+
+    /**************************************/
+    function parseQueryString() {
+        /* Parses the query string for the request, looking for a "Config="
+        key. If found, sets the current system configuration to that name */
+        var key = "";
+        var pair = null;
+        var param = "";
+        var params = null;
+        var searchText = window.location.search;
+        var val = "";
+        var x = 0;
+
+        if (searchText.indexOf("?") == 0) {
+            params = searchText.substring(1).split("&");
+            for (x=0; x<params.length; ++x) {
+                param = params[x];
+                pair = param.split("=");
+                key = decodeURIComponent(pair[0] || "").trim().toUpperCase();
+                val = decodeURIComponent(pair[1] || "").trim();
+
+                switch (key) {
+                case "CONFIG":
+                    config.setConfigName(val);
+                    break;
+                } // switch key
+            }
+        }
     }
 
     /**************************************/
@@ -141,6 +177,8 @@ window.addEventListener("load", function() {
     document.getElementById("StartUpBtn").disabled = true;
     document.getElementById("EmulatorVersion").textContent = D205Processor.version;
     if (checkBrowser()) {
+        parseQueryString();
+        showConfigName();
         document.getElementById("Retro205Logo").addEventListener("dblclick", openDiagPanel, false);
         document.getElementById("StartUpBtn").disabled = false;
         document.getElementById("StartUpBtn").addEventListener("click", systemStartup, false);

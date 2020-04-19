@@ -210,9 +210,9 @@ D205SupervisoryPanel.prototype.meatballMemdump = function meatballMemdump() {
         if (p.cswSkip)               {s += " Skip"}
         s += " Breakpoint=";
         switch (p.cswBreakpoint) {
-            case 1: s += "4"; break;
+            case 4: s += "4"; break;
             case 2: s += "2"; break;
-            case 3: s += "1"; break;
+            case 1: s += "1"; break;
             default:s += "Off";
         }
 
@@ -969,9 +969,10 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     this.$$("TWA").addEventListener("click", this.boundLamp_Click);
     this.$$("3IO").addEventListener("click", this.boundLamp_Click);
 
+    this.$$("ConfigName").textContent = this.config.getConfigName();
     this.$$("EmulatorVersion").textContent = D205Processor.version;
 
-    // Power on the system by default...
+    // Power on the system automatically by default...
     setCallback(this.mnemonic, this, 1000, function powerOnTimer() {
         this.powerOnSystem();
     });
