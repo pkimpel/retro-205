@@ -186,7 +186,6 @@ D205ControlConsole.prototype.button_Click = function button_Click(ev) {
             break;
         case "StopBtn":
             if (ready) {
-                this.p.stopControl = 1;
                 this.p.cctContinuous = 0;
                 this.p.stop();
             }
@@ -213,7 +212,7 @@ D205ControlConsole.prototype.flipSwitch = function flipSwitch(ev) {
     case "AudibleAlarmSwitch":
         this.audibleAlarmSwitch.flip();
         this.config.putNode("ControlConsole.audibleAlarmSwitch",
-                this.p.sswAudibleAlarm = this.audibleAlarmSwitch.state);
+                this.p.cswAudibleAlarm = this.audibleAlarmSwitch.state);
         break;
     case "SkipSwitch":
         this.skipSwitch.flip();
@@ -377,7 +376,7 @@ D205ControlConsole.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     this.skipSwitch.set(this.p.cswSkip = prefs.skipSwitch);
     this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
             D205ControlConsole.offSwitchImage, D205ControlConsole.onSwitchImage);
-    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
+    this.audibleAlarmSwitch.set(this.p.cswAudibleAlarm = prefs.audibleAlarmSwitch);
 
     this.outputKnob = new BlackControlKnob(body, null, null, "OutputKnob",
         prefs.outputKnob, [60, 90, 115]);

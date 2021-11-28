@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.03a";
+D205Processor.version = "1.04";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -562,7 +562,7 @@ D205Processor.prototype.updateAdderGlow = function updateAdderGlow(adder, ct) {
 /**************************************/
 D205Processor.prototype.sampleLamps = function sampleLamps(alpha, memAlpha) {
     /* Updates the lamp intensity arrays for all registers. "alpha" and "memAlpha"
-    must be in the range (0-,1) and indicate the relative significance for the current
+    must be in the range (0,1) and indicate the relative significance for the current
     register settings to the running exponential average algorithm */
     var alpha1 = 1.0 - alpha;
     var tg = this.toggleGlow;
@@ -729,7 +729,7 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
 
     // Loop through the 11 digits including sign digits
     for (x=0; x<11; ++x) {
-        // Shift low-order augend digit right into the adder
+        // Shift low-order augend digit right into the adder, complementing as necessary
         ad = am % 0x10;
         am = (am - ad)/0x10;
         if (ad > 9) {
@@ -739,7 +739,7 @@ D205Processor.prototype.bcdAdd = function bcdAdd(a, d, complement, initialCarry)
             ad = 9-ad;
         }
 
-        // Add the digits plus carry, complementing as necessary
+        // Add the digits plus carry
         dd = dm % 0x10;
         if (dd > 9) {
             this.stopForbidden = 1;
@@ -1001,7 +1001,10 @@ D205Processor.prototype.integerDivide = function integerDivide() {
         am = am*0x10 + rd;
 
         // Now repeatedly subtract D from A until we would get underflow.
-        // Unlike the 205, we don't do one subtraction too many.
+        // Unlike the 205, we don't do one subtraction too many, so bump the
+        // word-time counter by 2 to account for the subtraction and re-add that
+        // we don't do.
+        count += 2;
         rd = 0;
         while (am >= dm && rd < 10) {
             am = this.bcdAdd(dm, am, 1, 1);
@@ -1649,11 +1652,12 @@ D205Processor.prototype.searchMemory = function searchMemory(high) {
     a time, then if no match is found, perform a catch-up delay. A final partial
     delay is performed at the end of the search.
 
-    Note: the MSH (85) and MSE (88) instructions apparently were a custom
+    Note: the MSH (85) and MSE (87) instructions apparently were a custom
     modification in 1959 for a 205 to be delivered to the Eaton Manufacturing
     Company. A description of these two instructions was found in the back of
     the 205 Central Computer Handbook included with Donald Knuth's papers donated
     to the Computer History Museum in Mountain View, California */
+
     var addr;                           // main binary address, mod 4000
     var aWord = this.A % 0x10000000000; // search target word
     var drumTime =                      // current drum position [word-times]
@@ -3279,14 +3283,15 @@ D205Processor.prototype.loadDefaultProgram = function loadDefaultProgram() {
 
     // Hello World
     this.MM[  20] = 0x0000070500;       // PTWF 0500  line feed
-    this.MM[  21] = 0x0000640027;       // CAD    27
+    this.MM[  21] = 0x0000640028;       // CAD    28
     this.MM[  22] = 0x0000030410;       // PTW  0410
     this.MM[  23] = 0x0000070800;       // PTWF 0800  space
-    this.MM[  24] = 0x0000640028;       // CAD    28
+    this.MM[  24] = 0x0000640029;       // CAD    29
     this.MM[  25] = 0x0000030410;       // PTW  0410
-    this.MM[  26] = 0x0000089429;       // HALT 9429
-    this.MM[  27] = 0x4845535356;       // LIT  "HELLO"
-    this.MM[  28] = 0x6656595344;       // LIT  "WORLD"
+    this.MM[  26] = 0x0000070500;       // PTWF 0500  line feed
+    this.MM[  27] = 0x0000089429;       // STOP 9429
+    this.MM[  28] = 0x4845535356;       // LIT  "HELLO"
+    this.MM[  29] = 0x6656595344;       // LIT  "WORLD"
 
     // Clear memory the straightforward (and pretty slow) way
     this.MM[  50] = 0x00000023999;      // STC  3999    clear A

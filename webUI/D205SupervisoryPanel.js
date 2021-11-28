@@ -23,6 +23,8 @@ function D205SupervisoryPanel(p, systemShutdown) {
     this.intervalToken = 0;             // setInterval() token
     this.p = p;                         // D205Processor object
     this.systemShutdown = systemShutdown; // system shut-down callback
+    this.alarming = false;              // True if alarm is currently sounding
+    this.alarmSound = null;             // Alarm sound element on the page
 
     this.boundLamp_Click = D205SupervisoryPanel.prototype.lamp_Click.bind(this);
     this.boundMeatballMemdump = D205SupervisoryPanel.prototype.meatballMemdump.bind(this);
@@ -418,6 +420,24 @@ D205SupervisoryPanel.prototype.updatePanel = function updatePanel() {
     this.l6Lamp.set(tg.glowL6);
     this.l7Lamp.set(tg.glowL7);
 
+    // Control the audible alarm
+    if (p.sswAudibleAlarm && p.cswAudibleAlarm) {
+        if (p.stopControl || p.stopOverflow || p.stopBreakpoint || p.stopForbidden || p.stopSector) {
+            if (!this.alarming) {
+                this.alarming = true;
+                this.alarmSound.play();
+            }
+        } else {
+            if (this.alarming) {
+                this.alarming = false;
+                this.alarmSound.pause();
+            }
+        }
+    } else if (this.alarming) {
+        this.alarming = false;
+        this.alarmSound.pause();
+    }
+
     /********** DEBUG **********
     this.$$("ProcDelta").value = p.procSlackAvg.toFixed(2);
     this.$$("LastLatency").value = p.delayDeltaAvg.toFixed(2);
@@ -701,7 +721,7 @@ D205SupervisoryPanel.prototype.flipSwitch = function flipSwitch(ev) {
         this.config.putNode("SupervisoryPanel.wordContSwitch", 0);
         setCallback(null, this.wordContSwitch, 250, this.wordContSwitch.set, 0);
         break;
-    case "FrequencyKnob":               // non-function knob -- just step it
+    case "FrequencyKnob":               // non-functional knob -- just step it
         this.frequencyKnob.step();
         this.config.putNode("SupervisoryPanel.frequencyKnob", this.frequencyKnob.position);
         break;
@@ -918,15 +938,25 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     this.frequencyKnob = new BlackControlKnob(body, null, null, "FrequencyKnob",
         prefs.frequencyKnob, [-60, -30, 0, 30, 60]);
 
-    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
-            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
-    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = prefs.audibleAlarmSwitch);
     this.lockNormalSwitch = new ToggleSwitch(body, null, null, "LockNormalSwitch",
             D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.lockNormalSwitch.set(this.p.sswLockNormal = prefs.lockNormalSwitch);
     this.stepContinuousSwitch = new ToggleSwitch(body, null, null, "StepContinuousSwitch",
             D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
     this.stepContinuousSwitch.set(this.p.sswStepContinuous = prefs.stepContinuousSwitch);
+
+    // Note that the Audible Alarm switch on the Supervisory Panel is unconditionally
+    // set to DISABLED and not restored from the setting in prefs. The corresponding
+    // switch on the Control Console IS restored from prefs, however. The reasons for
+    // this are (a) to avoid generating sound unless the user really wants to hear it,
+    // but more importantly, (b) since about 2019, the major browsers inhibit <audio>
+    // play unless the user has interacted with the page in some fashion, e.g., by means
+    // of a mouse click. Thus a user clicking the Audible Alarm switch to change it from
+    // DISABLED to ON will satisfy this requirement.
+
+    this.audibleAlarmSwitch = new ToggleSwitch(body, null, null, "AudibleAlarmSwitch",
+            D205SupervisoryPanel.offSwitchImage, D205SupervisoryPanel.onSwitchImage);
+    this.audibleAlarmSwitch.set(this.p.sswAudibleAlarm = 0);
 
     // Events
 
@@ -969,8 +999,11 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     this.$$("TWA").addEventListener("click", this.boundLamp_Click);
     this.$$("3IO").addEventListener("click", this.boundLamp_Click);
 
+    // Miscellaneous
+
     this.$$("ConfigName").textContent = this.config.getConfigName();
     this.$$("EmulatorVersion").textContent = D205Processor.version;
+    this.alarmSound = this.$$("AlarmSound");
 
     // Power on the system automatically by default...
     setCallback(this.mnemonic, this, 1000, function powerOnTimer() {
