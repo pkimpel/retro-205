@@ -162,7 +162,7 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.03";
+D205Processor.version = "1.03a";
 
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
@@ -2714,9 +2714,7 @@ D205Processor.prototype.execute = function execute() {
         // 0x05:        //---------------- (no op)
 
         case 0x06:      //---------------- UA   Unit Adjust
-            if (this.A % 2 == 0) {
-                ++this.A;
-            }
+            this.A = D205Processor.bitSet(this.A, 36);
             this.executeComplete();
             break;
 
