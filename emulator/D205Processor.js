@@ -162,8 +162,6 @@ function D205Processor(config, devices) {
 *   Global Constants                                                   *
 ***********************************************************************/
 
-D205Processor.version = "1.04";
-
 D205Processor.drumRPM = 3570;           // memory drum speed, RPM
 D205Processor.trackSize = 200;          // words per drum revolution
 D205Processor.loopSize = 20;            // words per high-speed loop

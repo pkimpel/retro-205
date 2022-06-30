@@ -175,7 +175,7 @@ window.addEventListener("load", function() {
     /***** window.onload() outer block *****/
 
     document.getElementById("StartUpBtn").disabled = true;
-    document.getElementById("EmulatorVersion").textContent = D205Processor.version;
+    document.getElementById("EmulatorVersion").textContent = D205Version.version;
     if (checkBrowser()) {
         parseQueryString();
         showConfigName();

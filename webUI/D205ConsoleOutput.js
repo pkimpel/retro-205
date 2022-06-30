@@ -60,6 +60,7 @@ function D205ConsoleOutput(mnemonic, p) {
 D205ConsoleOutput.offSwitch = "./resources/ToggleDown.png";
 D205ConsoleOutput.midSwitch = "./resources/ToggleMid.png";
 D205ConsoleOutput.onSwitch = "./resources/ToggleUp.png";
+D205ConsoleOutput.cursorChar = "_";     // end-of-line cursor
 
 D205ConsoleOutput.cardatronXlate = [    // translate internal Cardatron code to ANSI
         " ", "|", "|", ".", "|", "|", "|", "|", "|", "|",       // 00-09
@@ -191,15 +192,16 @@ D205ConsoleOutput.prototype.flexEmptyLine = function flexEmptyLine(text) {
     /* Removes excess lines already output, then appends a new text node
     to the <pre> element within the paper element */
     var paper = this.flexPaper;
+    var lastLine = this.flexLine.nodeValue;
     var line = text || "";
 
     while (paper.childNodes.length > this.maxScrollLines) {
         paper.removeChild(paper.firstChild);
     }
 
-    this.flexLine.nodeValue += "\n";    // newline
+    this.flexLine.nodeValue = lastLine.substring(0, lastLine.length-1) + "\n";
     paper = this.flexLine.parentNode;
-    this.flexLine = this.flexDoc.createTextNode(line);
+    this.flexLine = this.flexDoc.createTextNode(line + D205ConsoleOutput.cursorChar);
     paper.appendChild(this.flexLine);
     this.flexCol = line.length;
     this.flexEOP.scrollIntoView();
@@ -212,13 +214,13 @@ D205ConsoleOutput.prototype.flexChar = function flexChar(c) {
     var len = line.length;
 
     if (len < 1) {
-        line = c;
+        line = c + D205ConsoleOutput.cursorChar;
         ++this.flexCol;
     } else if (this.flexCol < 120) {
-        line += c;
+        line = line.substring(0, len-1) + c + D205ConsoleOutput.cursorChar;
         ++this.flexCol;
     } else {
-         line = line.substring(0, len-1) + c;
+         line = line.substring(0, 119) + "\u2588" + D205ConsoleOutput.cursorChar;
     }
 
     this.flexLine.nodeValue = line;

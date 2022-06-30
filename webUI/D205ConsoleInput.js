@@ -71,13 +71,8 @@ D205ConsoleInput.prototype.PRTapeSupplyBar_onclick = function PRTapeSupplyBar_on
     if (this.ready) {
         if (this.window.confirm((this.bufLength-this.bufIndex).toString() + " of " + this.bufLength.toString() +
                      " characters remaining to read.\nDo you want to clear the reader input?")) {
-            this.ready = false;
-            this.buffer = "";
-            this.bufLength = 0;
-            this.bufIndex = 0;
-            this.tapeSupplyBar.value = 0;
             this.tapeView.value = "";
-            this.$$("PRFileSelector").value = null;     // reset the control
+            this.setReaderEmpty();
         }
     }
 };

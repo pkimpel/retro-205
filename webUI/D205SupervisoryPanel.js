@@ -1002,8 +1002,9 @@ D205SupervisoryPanel.prototype.consoleOnLoad = function consoleOnLoad(ev) {
     // Miscellaneous
 
     this.$$("ConfigName").textContent = this.config.getConfigName();
-    this.$$("EmulatorVersion").textContent = D205Processor.version;
+    this.$$("EmulatorVersion").textContent = D205Version.version;
     this.alarmSound = this.$$("AlarmSound");
+    this.alarmSound.volume = 0.25;
 
     // Power on the system automatically by default...
     setCallback(this.mnemonic, this, 1000, function powerOnTimer() {
