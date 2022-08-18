@@ -13,7 +13,10 @@ format, with carriage-return/line-feed delimiters.
 Algol58_Tape_TomSawyer.tape
     Tape image for the Burroughs Algebraic Compiler as transcribed from
     a numeric tape dump by Tom Sawyer and converted to retro-205
-    emulator format. This tape can be loaded and executed as follows:
+    emulator format. This tape can be loaded and the compiler run in two
+    ways:
+
+    A. Manual setup:
         1. Load this tape image file on magnetic tape unit 5 and set the
            REMOTE/LOCAL switch to REMOTE.
         2. Load a blank tape to tape unit 1 and put it in REMOTE.
@@ -31,12 +34,24 @@ Algol58_Tape_TomSawyer.tape
         8. After the tape image loads, the compiler will initialize and
            after several seconds hang with a CDR (44) in the C-register
            order field.
-        9. Load the card deck to be compiled in the card reader and
-           click START. The system should resume processing and write
-           the compiled code to tape unit 1. A listing will be printed
-           on Cardatron output unit 3.
+        9. Load the card deck to be compiled in the card reader
+           (Cardatron input unit 1) and click START. The system should
+           resume processing and write the compiled code to tape unit 1.
+           A listing will be printed on Cardatron output unit 3.
        10. The compiler should eventually halt with 7570 in the C-
            register address field.
+       11. If the program compiled successfully, it can be run
+           immediately by clicking CONT. Otherwise, the program can be
+           loaded and run from the output tape on unit 1 using the
+           Algol58_Program_Loader.card deck.
+
+    B. Using the compiler bootstrap loader:
+        1. Perform steps 1 to 4 from the manual setup instructions
+           above.
+        2. Load the one-card compiler bootstrap (Algol58_Tape_Loader.
+           card) in the card reader.
+        3. Perform steps 9 to 11 from the manual setup instructions
+           above.
 
 Algol58_Tape_Annotated_TomSawyer.xls
     Microsoft Excel spreadsheet prepared by Tom Sawyer from his
@@ -84,6 +99,10 @@ Algol58_Tape_Loader.card
     A a card-based bootstrap program to load and execute the
     Burroughs Algebraic Compiler from Algol58_Tape_TomSawyer.tape.
 
+Algol58_Program_Loader.card
+    A card-based bootstrap program to clear memory and load the object
+    code for an Algol program compiled to tape on unit 1.
+
 PaperTape-Version/
     Directory containing a version of the compiler adapted by Tom Sawyer
     for paper tape input and Cardatron output.
@@ -100,6 +119,5 @@ tests/
 
 
 Paul Kimpel
-February 2017
-
+August 2022
 

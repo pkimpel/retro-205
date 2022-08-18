@@ -70,9 +70,24 @@ PCS-1-Test.card
 FLOAT-Test.lst
     Compiler listing produced from PCS-1-Test.card.
 
+SimpsonTest.card
+    A small Algol program supplied by Tom Sawyer to do integration by
+    Simpson's rule.
+
+SimpsonTest.lst
+    Compiler listing and output for SimpsonText.card.
+
+WritePowersOfTwo.card
+    A small Algol program supplied by Tom Sawyer to compute and print
+    powers of two.
+
+WritePowersOfTwo.lst
+    Compiler listing and output for WritePowersOfTwo.card.
+
 
 Paul Kimpel
-February 2017
+August 2022
+
 
 
 
